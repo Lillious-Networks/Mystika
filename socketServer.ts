@@ -192,7 +192,6 @@ export const events = {
     return connections;
   },
   broadcast(packet: string) {
-    // Broadcast a message to all connected clients
     console.log("Broadcasting message:", packet);
     server.publish("BROADCAST" as Subscription["event"], packet);
   },

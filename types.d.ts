@@ -24,7 +24,7 @@ declare interface Subscription {
 // Define the identity of a client
 declare interface Identity {
   id: string;
-  useragent?: string;
+  useragent: string;
 };
 
 // Define client rate limit

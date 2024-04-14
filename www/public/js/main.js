@@ -5,9 +5,7 @@ socket.addEventListener("open", () => {
     type: "PING",
     data: "Some data",
   };
-  setInterval(() => {
-    socket.send(JSON.stringify(packet));
-  }, 50);
+  socket.send(JSON.stringify(packet));
 });
 
 socket.addEventListener("message", (event) => {
