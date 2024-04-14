@@ -1,0 +1,123 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+#container {
+    width: 100%;
+    height: 100vh;
+    background-color: #f1f1f1;
+    background: url('/img/background.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-origin: border-box;
+}
+
+#logo {
+    content: url('/img/logo.png');
+    width: auto;
+    height: auto;
+    /* Position at top center */
+    position: absolute;
+    top: 165px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    /* Move up and down smoothly */
+    animation: move_logo 2s infinite ease-in-out;
+}
+
+#login {
+    content: url('/img/login.png');
+    width: 500px;
+    height: auto;
+    /* Position at top center */
+    position: absolute;
+    top: 200px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    /* Move up and down smoothly */
+    animation: move_login 2s infinite ease-in-out;
+}
+
+#login-container {
+    width: 315px;
+    height: 205px;
+    align-items: center;
+    align-content: center;
+    position: absolute;
+    top: 525px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    transform: translateY(-50%);
+    padding: 20px;
+    z-index: 10000;
+    /* Move up and down smoothly */
+    animation: move_login_container 2s infinite ease-in-out;
+}
+
+input {
+    display: block;
+    outline: none;
+    border: none;
+    z-index: 10000;
+    font-size: 16px;
+    height: 30px;
+    width: 92%;
+    color: #B17767;
+    font-weight: 600;
+}
+
+#username {
+    margin-top: 18px;
+    margin-left: 10px;
+    background-color: transparent;
+}
+
+#password {
+    margin-top: 53px;
+    margin-left: 10px;
+    background-color: transparent;
+}
+
+/* Move #logo up and down over time very smoothly */
+@keyframes move_logo {
+    0% {
+        top: 165px;
+    }
+    50% {
+        top: 173px;
+    }
+    100% {
+        top: 165px;
+    }
+}
+
+/* Move #login up and down over time very smoothly and slightly delayed */
+@keyframes move_login {
+    0% {
+        top: 200px;
+    }
+    50% {
+        top: 205px;
+    }
+    100% {
+        top: 200px;
+    }
+}
+
+/* Move #login-container up and down over time very smoothly and slightly delayed */
+@keyframes move_login_container {
+    0% {
+        top: 525px;
+    }
+    50% {
+        top: 530px;
+    }
+    100% {
+        top: 525px;
+    }
+}

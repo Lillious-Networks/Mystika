@@ -58,7 +58,7 @@ export const server = Bun.serve<Packet>({
           client.windowTime = 0;
           return;
         }
-        console.log(`Client with id: ${client.id} has ${client.requests} requests in ${client.windowTime}ms`);
+        // console.log(`Client with id: ${client.id} has ${client.requests} requests in ${client.windowTime}ms`);
         client.windowTime += 1000;
         if (client.windowTime > RateLimitOptions.maxWindowTime) {
           client.requests = 0;

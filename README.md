@@ -1,7 +1,7 @@
 <h1 align="center">Mystika - Game Engine</h1>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Lillious/Mystika/main/logo.png?token=GHSAT0AAAAAACK4XUN74ZE6X3JR2SCV5WUIZQ3E5DQ">
+  ![Image](../blob/master/www/public/img/logo.png?raw=true)
 </p>
 
 <h3>Client Identity</h3>
