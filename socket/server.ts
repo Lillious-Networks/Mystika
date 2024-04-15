@@ -1,17 +1,5 @@
 import crypto from "crypto";
-import path from "path";
-
-// Define the packet types
-const PacketTypes: PacketType = {
-  0: "PING",
-  1: "PONG",
-  2: "CONNECTION_COUNT",
-  3: "RATE_LIMITED",
-  4: "LOGIN",
-  5: "LOGIN_SUCCESS",
-  6: "LOGIN_FAILED",
-  7: "LOAD_MAP"
-};
+import PacketReceiver from "./receiver";
 
 const RateLimitOptions: RateLimitOptions = {
   // Maximum amount of requests
@@ -20,6 +8,17 @@ const RateLimitOptions: RateLimitOptions = {
   time: 5000,
   // Maximum window time in milliseconds
   maxWindowTime: 4000
+};
+
+export const PacketTypes: PacketType = {
+  0: "PING",
+  1: "PONG",
+  2: "CONNECTION_COUNT",
+  3: "RATE_LIMITED",
+  4: "LOGIN",
+  5: "LOGIN_SUCCESS",
+  6: "LOGIN_FAILED",
+  7: "LOAD_MAP"
 };
 
 // Set to store all connected clients
@@ -144,63 +143,13 @@ export const server = Bun.serve<Packet>({
             }
           }
         }
-
-        if (!message) return;
-        if (message.length > 512) return ws.close(1009, "Message too large");
-        const parsedMessage: Packet = tryParsePacket(message) as Packet;
-        if (!parsedMessage) return;
-
-        const type = parsedMessage.type;
-        const data = parsedMessage.data;
-        const index = Object.values(PacketTypes).indexOf(type as string);
-        if (index === -1) return;
-
-        switch (PacketTypes[index]) {
-          // PING
-          case PacketTypes[0]: {
-            //console.log("Received PING");
-            ws.send(JSON.stringify({ type: PacketTypes[1], data: data }));
-            break;
-          }
-          // PONG
-          case PacketTypes[1]: {
-            //console.log("Received PONG");
-            ws.send(JSON.stringify({ type: PacketTypes[0], data: data }));
-            break;
-          }
-          // LOGIN
-          case PacketTypes[4]: {
-            console.log(`Client with id: ${ws.data.id} logged in`);
-            // Send a message to the client to load the main map
-            ws.send(JSON.stringify({ type: PacketTypes[5], data: "Login successful" }));
-            // Dynamic Import the map data json from /assets/maps/main.json
-            const mapData = await import(path.join(import.meta.dir, "maps", "main.json"));
-            const mapHash = crypto.createHash("sha256").update(JSON.stringify(mapData)).digest("hex");
-            if (!mapData) return;
-            // Send the map data to the client
-            ws.send(JSON.stringify({ type: PacketTypes[7], data: [mapData, mapHash, 'main.json'] }));
-            break;
-          }
-          // Unknown packet type
-          default: {
-            //console.log("Unknown packet type");
-            break;
-          }
-        }
+        PacketReceiver(ws, message.toString());
       } catch (e) {
         console.error(e);
       }
     },
   },
 });
-
-function tryParsePacket(data: any) {
-  try {
-    return JSON.parse(data.toString());
-  } catch (e) {
-    return null;
-  }
-}
 
 export const events = {
   getOnlineCount() {
