@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import path from "path";
 
 // Define the packet types
 const PacketTypes: PacketType = {
@@ -6,6 +7,10 @@ const PacketTypes: PacketType = {
   1: "PONG",
   2: "CONNECTION_COUNT",
   3: "RATE_LIMITED",
+  4: "LOGIN",
+  5: "LOGIN_SUCCESS",
+  6: "LOGIN_FAILED",
+  7: "LOAD_MAP"
 };
 
 const RateLimitOptions: RateLimitOptions = {
@@ -117,7 +122,7 @@ export const server = Bun.serve<Packet>({
         }
       }
     },
-    message(ws, message: string | Buffer) {
+    async message(ws, message: string | Buffer) {
       try {
         // Check if the request has an identity
         if (!ws.data.id) return;
@@ -161,6 +166,18 @@ export const server = Bun.serve<Packet>({
           case PacketTypes[1]: {
             //console.log("Received PONG");
             ws.send(JSON.stringify({ type: PacketTypes[0], data: data }));
+            break;
+          }
+          // LOGIN
+          case PacketTypes[4]: {
+            console.log(`Client with id: ${ws.data.id} logged in`);
+            // Send a message to the client to load the main map
+            ws.send(JSON.stringify({ type: PacketTypes[5], data: "Login successful" }));
+            // Dynamic Import the map data json from /assets/maps/main.json
+            const mapData = await import(path.join(import.meta.dir, "assets", "maps", "main.json"));
+            if (!mapData) return;
+            // Send the map data to the client
+            ws.send(JSON.stringify({ type: PacketTypes[7], data: [mapData, "main"] }));
             break;
           }
           // Unknown packet type

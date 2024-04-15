@@ -1,11 +1,15 @@
 import express from 'express';
 import { events, server } from './socketServer';
+import path from 'path';
 
 const app = express();
 app.use(express.json());
 
 // Static files
-app.use(express.static('www/public'));
+app.use('/', express.static('www/public'));
+
+// Static files at /assets
+app.use('/assets', express.static(path.join(import.meta.dirname, 'assets')));
 
 app.listen(80, () => {
   console.log('Web server is listening on localhost:80');

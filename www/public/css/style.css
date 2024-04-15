@@ -121,3 +121,18 @@ input {
         top: 525px;
     }
 }
+
+#game {
+    background-color: #f1f1f1;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+}
+
+canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: pixelated;
+    image-rendering: optimizeQuality;
+}

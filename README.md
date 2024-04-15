@@ -25,6 +25,10 @@ const PacketTypes: PacketType = {
   1: "PONG",
   2: "CONNECTION_COUNT",
   3: "RATE_LIMITED",
+  4: "LOGIN",
+  5: "LOGIN_SUCCESS",
+  6: "LOGIN_FAILED",
+  7: "LOAD_MAP"
 };
 ```
 
