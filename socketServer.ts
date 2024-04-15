@@ -174,10 +174,11 @@ export const server = Bun.serve<Packet>({
             // Send a message to the client to load the main map
             ws.send(JSON.stringify({ type: PacketTypes[5], data: "Login successful" }));
             // Dynamic Import the map data json from /assets/maps/main.json
-            const mapData = await import(path.join(import.meta.dir, "assets", "maps", "main.json"));
+            const mapData = await import(path.join(import.meta.dir, "maps", "main.json"));
+            const mapHash = crypto.createHash("sha256").update(JSON.stringify(mapData)).digest("hex");
             if (!mapData) return;
             // Send the map data to the client
-            ws.send(JSON.stringify({ type: PacketTypes[7], data: [mapData, "main"] }));
+            ws.send(JSON.stringify({ type: PacketTypes[7], data: [mapData, mapHash, 'main.json'] }));
             break;
           }
           // Unknown packet type
