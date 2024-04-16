@@ -12,7 +12,7 @@
 declare interface Identity {
   id: string;
   useragent: string;
-};
+}
 ```
 
 <h3>Packets</h3>
@@ -28,7 +28,7 @@ const PacketTypes: PacketType = {
   4: "LOGIN",
   5: "LOGIN_SUCCESS",
   6: "LOGIN_FAILED",
-  7: "LOAD_MAP"
+  7: "LOAD_MAP",
 };
 ```
 
@@ -51,7 +51,7 @@ declare interface Packet {
 const RateLimitOptions: RateLimitOptions = {
   maxRequests: 100,
   time: 5000,
-  maxWindowTime: 4000
+  maxWindowTime: 4000,
 };
 ```
 
@@ -62,18 +62,18 @@ const RateLimitOptions: RateLimitOptions = {
 
     <p>Returns the amount of clients that are currently connected</p>
 
--   <h5>getOnlineData</h5>
+- <h5>getOnlineData</h5>
 
-    <p>Returns a list that contains client connection data</p>
+  <p>Returns a list that contains client connection data</p>
 
--   <h5>broadcast</h5>
+- <h5>broadcast</h5>
 
-    <p>Broadcasts a message to all connected clients</p>
+  <p>Broadcasts a message to all connected clients</p>
 
--   <h5>getClientRequests</h5>
+- <h5>getClientRequests</h5>
 
-    <p>Returns a list that contains client request data
+  <p>Returns a list that contains client request data
 
--   <h5>getRateLimitedClients</h5>
+- <h5>getRateLimitedClients</h5>
 
-    <p>Returns a list of rate limited clients</p>
+  <p>Returns a list of rate limited clients</p>

@@ -7,7 +7,7 @@ const RateLimitOptions: RateLimitOptions = {
   // Time in milliseconds to remove rate limiting
   time: 5000,
   // Maximum window time in milliseconds
-  maxWindowTime: 4000
+  maxWindowTime: 4000,
 };
 
 export const PacketTypes: PacketType = {
@@ -18,7 +18,7 @@ export const PacketTypes: PacketType = {
   4: "LOGIN",
   5: "LOGIN_SUCCESS",
   6: "LOGIN_FAILED",
-  7: "LOAD_MAP"
+  7: "LOAD_MAP",
 };
 
 // Set to store all connected clients
@@ -33,7 +33,8 @@ export const server = Bun.serve<Packet>({
     // and generate a random id for the client
     const id = crypto.randomBytes(32).toString("hex");
     const useragent = req.headers.get("user-agent");
-    if (!useragent) return new Response("User-Agent header is missing", { status: 400 });
+    if (!useragent)
+      return new Response("User-Agent header is missing", { status: 400 });
     const success = server.upgrade(req, { data: { id, useragent } });
     return success
       ? undefined
@@ -46,14 +47,22 @@ export const server = Bun.serve<Packet>({
     open(ws) {
       // Add the client to the set of connected clients
       if (!ws.data.id || !ws.data.useragent) return;
-      connections.add({ id: ws.data.id, useragent: ws.data.useragent});
+      connections.add({ id: ws.data.id, useragent: ws.data.useragent });
       console.log(`Client connected with id: ${ws.data.id}`);
       // Add the client to the clientRequests array
-      ClientRateLimit.push({ id: ws.data.id, requests: 0, rateLimited: false, time: null, windowTime: 0});
+      ClientRateLimit.push({
+        id: ws.data.id,
+        requests: 0,
+        rateLimited: false,
+        time: null,
+        windowTime: 0,
+      });
       // Track the clients window time and reset the requests count
       // if the window time is greater than the max window time
       setInterval(() => {
-        const index = ClientRateLimit.findIndex((client) => client.id === ws.data.id);
+        const index = ClientRateLimit.findIndex(
+          (client) => client.id === ws.data.id
+        );
         if (index === -1) return;
         const client = ClientRateLimit[index];
         // Return if the client is rate limited
@@ -137,8 +146,12 @@ export const server = Bun.serve<Packet>({
               client.time = Date.now();
               console.log(`Client with id: ${ws.data.id} is rate limited`);
               // Output the rate limited clients
-              console.log(ClientRateLimit.filter((client) => client.rateLimited));
-              ws.send(JSON.stringify({ type: PacketTypes[3], data: "Rate limited" }));
+              console.log(
+                ClientRateLimit.filter((client) => client.rateLimited)
+              );
+              ws.send(
+                JSON.stringify({ type: PacketTypes[3], data: "Rate limited" })
+              );
               return;
             }
           }
@@ -151,6 +164,7 @@ export const server = Bun.serve<Packet>({
   },
 });
 
+// Exported server events
 export const events = {
   getOnlineCount() {
     return connections.size;
