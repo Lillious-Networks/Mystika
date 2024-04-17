@@ -1,6 +1,8 @@
 import crypto from "crypto";
 import PacketReceiver from "./receiver";
-let online = false;
+export const Listener = new EventEmitter();
+import { Event } from "../systems/events";
+import EventEmitter from 'node:events';
 
 const RateLimitOptions: RateLimitOptions = {
   // Maximum amount of requests
@@ -32,6 +34,7 @@ Object.freeze(connections);
 
 // Set to track the amount of requests
 const ClientRateLimit = [] as ClientRateLimit[];
+
 
 export const Server = Bun.serve<Packet>({
   fetch(req, Server) {
@@ -172,19 +175,27 @@ export const Server = Bun.serve<Packet>({
 
 Object.freeze(Server);
 
+// Awake event
+Listener.on("onAwake", (data) => {
+  
+});
+
+// Start event
+Listener.on('onStart', () => {
+  
+});
+
 // Register the Server as online
-online = true;
+Event.emit("online", Server);
 
-// Code to run every update loop
-async function UpdateLoop() {
-  // console.log("Update loop code");
-}
+// Fixed update loop
+Listener.on('onUpdate', () => {
+  
+});
 
-Object.freeze(UpdateLoop);
+// Fixed update loop
+Listener.on('onFixedUpdate', () => {
 
-// Code to run every fixed update loop
-async function FixedUpdateLoop() {
-  // Remove rate limited clients that are older than 15 minutes
   {
     if (ClientRateLimit.length < 1) return;
     const timestamp = Date.now();
@@ -200,36 +211,10 @@ async function FixedUpdateLoop() {
       }
     }
   }
-}
-
-Object.freeze(FixedUpdateLoop);
+});
 
 // Exported Server events
 export const Events = {
-  // Start runs once the Server is online
-  async Start() {
-    return new Promise<void>((resolve) => {
-      setInterval(() => {
-        if (online) {
-          resolve();
-        }
-      }, 0);
-    });
-  },
-  Update() {
-    if (!online) return;
-    // Runs every 60 frames per second
-    setInterval(() => {
-      UpdateLoop();
-    }, 1000 / 60);
-  },
-  FixedUpdate() {
-    if (!online) return;
-    // Runs every 1 second
-    setInterval(() => {
-      FixedUpdateLoop();
-    }, 1000);
-  },
   GetOnlineCount() {
     return connections.size;
   },
@@ -249,9 +234,3 @@ export const Events = {
 };
 
 Object.freeze(Events);
-
-// Register the update events once the Server is online
-Events.Start().then(() => {
-  Events.Update();
-  Events.FixedUpdate();
-});

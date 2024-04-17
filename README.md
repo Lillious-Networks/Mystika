@@ -62,50 +62,56 @@ const RateLimitOptions: RateLimitOptions = {
 import { Events } from "../socket/server";
 ```
 
-- <h5>Events.Start();</h5>
+<h5>Events.GetOnlineCount();</h5>
+<p style="font-size:0.8em;">Returns the amount of clients that are currently connected</p>
 
-    <p>Runs once the server is online or on first frame</p>
-    <p>Registers:</p>
-    
-    ```ts
-    Events.UpdateLoop();
-    Events.FixedUpdateLoop();
-    ```
+<h5>Events.GetOnlineData();</h5>
+<p style="font-size:0.8em;">Returns a list that contains client connection data</p>
 
-- <h5>Events.Update();</h5>
+<h5>Events.Broadcast(packet: string);</h5>
+<p style="font-size:0.8em;">Broadcasts a message to all connected clients</p>
 
-    <p>Runs every 60 frames per second</p>
-    <p>Calls:</p>
-    
-    ```ts
-    Events.UpdateLoop();
-    ```
+<h5>Events.GetClientRequests();</h5>
+<p style="font-size:0.8em;">Returns a list that contains client request data
 
-- <h5>Events.FixedUpdate();</h5>
+<h5>Events.GetRateLimitedClients();</h5>
+<p style="font-size:0.8em;">Returns a list of rate limited clients</p>
 
-    <p>Runs every 1 second</p>
-    <p>Calls:</p>
-    
-    ```ts
-    Events.FixedUpdateLoop();
-    ```
+<hr>
+<h3>Listener Events</h3>
 
-- <h5>Events.GetOnlineCount();</h5>
+<h5>onAwake</h5>
+<p style="font-size:0.8em;">Fires immediately after the server starts</p>
 
-    <p>Returns the amount of clients that are currently connected</p>
+```ts
+Listener.on("onAwake", (data) => {
+  console.log("Awake event emitted");
+});
+```
 
-- <h5>Events.GetOnlineData();</h5>
+<h5>onStart</h5>
+<p style="font-size:0.8em;">Fires immediately after <b>onAwake</b></p>
 
-  <p>Returns a list that contains client connection data</p>
+```ts
+Listener.on("onStart", (data) => {
+  console.log("Start event emitted");
+});
+```
 
-- <h5>Events.Broadcast(packet: string);</h5>
+<h5>onUpdate</h5>
+<p style="font-size:0.8em;">Fires immediately after <b>onStart</b> every 60 frames</p>
 
-  <p>Broadcasts a message to all connected clients</p>
+```ts
+Listener.on("onUpdate", (data) => {
+  console.log("Update event emitted");
+});
+```
 
-- <h5>Events.GetClientRequests();</h5>
+<h5>onFixedUpdate</h5>
+<p style="font-size:0.8em;">Fires immediately after <b>onStart</b> every 100ms</p>
 
-  <p>Returns a list that contains client request data
-
-- <h5>Events.GetRateLimitedClients();</h5>
-
-  <p>Returns a list of rate limited clients</p>
+```ts
+Listener.on("onFixedUpdate", (data) => {
+  console.log("Fixed update event emitted");
+});
+```

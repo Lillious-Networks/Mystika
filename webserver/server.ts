@@ -1,5 +1,4 @@
 import express from "express";
-import * as ws from "../socket/server";
 import path from "path";
 const port = 80;
 
@@ -27,8 +26,7 @@ app.use(functionRouter);
 Object.freeze(functionRouter);
 
 // Start the server
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`Web server is listening on localhost:${port}`);
+  await import("../socket/server");
 });
-
-console.log(`Socket server is listening on ${ws.Server.hostname}:${ws.Server.port}`);
