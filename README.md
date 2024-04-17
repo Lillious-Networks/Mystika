@@ -58,22 +58,54 @@ const RateLimitOptions: RateLimitOptions = {
 <hr>
 <h3>Events</h3>
 
-- <h5>getOnlineCount</h5>
+```ts
+import { Events } as ws from "../socket/server";
+```
+
+- <h5>Events.Start();</h5>
+
+    <p>Runs once the server is online or on first frame</p>
+    <p>Registers:</p>
+    
+    ```ts
+    Events.UpdateLoop();
+    Events.FixedUpdateLoop();
+    ```
+
+- <h5>Events.Update();</h5>
+
+    <p>Runs every 60 frames per second</p>
+    <p>Calls:</p>
+    
+    ```ts
+    Events.UpdateLoop();
+    ```
+
+- <h5>Events.FixedUpdate();</h5>
+
+    <p>Runs every 1 second</p>
+    <p>Calls:</p>
+    
+    ```ts
+    Events.FixedUpdateLoop();
+    ```
+
+- <h5>Events.GetOnlineCount();</h5>
 
     <p>Returns the amount of clients that are currently connected</p>
 
-- <h5>getOnlineData</h5>
+- <h5>Events.GetOnlineData();</h5>
 
   <p>Returns a list that contains client connection data</p>
 
-- <h5>broadcast</h5>
+- <h5>Events.Broadcast(packet: string);</h5>
 
   <p>Broadcasts a message to all connected clients</p>
 
-- <h5>getClientRequests</h5>
+- <h5>Events.GetClientRequests();</h5>
 
   <p>Returns a list that contains client request data
 
-- <h5>getRateLimitedClients</h5>
+- <h5>Events.GetRateLimitedClients();</h5>
 
   <p>Returns a list of rate limited clients</p>

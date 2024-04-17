@@ -33,15 +33,15 @@ Object.freeze(connections);
 // Set to track the amount of requests
 const ClientRateLimit = [] as ClientRateLimit[];
 
-export const server = Bun.serve<Packet>({
-  fetch(req, server) {
+export const Server = Bun.serve<Packet>({
+  fetch(req, Server) {
     // Upgrade the request to a WebSocket connection
     // and generate a random id for the client
     const id = crypto.randomBytes(32).toString("hex");
     const useragent = req.headers.get("user-agent");
     if (!useragent)
       return new Response("User-Agent header is missing", { status: 400 });
-    const success = server.upgrade(req, { data: { id, useragent } });
+    const success = Server.upgrade(req, { data: { id, useragent } });
     return success
       ? undefined
       : new Response("WebSocket upgrade error", { status: 400 });
@@ -91,7 +91,7 @@ export const server = Bun.serve<Packet>({
         type: PacketTypes[2],
         data: connections.size,
       } as unknown as Packet;
-      server.publish(
+      Server.publish(
         "CONNECTION_COUNT" as Subscription["event"],
         JSON.stringify(packet)
       );
@@ -119,7 +119,7 @@ export const server = Bun.serve<Packet>({
             type: PacketTypes[2],
             data: connections.size,
           } as unknown as Packet;
-          server.publish(
+          Server.publish(
             "CONNECTION_COUNT" as Subscription["event"],
             JSON.stringify(packet)
           );
@@ -170,9 +170,9 @@ export const server = Bun.serve<Packet>({
   },
 });
 
-Object.freeze(server);
+Object.freeze(Server);
 
-// Register the server as online
+// Register the Server as online
 online = true;
 
 // Code to run every update loop
@@ -204,10 +204,10 @@ async function FixedUpdateLoop() {
 
 Object.freeze(FixedUpdateLoop);
 
-// Exported server events
-export const events = {
-  // Start runs once the server is online
-  async start () {
+// Exported Server events
+export const Events = {
+  // Start runs once the Server is online
+  async Start() {
     return new Promise<void>((resolve) => {
       setInterval(() => {
         if (online) {
@@ -216,42 +216,42 @@ export const events = {
       }, 0);
     });
   },
-  update() {
+  Update() {
     if (!online) return;
     // Runs every 60 frames per second
     setInterval(() => {
       UpdateLoop();
     }, 1000 / 60);
   },
-  fixedUpdate() {
+  FixedUpdate() {
     if (!online) return;
     // Runs every 1 second
     setInterval(() => {
       FixedUpdateLoop();
     }, 1000);
   },
-  getOnlineCount() {
+  GetOnlineCount() {
     return connections.size;
   },
-  getOnlineData() {
+  GetOnlineData() {
     return connections;
   },
-  broadcast(packet: string) {
+  Broadcast(packet: string) {
     console.log("Broadcasting message:", packet);
-    server.publish("BROADCAST" as Subscription["event"], packet);
+    Server.publish("BROADCAST" as Subscription["event"], packet);
   },
-  getClientRequests() {
+  GetClientRequests() {
     return ClientRateLimit;
   },
-  getRateLimitedClients() {
+  GetRateLimitedClients() {
     return ClientRateLimit.filter((client) => client.rateLimited);
   },
 };
 
-Object.freeze(events);
+Object.freeze(Events);
 
-// Register the update events once the server is online
-events.start().then(() => {
-  events.update();
-  events.fixedUpdate();
+// Register the update events once the Server is online
+Events.Start().then(() => {
+  Events.Update();
+  Events.FixedUpdate();
 });

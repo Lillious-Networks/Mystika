@@ -31,4 +31,4 @@ app.listen(port, () => {
   console.log(`Web server is listening on localhost:${port}`);
 });
 
-console.log(`Socket server is listening on ${ws.server.hostname}:${ws.server.port}`);
+console.log(`Socket server is listening on ${ws.Server.hostname}:${ws.Server.port}`);
