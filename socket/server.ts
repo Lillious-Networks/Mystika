@@ -177,14 +177,29 @@ online = true;
 
 // Code to run every update loop
 async function UpdateLoop() {
-  console.log("Update loop code");
+  // console.log("Update loop code");
 }
 
 Object.freeze(UpdateLoop);
 
 // Code to run every fixed update loop
 async function FixedUpdateLoop() {
-  console.log("Fixed update loop code");
+  // Remove rate limited clients that are older than 15 minutes
+  {
+    if (ClientRateLimit.length < 1) return;
+    const timestamp = Date.now();
+    for (let i = 0; i < ClientRateLimit.length; i++) {
+      const client = ClientRateLimit[i];
+      if (client.rateLimited && client.time) {
+        if (timestamp - client.time! > RateLimitOptions.time) {
+          client.rateLimited = false;
+          client.requests = 0;
+          client.time = null;
+          console.log(`Client with id: ${client.id} is no longer rate limited`);
+        }
+      }
+    }
+  }
 }
 
 Object.freeze(FixedUpdateLoop);
@@ -240,21 +255,3 @@ events.start().then(() => {
   events.update();
   events.fixedUpdate();
 });
-
-// Timer to remove rate limited clients
-setInterval(() => {
-  // Get the current timestamp
-  const timestamp = Date.now();
-  // Remove rate limited clients that are older than 15 minutes
-  for (let i = 0; i < ClientRateLimit.length; i++) {
-    const client = ClientRateLimit[i];
-    if (client.rateLimited && client.time) {
-      if (timestamp - client.time! > RateLimitOptions.time) {
-        client.rateLimited = false;
-        client.requests = 0;
-        client.time = null;
-        console.log(`Client with id: ${client.id} is no longer rate limited`);
-      }
-    }
-  }
-}, 1000);
