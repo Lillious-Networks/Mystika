@@ -59,7 +59,7 @@ const RateLimitOptions: RateLimitOptions = {
 <h3>Events</h3>
 
 ```ts
-import { Events } as ws from "../socket/server";
+import { Events } from "../socket/server";
 ```
 
 - <h5>Events.Start();</h5>
