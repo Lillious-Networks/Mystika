@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import PacketReceiver from "./receiver";
+let online = false;
 
 const RateLimitOptions: RateLimitOptions = {
   // Maximum amount of requests
@@ -9,6 +10,8 @@ const RateLimitOptions: RateLimitOptions = {
   // Maximum window time in milliseconds
   maxWindowTime: 4000,
 };
+
+Object.freeze(RateLimitOptions);
 
 export const PacketTypes: PacketType = {
   0: "PING",
@@ -21,8 +24,11 @@ export const PacketTypes: PacketType = {
   7: "LOAD_MAP",
 };
 
+Object.freeze(PacketTypes);
+
 // Set to store all connected clients
 const connections = new Set<Identity>();
+Object.freeze(connections);
 
 // Set to track the amount of requests
 const ClientRateLimit = [] as ClientRateLimit[];
@@ -164,8 +170,51 @@ export const server = Bun.serve<Packet>({
   },
 });
 
+Object.freeze(server);
+
+// Register the server as online
+online = true;
+
+// Code to run every update loop
+async function UpdateLoop() {
+  console.log("Update loop code");
+}
+
+Object.freeze(UpdateLoop);
+
+// Code to run every fixed update loop
+async function FixedUpdateLoop() {
+  console.log("Fixed update loop code");
+}
+
+Object.freeze(FixedUpdateLoop);
+
 // Exported server events
 export const events = {
+  // Start runs once the server is online
+  async start () {
+    return new Promise<void>((resolve) => {
+      setInterval(() => {
+        if (online) {
+          resolve();
+        }
+      }, 0);
+    });
+  },
+  update() {
+    if (!online) return;
+    // Runs every 60 frames per second
+    setInterval(() => {
+      UpdateLoop();
+    }, 1000 / 60);
+  },
+  fixedUpdate() {
+    if (!online) return;
+    // Runs every 1 second
+    setInterval(() => {
+      FixedUpdateLoop();
+    }, 1000);
+  },
   getOnlineCount() {
     return connections.size;
   },
@@ -183,6 +232,14 @@ export const events = {
     return ClientRateLimit.filter((client) => client.rateLimited);
   },
 };
+
+Object.freeze(events);
+
+// Register the update events once the server is online
+events.start().then(() => {
+  events.update();
+  events.fixedUpdate();
+});
 
 // Timer to remove rate limited clients
 setInterval(() => {

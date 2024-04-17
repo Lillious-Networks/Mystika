@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 
-// Load all maps from the maps directory
+// Load maps
 export function GetMaps(): MapData[] {
   const maps = [] as MapData[];
   const mapDir = path.join(import.meta.dir, "..", "assets", "maps");
@@ -23,7 +23,9 @@ export function GetMaps(): MapData[] {
   return maps;
 }
 
-// Load all tilesets from the tilesets directory and return the base64 encoded image
+Object.freeze(GetMaps);
+
+// Load tilesets
 export function GetTilesets(): TilesetData[] {
   const tilesets = [] as TilesetData[];
   const tilesetDir = path.join(import.meta.dir, "..", "assets", "tilesets");
@@ -41,3 +43,26 @@ export function GetTilesets(): TilesetData[] {
 
   return tilesets;
 }
+
+Object.freeze(GetTilesets);
+
+// Load scripts
+export function GetScripts(): ScriptData[] {
+  const scripts = [] as ScriptData[];
+  const scriptDir = path.join(import.meta.dir, "..", "assets", "scripts");
+  if (!fs.existsSync(scriptDir)) return scripts;
+
+  const scriptFiles = fs.readdirSync(scriptDir);
+  scriptFiles.forEach((file) => {
+    const scriptData = fs.readFileSync(path.join(scriptDir, file), "utf-8");
+    const scriptHash = crypto
+      .createHash("sha256")
+      .update(scriptData)
+      .digest("hex");
+    scripts.push({ name: file, data: scriptData, hash: scriptHash });
+  });
+
+  return scripts;
+}
+
+Object.freeze(GetScripts);

@@ -4,6 +4,7 @@ import path from "path";
 const port = 80;
 
 const app = express();
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -17,8 +18,13 @@ app.use("/", express.static(path.join(import.meta.dirname, "www/public")));
 // Routes
 import { router as mapRouter } from "../routes/map";
 app.use(mapRouter);
+Object.freeze(mapRouter);
 import { router as tilesetRouter } from "../routes/tileset";
 app.use(tilesetRouter);
+Object.freeze(tilesetRouter);
+import { router as functionRouter } from "../routes/functions";
+app.use(functionRouter);
+Object.freeze(functionRouter);
 
 // Start the server
 app.listen(port, () => {

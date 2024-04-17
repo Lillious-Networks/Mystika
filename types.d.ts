@@ -56,3 +56,10 @@ declare interface TilesetData {
   data: string;
   hash: string;
 }
+
+// Define script data
+declare interface ScriptData {
+  name: string;
+  data: string;
+  hash: string;
+}

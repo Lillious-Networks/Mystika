@@ -1,6 +1,7 @@
 import { PacketTypes } from "./server";
 import { GetMaps } from "../modules/assetloader";
 const maps = GetMaps();
+Object.freeze(maps);
 
 export default async function PacketReceiver(ws: any, message: string) {
   try {
@@ -59,6 +60,8 @@ export default async function PacketReceiver(ws: any, message: string) {
   }
 }
 
+Object.freeze(PacketReceiver);
+
 function tryParsePacket(data: any) {
   try {
     return JSON.parse(data.toString());
@@ -66,3 +69,5 @@ function tryParsePacket(data: any) {
     return null;
   }
 }
+
+Object.freeze(tryParsePacket);
