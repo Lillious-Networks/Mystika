@@ -176,7 +176,7 @@ export const Server = Bun.serve<Packet>({
 Object.freeze(Server);
 
 // Awake event
-Listener.on("onAwake", (data) => {
+Listener.on("onAwake", () => {
   
 });
 
@@ -195,7 +195,6 @@ Listener.on('onUpdate', () => {
 
 // Fixed update loop
 Listener.on('onFixedUpdate', () => {
-
   {
     if (ClientRateLimit.length < 1) return;
     const timestamp = Date.now();

@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 const port = 80;
-
 const app = express();
 
 // Middleware
