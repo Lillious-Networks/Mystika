@@ -1,5 +1,6 @@
 import { PacketTypes } from "./server";
 import { GetMaps } from "../modules/assetloader";
+import log from "../modules/logger";
 const maps = GetMaps();
 Object.freeze(maps);
 
@@ -30,7 +31,7 @@ export default async function PacketReceiver(ws: any, message: string) {
       }
       // LOGIN
       case PacketTypes[4]: {
-        console.log(`Client with id: ${ws.data.id} logged in`);
+        log.success(`Client with id: ${ws.data.id} logged in`);
         // Send a message to the client to load the main map
         ws.send(
           JSON.stringify({ type: PacketTypes[5], data: "Login successful" })
