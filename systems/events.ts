@@ -1,11 +1,11 @@
 import EventEmitter from "node:events";
-
+import log from "../modules/logger";
 export const Event = new EventEmitter();
 import { Listener } from "../socket/server";
 
 // Online runs once the Server is online
 Event.on("online", (data) => {
-  console.log(`Socket server is listening on ${data.hostname}:${data.port}`);
+  log.info(`Socket server is listening on ${data.hostname}:${data.port}`);
   // Emit awake event
   Listener.emit("onAwake");
   // Emit start event

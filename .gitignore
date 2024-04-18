@@ -141,3 +141,13 @@ x64
 yarn.lock
 zig-cache
 zig-out
+/certs/*.crt
+/certs/*.key
+/certs/*.pem
+/certs/*.srl
+/certs/*.csr
+/certs/*.der
+/certs/*.p12
+/certs/*.pfx
+/certs/*.jks
+/certs/*.jceks

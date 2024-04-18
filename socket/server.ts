@@ -3,6 +3,7 @@ import PacketReceiver from "./receiver";
 export const Listener = new EventEmitter();
 import { Event } from "../systems/events";
 import EventEmitter from 'node:events';
+import log from "../modules/logger";
 
 const RateLimitOptions: RateLimitOptions = {
   // Maximum amount of requests
@@ -57,7 +58,7 @@ export const Server = Bun.serve<Packet>({
       // Add the client to the set of connected clients
       if (!ws.data.id || !ws.data.useragent) return;
       connections.add({ id: ws.data.id, useragent: ws.data.useragent });
-      console.log(`Client connected with id: ${ws.data.id}`);
+      log.debug(`Client connected with id: ${ws.data.id}`);
       // Add the client to the clientRequests array
       ClientRateLimit.push({
         id: ws.data.id,
@@ -116,7 +117,7 @@ export const Server = Bun.serve<Packet>({
       if (clientToDelete) {
         const deleted = connections.delete(clientToDelete);
         if (deleted) {
-          console.log(`Client disconnected with id: ${ws.data.id}`);
+          log.debug(`Client disconnected with id: ${ws.data.id}`);
           // Publish the new connection count and unsubscribe from the event
           const packet = {
             type: PacketTypes[2],
@@ -153,10 +154,10 @@ export const Server = Bun.serve<Packet>({
             if (client.requests >= RateLimitOptions.maxRequests) {
               client.rateLimited = true;
               client.time = Date.now();
-              console.log(`Client with id: ${ws.data.id} is rate limited`);
+              log.debug(`Client with id: ${ws.data.id} is rate limited`);
               // Output the rate limited clients
-              console.log(
-                ClientRateLimit.filter((client) => client.rateLimited)
+              log.debug(
+                ClientRateLimit.filter((client) => client.rateLimited).toString()
               );
               ws.send(
                 JSON.stringify({ type: PacketTypes[3], data: "Rate limited" })
@@ -167,7 +168,7 @@ export const Server = Bun.serve<Packet>({
         }
         PacketReceiver(ws, message.toString());
       } catch (e) {
-        console.error(e);
+        log.error(e as string);
       }
     },
   },
@@ -205,7 +206,7 @@ Listener.on('onFixedUpdate', () => {
           client.rateLimited = false;
           client.requests = 0;
           client.time = null;
-          console.log(`Client with id: ${client.id} is no longer rate limited`);
+          log.debug(`Client with id: ${client.id} is no longer rate limited`);
         }
       }
     }
@@ -221,7 +222,7 @@ export const Events = {
     return connections;
   },
   Broadcast(packet: string) {
-    console.log("Broadcasting message:", packet);
+    log.debug(`Broadcasting packet: ${packet}`);
     Server.publish("BROADCAST" as Subscription["event"], packet);
   },
   GetClientRequests() {

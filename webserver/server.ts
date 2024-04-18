@@ -2,6 +2,17 @@ import express from "express";
 import path from "path";
 const port = 80;
 const app = express();
+import query from "../controllers/database";
+import log from "../modules/logger";
+
+// Test the database connection
+query("SELECT 1 + 1 AS solution", [])
+  .then(() => log.info("Database connection successful"))
+  .catch(err => {
+    log.error("Database connection failed")
+    log.error(err)
+    process.exit(1)
+  })
 
 // Middleware
 app.use(express.json());
@@ -26,6 +37,6 @@ Object.freeze(functionRouter);
 
 // Start the server
 app.listen(port, async () => {
-  console.log(`Web server is listening on localhost:${port}`);
+  log.info(`Web server is listening on localhost:${port}`);
   await import("../socket/server");
 });
