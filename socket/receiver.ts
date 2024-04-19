@@ -1,6 +1,7 @@
 import { PacketTypes } from "./server";
 import { GetMaps } from "../modules/assetloader";
 import log from "../modules/logger";
+import * as autoSave from "../systems/autosave";
 const maps = GetMaps();
 Object.freeze(maps);
 
@@ -48,6 +49,13 @@ export default async function PacketReceiver(ws: any, message: string) {
             data: [map.data, map.hash, map.name],
           })
         );
+        break;
+      }
+        // SAVE_PLAYER
+      case PacketTypes[8]: {
+        const player = ws?.data?.player as Player;
+        if (!player.id) return // Unknown player
+        autoSave.save(player);
         break;
       }
       // Unknown packet type

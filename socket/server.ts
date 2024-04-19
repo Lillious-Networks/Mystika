@@ -4,7 +4,6 @@ export const Listener = new EventEmitter();
 import { Event } from "../systems/events";
 import EventEmitter from 'node:events';
 import log from "../modules/logger";
-import * as autoSave from "../systems/autosave";
 
 const RateLimitOptions: RateLimitOptions = {
   // Maximum amount of requests
@@ -26,6 +25,7 @@ export const PacketTypes: PacketType = {
   5: "LOGIN_SUCCESS",
   6: "LOGIN_FAILED",
   7: "LOAD_MAP",
+  8: "SAVE_PLAYER",
 };
 
 Object.freeze(PacketTypes);
@@ -36,7 +36,6 @@ Object.freeze(connections);
 
 // Set to track the amount of requests
 const ClientRateLimit = [] as ClientRateLimit[];
-
 
 export const Server = Bun.serve<Packet>({
   fetch(req, Server) {

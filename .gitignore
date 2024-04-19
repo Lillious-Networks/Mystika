@@ -153,3 +153,4 @@ zig-out
 /certs/*.jceks
 /certs/*.ca-bundle
 /playerdata
+/REST

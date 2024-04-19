@@ -86,6 +86,7 @@ const limiter = rateLimit({
     status: 429,
     message: "Too many requests, please try again later.",
   },
+  validate: false,
 });
 app.use(limiter);
 
@@ -132,7 +133,16 @@ app.use(function (req: any, res: any, next: any) {
 // Static files
 app.use("/", express.static(path.join(import.meta.dirname, "www/public")));
 
-// Routes
+// Unauthenticated Routes
+import { router as ReigisterRouter } from "../routes/register";
+app.use(ReigisterRouter);
+
+// Authorization Middleware
+import { router as AuthorizationRouter } from "../routes/authorization";
+app.use(AuthorizationRouter);
+
+// Static files
+app.use("/game", express.static(path.join(import.meta.dirname, "www/game")));
 import { router as mapRouter } from "../routes/map";
 app.use(mapRouter);
 Object.freeze(mapRouter);
