@@ -1,6 +1,6 @@
 import log from "../modules/logger";
 import * as authentication from "../services/authentication";
-import query from "../controllers/database";
+import query from "../controllers/sqldatabase";
 import { service } from "../services/ip";
 const w_ips = service.getWhitelistedIPs();
 const b_ips = service.getBlacklistedIPs();

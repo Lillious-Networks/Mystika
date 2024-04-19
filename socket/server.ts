@@ -4,6 +4,7 @@ export const Listener = new EventEmitter();
 import { Event } from "../systems/events";
 import EventEmitter from 'node:events';
 import log from "../modules/logger";
+import * as autoSave from "../systems/autosave";
 
 const RateLimitOptions: RateLimitOptions = {
   // Maximum amount of requests
@@ -211,6 +212,11 @@ Listener.on('onFixedUpdate', () => {
       }
     }
   }
+});
+
+// Save loop
+Listener.on('onSave', () => {
+
 });
 
 // Exported Server events

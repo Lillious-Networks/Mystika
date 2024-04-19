@@ -63,3 +63,9 @@ declare interface ScriptData {
   data: string;
   hash: string;
 }
+
+// Define player data
+declare interface Player {
+  id: string;
+  name: string;
+}

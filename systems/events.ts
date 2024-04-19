@@ -18,4 +18,8 @@ Event.on("online", (data) => {
   setInterval(() => {
     Listener.emit("onFixedUpdate");
   }, 100);
+  // Save loop runs every 5 minutes
+  setInterval(() => {
+    Listener.emit("onSave");
+  }, 1000);
 });

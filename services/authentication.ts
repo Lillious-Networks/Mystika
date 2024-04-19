@@ -1,4 +1,4 @@
-import query from "../controllers/database";
+import query from "../controllers/sqldatabase";
 
 export const checkSession = (session: string, ip: string) => {
   return new Promise((resolve, reject) => {

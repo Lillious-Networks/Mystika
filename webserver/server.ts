@@ -2,13 +2,41 @@ import express from "express";
 import { rateLimit } from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import cookieSession from "cookie-session";
+import http from "http";
+import https from "https";
 import path from "path";
+import fs from "fs";
 const port = 80;
 const app = express();
-import query from "../controllers/database";
+import query from "../controllers/sqldatabase";
 import log from "../modules/logger";
 import * as email from "../services/email";
 import "../services/security";
+
+// Garbage collection
+setInterval(() => {
+  Bun.gc(true)
+}, 1000);
+
+/* SSL Certificate Setup */
+const _cert = path.join(import.meta.dir, "../certs/cert.crt");
+const _ca = path.join(import.meta.dir, "../certs/cert.ca-bundle");
+const _key = path.join(import.meta.dir, "../certs/cert.key");
+let _https = false;
+
+if (fs.existsSync(_cert) && fs.existsSync(_ca) && fs.existsSync(_key)) {
+  _https = true;
+}
+
+const cert = _https ? fs.readFileSync(_cert, "utf8") : "";
+const ca = _https ? fs.readFileSync(_ca, "utf8") : "";
+const key = _https ? fs.readFileSync(_key, "utf8") : "";
+
+const credentials = {
+  cert: cert,
+  ca: ca,
+  key: key,
+};
 
 // Test the database connection
 query("SELECT 1 + 1 AS solution", [])
@@ -61,6 +89,17 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Redirect to HTTPS
+if (_https) {
+  app.use((req: any, res: any, next: any) => {
+    if (!req.secure) {
+      res.redirect("https://" + req.headers.host + req.url);
+    } else {
+      next();
+    }
+  });
+}
+
 // Filter
 import filter from "../systems/security";
 app.use(function (req: any, res: any, next: any) {
@@ -104,8 +143,16 @@ import { router as functionRouter } from "../routes/functions";
 app.use(functionRouter);
 Object.freeze(functionRouter);
 
-// Start the server
-app.listen(port, async () => {
-  log.info(`Web server is listening on localhost:${port}`);
+const server = http.createServer(app);
+const httpsServer = https.createServer(credentials, app);
+
+if (_https) {
+  httpsServer.listen(443, async () => {
+    log.info(`HTTPS server is listening on localhost:443`);
+  });
+}
+
+server.listen(port, async () => {
+  log.info(`HTTP server is listening on localhost:${port}`);
   await import("../socket/server");
 });

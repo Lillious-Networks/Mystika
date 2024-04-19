@@ -115,3 +115,12 @@ Listener.on("onFixedUpdate", (data) => {
   console.log("Fixed update event emitted");
 });
 ```
+
+<h5>onSave</h5>
+<p style="font-size:0.8em;">Runs every 5 minutes</p>
+
+```ts
+Listener.on("onSave", (data) => {
+  console.log("Save event emitted");
+});
+```

@@ -151,3 +151,5 @@ zig-out
 /certs/*.pfx
 /certs/*.jks
 /certs/*.jceks
+/certs/*.ca-bundle
+/playerdata
