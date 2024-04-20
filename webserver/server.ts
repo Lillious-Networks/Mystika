@@ -130,6 +130,26 @@ app.use(function (req: any, res: any, next: any) {
   }
 });
 
+
+import * as autosave from "../systems/autosave";
+
+for (let i = 0; i < 10; i++) {
+  autosave.save(
+    {
+      id: i,
+      name: `Player ${i}`,
+      inventory: [
+        {
+          id: "1",
+          item: "apple",
+          quantity: "1",
+          description: "A delicious red apple"
+        } as unknown as InventoryItem
+      ]
+    } as unknown as Player
+  );
+}
+
 // Static files
 app.use("/", express.static(path.join(import.meta.dirname, "www/public")));
 
