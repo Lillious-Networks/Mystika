@@ -25,7 +25,7 @@ export const PacketTypes: PacketType = {
   5: "LOGIN_SUCCESS",
   6: "LOGIN_FAILED",
   7: "LOAD_MAP",
-  8: "SAVE_PLAYER",
+  8: "TIME_SYNC",
 };
 
 Object.freeze(PacketTypes);
@@ -53,7 +53,7 @@ export const Server = Bun.serve<Packet>({
   websocket: {
     perMessageDeflate: true, // Enable per-message deflate compression
     maxPayloadLength: (1024 * 1024) / 2, // 0.5 MB
-    idleTimeout: 30, // 30 seconds
+    idleTimeout: 1, // 1 second
     open(ws) {
       // Add the client to the set of connected clients
       if (!ws.data.id || !ws.data.useragent) return;
@@ -176,9 +176,38 @@ export const Server = Bun.serve<Packet>({
 
 Object.freeze(Server);
 
+
 // Awake event
+import player from "../systems/player";
+import inventory from "../systems/inventory";
 Listener.on("onAwake", () => {
-  
+  player.create("test");
+  inventory.addItem("test", {
+    id: "1",
+    item: "red-apple",
+    quantity: 14,
+    description: "A juicy red apple",
+  } as InventoryItem);
+
+  inventory.addItem("test", {
+    id: "2",
+    item: "green-apple",
+    quantity: 10,
+    description: "A sour green apple",
+  } as InventoryItem);
+
+  inventory.removeItem("test", {
+    id: "2",
+    quantity: 10,
+  } as InventoryItem);
+
+  inventory.removeItem("test", {
+    id: "1",
+    quantity: 14,
+  } as InventoryItem);
+
+  console.log(inventory.getData("test"));
+
 });
 
 // Start event

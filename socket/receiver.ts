@@ -1,7 +1,6 @@
 import { PacketTypes } from "./server";
 import { GetMaps } from "../modules/assetloader";
 import log from "../modules/logger";
-import * as autoSave from "../systems/autosave";
 const maps = GetMaps();
 Object.freeze(maps);
 
@@ -22,6 +21,13 @@ export default async function PacketReceiver(ws: any, message: string) {
       case PacketTypes[0]: {
         //console.log("Received PING");
         ws.send(JSON.stringify({ type: PacketTypes[1], data: data }));
+        // Send TIME_SYNC packet
+        ws.send(
+          JSON.stringify({
+            type: PacketTypes[8],
+            data: Date.now(),
+          })
+        );
         break;
       }
       // PONG
@@ -51,11 +57,20 @@ export default async function PacketReceiver(ws: any, message: string) {
         );
         break;
       }
-        // SAVE_PLAYER
       case PacketTypes[8]: {
-        const player = ws?.data?.player as Player;
-        if (!player.id) return // Unknown player
-        autoSave.save(player);
+        // Calculate latency
+        const latency = Date.now() - Number(data) - 5000;
+        if (latency >= 100) {
+          console.log(`Client with id: ${ws.data.id} has high latency: ${latency}ms and will be disconnected`);
+          ws.close(1001, "High latency");
+        }
+        const ServerTime = Date.now();
+        ws.send(
+          JSON.stringify({
+            type: PacketTypes[8],
+            data: ServerTime,
+          })
+        );
         break;
       }
       // Unknown packet type

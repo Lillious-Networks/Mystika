@@ -13,6 +13,11 @@ import log from "../modules/logger";
 import * as email from "../services/email";
 import "../services/security";
 
+// Create playerdata folder if it doesn't exist
+if (!fs.existsSync(path.join(import.meta.dir, `..`, `playerdata`))) {
+    fs.mkdirSync(path.join(import.meta.dir, `..`, `playerdata`));
+}
+
 // Garbage collection
 setInterval(() => {
   Bun.gc(true)
@@ -129,26 +134,6 @@ app.use(function (req: any, res: any, next: any) {
     next();
   }
 });
-
-
-import * as autosave from "../systems/autosave";
-
-for (let i = 0; i < 10; i++) {
-  autosave.save(
-    {
-      id: i,
-      name: `Player ${i}`,
-      inventory: [
-        {
-          id: "1",
-          item: "apple",
-          quantity: "1",
-          description: "A delicious red apple"
-        } as unknown as InventoryItem
-      ]
-    } as unknown as Player
-  );
-}
 
 // Static files
 app.use("/", express.static(path.join(import.meta.dirname, "www/public")));
