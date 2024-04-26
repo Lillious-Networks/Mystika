@@ -4,8 +4,8 @@ import * as readline from "node:readline/promises";
 import log from "../modules/logger";
 const security = path.join(import.meta.dir, "..", "config", "security.cfg");
 
-if (!fs.existsSync(path.join(import.meta.dir, "..", "..", "config")))
-  fs.mkdirSync(path.join(import.meta.dir, "..", "..", "config"));
+if (!fs.existsSync(path.join(import.meta.dir, "..", "config")))
+  fs.mkdirSync(path.join(import.meta.dir, "..", "config"));
 if (!fs.existsSync(security)) {
   fs.writeFileSync(security, "# Security Definitions\n");
 }

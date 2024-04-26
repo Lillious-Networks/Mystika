@@ -61,6 +61,9 @@ const log = {
     if (!config.trace) return;
     log.createLogFile(`[TRACE] ${msg}`, "trace");
   },
+  object: (obj: any) => {
+    log.createLogFile(`[OBJECT] ${JSON.stringify(obj, null, 2)}`, "info");
+  },
 };
 
 export default log;

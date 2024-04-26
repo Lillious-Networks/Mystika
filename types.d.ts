@@ -68,13 +68,17 @@ declare interface ScriptData {
 declare interface Player {
   id: string;
   name: string;
-  inventory: Array<InventoryItem>;
 }
 
 // Define inventory item
 declare interface InventoryItem {
-  id: string;
-  item: string;
+  name: string;
   quantity: number;
+}
+
+// Define item data
+declare interface Item {
+  name: string;
+  quality: string;
   description: string;
 }

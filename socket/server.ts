@@ -2,7 +2,7 @@ import crypto from "crypto";
 import PacketReceiver from "./receiver";
 export const Listener = new EventEmitter();
 import { Event } from "../systems/events";
-import EventEmitter from 'node:events';
+import EventEmitter from "node:events";
 import log from "../modules/logger";
 
 const RateLimitOptions: RateLimitOptions = {
@@ -81,7 +81,6 @@ export const Server = Bun.serve<Packet>({
           client.windowTime = 0;
           return;
         }
-        // console.log(`Client with id: ${client.id} has ${client.requests} requests in ${client.windowTime}ms`);
         client.windowTime += 1000;
         if (client.windowTime > RateLimitOptions.maxWindowTime) {
           client.requests = 0;
@@ -157,7 +156,9 @@ export const Server = Bun.serve<Packet>({
               log.debug(`Client with id: ${ws.data.id} is rate limited`);
               // Output the rate limited clients
               log.debug(
-                ClientRateLimit.filter((client) => client.rateLimited).toString()
+                ClientRateLimit.filter(
+                  (client) => client.rateLimited
+                ).toString()
               );
               ws.send(
                 JSON.stringify({ type: PacketTypes[3], data: "Rate limited" })
@@ -176,55 +177,20 @@ export const Server = Bun.serve<Packet>({
 
 Object.freeze(Server);
 
-
 // Awake event
-import player from "../systems/player";
-import inventory from "../systems/inventory";
-Listener.on("onAwake", () => {
-  player.create("test");
-  inventory.addItem("test", {
-    id: "1",
-    item: "red-apple",
-    quantity: 14,
-    description: "A juicy red apple",
-  } as InventoryItem);
-
-  inventory.addItem("test", {
-    id: "2",
-    item: "green-apple",
-    quantity: 10,
-    description: "A sour green apple",
-  } as InventoryItem);
-
-  inventory.removeItem("test", {
-    id: "2",
-    quantity: 10,
-  } as InventoryItem);
-
-  inventory.removeItem("test", {
-    id: "1",
-    quantity: 14,
-  } as InventoryItem);
-
-  console.log(inventory.getData("test"));
-
-});
+Listener.on("onAwake", async () => {});
 
 // Start event
-Listener.on('onStart', () => {
-  
-});
+Listener.on("onStart", async () => {});
 
 // Register the Server as online
 Event.emit("online", Server);
 
 // Fixed update loop
-Listener.on('onUpdate', () => {
-  
-});
+Listener.on("onUpdate", async () => {});
 
 // Fixed update loop
-Listener.on('onFixedUpdate', () => {
+Listener.on("onFixedUpdate", async () => {
   {
     if (ClientRateLimit.length < 1) return;
     const timestamp = Date.now();
@@ -243,9 +209,7 @@ Listener.on('onFixedUpdate', () => {
 });
 
 // Save loop
-Listener.on('onSave', () => {
-
-});
+Listener.on("onSave", () => {});
 
 // Exported Server events
 export const Events = {

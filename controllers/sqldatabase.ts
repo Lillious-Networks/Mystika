@@ -16,7 +16,7 @@ const pool = mysql.createPool({
   },
 } as mysql.PoolOptions);
 
-const query = (sql: string, values: any[]) => {
+const query = (sql: string, values?: any[]) => {
   log.trace(`Executing query: ${sql}`);
   return new Promise((resolve, reject) => {
     pool.getConnection((err, connection) => {

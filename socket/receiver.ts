@@ -19,7 +19,6 @@ export default async function PacketReceiver(ws: any, message: string) {
     switch (PacketTypes[index]) {
       // PING
       case PacketTypes[0]: {
-        //console.log("Received PING");
         ws.send(JSON.stringify({ type: PacketTypes[1], data: data }));
         // Send TIME_SYNC packet
         ws.send(
@@ -32,7 +31,6 @@ export default async function PacketReceiver(ws: any, message: string) {
       }
       // PONG
       case PacketTypes[1]: {
-        //console.log("Received PONG");
         ws.send(JSON.stringify({ type: PacketTypes[0], data: data }));
         break;
       }
@@ -61,7 +59,7 @@ export default async function PacketReceiver(ws: any, message: string) {
         // Calculate latency
         const latency = Date.now() - Number(data) - 5000;
         if (latency >= 100) {
-          console.log(`Client with id: ${ws.data.id} has high latency: ${latency}ms and will be disconnected`);
+          log.error(`Client with id: ${ws.data.id} has high latency: ${latency}ms and will be disconnected`);
           ws.close(1001, "High latency");
         }
         const ServerTime = Date.now();
@@ -75,12 +73,11 @@ export default async function PacketReceiver(ws: any, message: string) {
       }
       // Unknown packet type
       default: {
-        //console.log("Unknown packet type");
         break;
       }
     }
   } catch (e) {
-    console.error(e);
+    log.error(e as string);
   }
 }
 

@@ -13,11 +13,6 @@ import log from "../modules/logger";
 import * as email from "../services/email";
 import "../services/security";
 
-// Create playerdata folder if it doesn't exist
-if (!fs.existsSync(path.join(import.meta.dir, `..`, `playerdata`))) {
-    fs.mkdirSync(path.join(import.meta.dir, `..`, `playerdata`));
-}
-
 // Garbage collection
 setInterval(() => {
   Bun.gc(true)

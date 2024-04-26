@@ -55,6 +55,16 @@ const RateLimitOptions: RateLimitOptions = {
 };
 ```
 
+<h5>Structure</h5>
+
+```ts
+declare interface RateLimitOptions {
+  maxRequests: number;
+  time: number;
+  maxWindowTime: number;
+}
+```
+
 <hr>
 <h3>Events</h3>
 
@@ -124,3 +134,94 @@ Listener.on("onSave", (data) => {
   console.log("Save event emitted");
 });
 ```
+
+<hr>
+<h3>Inventory Management</h3>
+
+```ts
+import inventory from "../systems/inventory";
+```
+
+<h5>Structure</h5>
+
+```ts
+declare interface InventoryItem {
+  name: string;
+  quantity: number;
+}
+```
+
+<h5>inventory.add();</h5>
+<p style="font-size:0.8em;">Add an item to player inventory</p>
+
+```ts
+await inventory.add("user_name", { name: "item_name", quantity: number });
+```
+
+<h5>inventory.remove();</h5>
+<p style="font-size:0.8em;">Remove an item from player inventory</p>
+
+```ts
+await inventory.remove("user_name", { name: "item_name", quantity: number });
+```
+
+<h5>inventory.find();</h5>
+<p style="font-size:0.8em;">Find an item from player inventory</p>
+
+```ts
+await inventory.find("user_name", { name: "item_name" });
+```
+
+<h5>inventory.delete();</h5>
+<p style="font-size:0.8em;">Delete an item from player inventory</p>
+
+```ts
+await inventory.delete("user_name", { name: "item_name" });
+```
+
+<hr>
+<h3>Item Management</h3>
+
+```ts
+import items from "../systems/items";
+```
+
+<h5>Structure</h5>
+
+```ts
+declare interface Item {
+  name: string;
+  quality: string;
+  description: string;
+}
+```
+
+<h5>items.add();</h5>
+<p style="font-size:0.8em;">Add an item to the item database</p>
+
+```ts
+await items.add({ name: "item_name", quality: "item_quality", description: "item_description" });
+```
+
+<h5>items.remove();</h5>
+<p style="font-size:0.8em;">Remove an item from the item database</p>
+
+```ts
+await items.remove({ name: "item_name" });
+```
+
+<h5>items.list();</h5>
+<p style="font-size:0.8em;">List all items from the item database</p>
+
+```ts
+await items.list();
+```
+
+<h5>items.find();</h5>
+<p style="font-size:0.8em;">Find an item from the item database</p>
+
+```ts
+await items.find({ name: "item_name" });
+```
+
+<hr>
