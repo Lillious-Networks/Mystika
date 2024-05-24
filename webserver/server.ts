@@ -8,9 +8,7 @@ import path from "path";
 import fs from "fs";
 const port = 80;
 const app = express();
-import query from "../controllers/sqldatabase";
 import log from "../modules/logger";
-import * as email from "../services/email";
 import "../services/security";
 
 // Garbage collection
@@ -37,27 +35,6 @@ const credentials = {
   ca: ca,
   key: key,
 };
-
-// Test the database connection
-query("SELECT 1 + 1 AS solution", [])
-  .then(() => log.success("Database connection successful"))
-  .catch((err) => {
-    log.error("Database connection failed");
-    log.error(err);
-    process.exit(1);
-  });
-
-email
-  .send(
-    process.env.EMAIL_TEST as string,
-    "Test Email",
-    "This is a test email from the web server."
-  )
-  .then(() => log.success("Email service is available"))
-  .catch((e: Error) => {
-    log.error(`Email service is not available: ${e.message}`);
-    throw `Email service is not available: ${e.message}`;
-  });
 
 // Middleware
 app.use(express.json());
@@ -137,6 +114,9 @@ app.use("/", express.static(path.join(import.meta.dirname, "www/public")));
 import { router as ReigisterRouter } from "../routes/register";
 app.use(ReigisterRouter);
 
+import { router as LoginRouter } from "../routes/login";
+app.use(LoginRouter);
+
 // Authorization Middleware
 import { router as AuthorizationRouter } from "../routes/authorization";
 app.use(AuthorizationRouter);
@@ -166,3 +146,5 @@ server.listen(port, async () => {
   log.info(`HTTP server is listening on localhost:${port}`);
   await import("../socket/server");
 });
+
+export default app;

@@ -17,7 +17,8 @@ const items = {
   },
   async find(item: Item) {
     if (!item?.name) return;
-    return await query("SELECT * FROM items WHERE name = ?", [item.name]);
+    const response = await query("SELECT * FROM items WHERE name = ?", [item.name]);
+    return response;
   }
 };
 

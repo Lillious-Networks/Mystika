@@ -20,7 +20,6 @@ socket.addEventListener("message", async (event) => {
       setTimeout(() => {
         socket.send(JSON.stringify({ type: "TIME_SYNC", data: JSON.parse(event.data)["data"]}));
       }, 5000);
-      
       break;
     }
     case "LOAD_MAP":

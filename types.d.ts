@@ -73,7 +73,7 @@ declare interface Player {
 // Define inventory item
 declare interface InventoryItem {
   name: string;
-  quantity: number;
+  quantity?: number;
 }
 
 // Define item data

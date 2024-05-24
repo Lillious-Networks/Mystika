@@ -58,7 +58,7 @@ export default async function PacketReceiver(ws: any, message: string) {
       case PacketTypes[8]: {
         // Calculate latency
         const latency = Date.now() - Number(data) - 5000;
-        if (latency >= 100) {
+        if (latency >= 3000) {
           log.error(`Client with id: ${ws.data.id} has high latency: ${latency}ms and will be disconnected`);
           ws.close(1001, "High latency");
         }

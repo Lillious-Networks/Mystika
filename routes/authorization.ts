@@ -9,7 +9,7 @@ router.use((req, res, next) => {
         return;
     }
     // Check if the token is valid
-    query("SELECT * FROM accounts WHERE token = ?", [token])
+    query("SELECT username FROM accounts WHERE token = ? LIMIT 1", [token])
     .then((result: any) => {
         if (result.length === 0) {
             res.status(403).redirect("/");
