@@ -225,3 +225,55 @@ await items.find({ name: "item_name" });
 ```
 
 <hr>
+<h3>Player Management</h3>
+
+```ts
+import player from "../systems/player";
+```
+
+<h5>Structure</h5>
+
+```ts
+declare interface Player {
+  id?: string;
+  name?: string;
+  position?: PositionData;
+  map?: string;
+}
+```
+
+<h5>player.getLocation();</h5>
+<p style="font-size:0.8em;">Get a player's location data</p>
+
+```ts
+await player.getLocation({ name: username }) as LocationData | null;
+```
+
+<h5>player.setSessionId();</h5>
+<p style="font-size:0.8em;">Sets a player's sessionId</p>
+
+```ts
+await player.setSessionId(token, sessionId);
+```
+
+<h5>player.getSessionId();</h5>
+<p style="font-size:0.8em;">Get a player's sessionId</p>
+
+```ts
+await player.getSessionId(token);
+```
+
+<h5>player.logout();</h5>
+<p style="font-size:0.8em;">Logs a player out</p>
+
+
+```ts
+await player.logout(sessionId);
+```
+
+<h5>player.getUsername();</h5>
+<p style="font-size:0.8em;">Gets a player's username</p>
+
+```ts
+await player.getUsername(sessionId);
+```

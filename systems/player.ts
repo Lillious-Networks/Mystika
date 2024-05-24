@@ -26,11 +26,6 @@ const player = {
         const response = await query("UPDATE accounts SET session_id = ? WHERE token = ?", [sessionId, token]);
         return response;
     },
-    clearSessionId: async (session_id: string) => {
-        if (!session_id) return;
-        const response = await query("UPDATE accounts SET session_id = NULL WHERE session_id = ?", [session_id]);
-        return response;
-    },
     getSessionId: async (token: string) => {
         if (!token) return;
         const response = await query("SELECT session_id FROM accounts WHERE token = ?", [token]);
