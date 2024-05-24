@@ -4,6 +4,7 @@ export const Listener = new EventEmitter();
 import { Event } from "../systems/events";
 import EventEmitter from "node:events";
 import log from "../modules/logger";
+import player from "../systems/player";
 
 const RateLimitOptions: RateLimitOptions = {
   // Maximum amount of requests
@@ -26,6 +27,9 @@ export const PacketTypes: PacketType = {
   6: "LOGIN_FAILED",
   7: "LOAD_MAP",
   8: "TIME_SYNC",
+  9: "MOVEXY",
+  10: "AUTH",
+  11: "LOGOUT",
 };
 
 Object.freeze(PacketTypes);
@@ -54,7 +58,7 @@ export const Server = Bun.serve<Packet>({
     perMessageDeflate: true, // Enable per-message deflate compression
     maxPayloadLength: (1024 * 1024) / 2, // 0.5 MB
     idleTimeout: 1, // 1 second
-    open(ws) {
+    async open(ws) {
       // Add the client to the set of connected clients
       if (!ws.data.id || !ws.data.useragent) return;
       connections.add({ id: ws.data.id, useragent: ws.data.useragent });
@@ -101,7 +105,7 @@ export const Server = Bun.serve<Packet>({
       // Subscribe to the BROADCAST event
       ws.subscribe("BROADCAST" as Subscription["event"]);
     },
-    close(ws) {
+    async close(ws) {
       // Remove the client from the set of connected clients
       if (!ws.data.id) return;
       // Find the client object in the set
@@ -117,6 +121,7 @@ export const Server = Bun.serve<Packet>({
         const deleted = connections.delete(clientToDelete);
         if (deleted) {
           log.debug(`Client disconnected with id: ${ws.data.id}`);
+          player.clearSessionId(ws.data.id);
           // Publish the new connection count and unsubscribe from the event
           const packet = {
             type: PacketTypes[2],

@@ -66,8 +66,10 @@ declare interface ScriptData {
 
 // Define player data
 declare interface Player {
-  id: string;
-  name: string;
+  id?: string;
+  name?: string;
+  position?: PositionData;
+  map?: string;
 }
 
 // Define inventory item
@@ -81,4 +83,15 @@ declare interface Item {
   name: string;
   quality: string;
   description: string;
+}
+
+// Define location data
+declare interface LocationData {
+  [key: string]: string;
+}
+
+// Define location
+declare interface PositionData {
+  x: number;
+  y: number;
 }

@@ -2,7 +2,7 @@ const socket = new WebSocket("ws://localhost:3000/");
 
 Object.freeze(socket);
 
-socket.addEventListener("open", () => {
+socket.addEventListener("open", (ws) => {
   const packet = {
     type: "PING",
     data: null,
@@ -28,6 +28,7 @@ socket.addEventListener("message", async (event) => {
         const mapData = map[0];
         const mapHash = map[1];
         const mapName = map[2];
+        const position = map[3];
         const fetchMap = async () => {
           const response = await fetch(`/map/hash?name=${mapName}`);
           if (!response.ok) {
@@ -142,5 +143,31 @@ socket.addEventListener("message", async (event) => {
         }
       }
       break;
+
+    case "LOGIN_SUCCESS":
+      const connectionId = JSON.parse(event.data)["data"];
+      sessionStorage.setItem("connectionId", connectionId);
+      const sessionToken = getCookie("token");
+      if (!sessionToken) {
+        throw new Error("No session token found");
+      }
+      socket.send(JSON.stringify({ type: "AUTH", data: sessionToken }));
+      break;
   }
 });
+
+function getCookie(cname) {
+  let name = cname + "=";
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let ca = decodedCookie.split(';');
+  for(let i = 0; i <ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}

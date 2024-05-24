@@ -59,7 +59,7 @@ router.post("/login", async (req, res) => {
       log.debug(`User ${req.body.username} logged in`);
       res.cookie("token", token, {
         maxAge: 900000,
-        httpOnly: true,
+        httpOnly: false,
       });
       res.status(200).redirect("/game/");
     }
