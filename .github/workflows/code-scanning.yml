@@ -19,6 +19,7 @@ jobs:
                 node-version: 22
 
             - name: Install and Run Retire.js
+              working-directory: ${{ github.workspace }}
               run: |
                 npm install -g retire
                 npm fund
