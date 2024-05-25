@@ -7,6 +7,7 @@ on:
 
 jobs:
     js-analyse:
+        name: 🐜 Analyse Javascript/Typescript
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
@@ -14,10 +15,11 @@ jobs:
 
             - name: Setup Node.js environment
               uses: actions/setup-node@v4.0.2
-        
-            - name: Install Retire.js
-              run: npm install -g retire
+              with:
+                node-version: 22
 
-            - name: Run Retire.js
+            - name: Install and Run Retire.js
               run: |
-                retire --outputformat json --outputpath retire.json --path . --ignore node_modules --exitwith 0 --verbose --colors --ext js,ts
+                npm install -g retire
+                npm fund
+                retire --path / -v --ignore node_modules
