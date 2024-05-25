@@ -8,13 +8,6 @@ router.post("/login", async (req, res) => {
     return;
   }
 
-  // Check if the user exists
-  const exists = await player.findByUsername(req.body.username) as string[];
-  if (exists?.length === 0) {
-    res.status(403).redirect("back");
-    return;
-  }
-
   // Validate credentials
   const token = await player.login(req.body.username, req.body.password);
 

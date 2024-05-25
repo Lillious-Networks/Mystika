@@ -37,7 +37,6 @@ export default async function PacketReceiver(ws: any, message: string) {
         break;
       }
       case 'LOGIN': {
-        log.info(`Client connected with id: ${ws.data.id}`);
         ws.send(JSON.stringify({ type: 'LOGIN_SUCCESS', data: ws.data.id }));
         break;
       }
@@ -61,8 +60,12 @@ export default async function PacketReceiver(ws: any, message: string) {
       }
       case 'AUTH': {
         // Set the session id for the player
-        await player.setSessionId(data.toString(), ws.data.id);
-        const getUsername = (await player.getUsername(ws.data.id)) as any[];
+        const auth = await player.setSessionId(data.toString(), ws.data.id);
+        if (!auth) {
+          ws.send(JSON.stringify({ type: 'LOGIN_FAILED', data: null }));
+          return;
+        }
+        const getUsername = (await player.getUsernameBySession(ws.data.id)) as any[];
         const username = getUsername[0]?.username as string;
         const location = (await player.getLocation({
           name: username,

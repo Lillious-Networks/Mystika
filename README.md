@@ -140,6 +140,24 @@ Listener.on("onSave", (data) => {
 });
 ```
 
+<h5>onConnection</h5>
+<p style="font-size:0.8em;">Fires when a new connection is established</p>
+
+```ts
+Listener.on("onConnection", (data) => {
+  console.log(`New connection: ${data}`);
+});
+```
+
+<h5>onDisconnect</h5>
+<p style="font-size:0.8em;">Fires when a connection is dropped</p>
+
+```ts
+Listener.on("onDisconnect", (data) => {
+  console.log(`Disconnected: ${data}`);
+});
+```
+
 <hr>
 <h3>Inventory Management</h3>
 
@@ -289,11 +307,18 @@ await player.logout(sessionId);
 await player.clearSessionId(sessionId);
 ```
 
-<h5>player.getUsername();</h5>
-<p style="font-size:0.8em;">Gets a player's username</p>
+<h5>player.getUsernameBySession();</h5>
+<p style="font-size:0.8em;">Gets a player's username by sessionId</p>
 
 ```ts
-await player.getUsername(sessionId);
+await player.getUsernameBySession(sessionId);
+```
+
+<h5>player.getUsernameByToken();</h5>
+<p style="font-size:0.8em;">Gets a player's username by authentication token</p>
+
+```ts
+await player.getUsernameByToken(sessionId);
 ```
 
 <h5>player.register();</h5>
@@ -336,4 +361,18 @@ await player.getEmail(sessionId);
 
 ```ts
 await player.returnHome(sessionId);
+```
+
+<h5>player.isOnline();</h5>
+<p style="font-size:0.8em;">Checks if the player is currently online</p>
+
+```ts
+await player.isOnline(username);
+```
+
+<h5>player.isBanned();</h5>
+<p style="font-size:0.8em;">Checks if the player is currently banned</p>
+
+```ts
+await player.isBanned(username);
 ```

@@ -58,7 +58,8 @@ export const Server = Bun.serve<Packet>({
       // Add the client to the set of connected clients
       if (!ws.data.id || !ws.data.useragent) return;
       connections.add({ id: ws.data.id, useragent: ws.data.useragent });
-      log.debug(`Client connected with id: ${ws.data.id}`);
+      // Emit the onConnection event
+      Listener.emit("onConnection", ws.data.id);
       // Add the client to the clientRequests array
       ClientRateLimit.push({
         id: ws.data.id,
@@ -116,7 +117,8 @@ export const Server = Bun.serve<Packet>({
       if (clientToDelete) {
         const deleted = connections.delete(clientToDelete);
         if (deleted) {
-          log.info(`Client disconnected with id: ${ws.data.id}`);
+          // Emit the onDisconnect event
+          Listener.emit("onDisconnect", ws.data.id);
           player.clearSessionId(ws.data.id);
           // Publish the new connection count and unsubscribe from the event
           const packet = {
@@ -205,6 +207,18 @@ Listener.on("onFixedUpdate", async () => {
       }
     }
   }
+});
+
+// On new connection
+Listener.on("onConnection", (data) => {
+  if (!data) return;
+  log.debug(`New connection: ${data}`);
+});
+
+// On disconnect
+Listener.on("onDisconnect", (data) => {
+  if (!data) return;
+  log.debug(`Disconnected: ${data}`);
 });
 
 // Save loop

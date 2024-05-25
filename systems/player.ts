@@ -68,7 +68,15 @@ const player = {
     },
     setSessionId: async (token: string, sessionId: string) => {
         if (!token || !sessionId) return;
-        const response = await query("UPDATE accounts SET session_id = ? WHERE token = ?", [sessionId, token]);
+        const getUsername = await player.getUsernameByToken(token) as any[];
+        const username = await getUsername[0]?.username as string;
+        const isBanned = await player.isBanned(username) as any[];
+        const response = await query("UPDATE accounts SET session_id = ?, online = ? WHERE token = ?", [sessionId, 1, token]);
+        if (isBanned[0]?.banned === 1) {
+            log.debug(`User ${username} is banned`);
+            await player.logout(sessionId);
+            return;
+        }
         return response;
     },
     getSessionId: async (token: string) => {
@@ -78,18 +86,12 @@ const player = {
     },
     logout: async (session_id: string) => {
         if (!session_id) return;
-        const data = await player.getUsername(session_id) as any[];
-        const username = data[0]?.username as string;
-        const response = await query("UPDATE accounts SET token = NULL WHERE session_id = ?", [session_id]);
-        log.debug(`User ${username} logged out`);
+        const response = await query("UPDATE accounts SET token = NULL, online = ?, session_id = NULL WHERE session_id = ?", [0, session_id]);
         return response;
     },
     clearSessionId: async (session_id: string) => {
         if (!session_id) return;
-        const data = await player.getUsername(session_id) as any[];
-        const username = data[0]?.username as string;
-        const response = await query("UPDATE accounts SET session_id = NULL WHERE session_id = ?", [session_id]);
-        log.debug(`User ${username} as disconnected`);
+        const response = await query("UPDATE accounts SET session_id = NULL, online = ? WHERE session_id = ?", [0, session_id]);
         return response;
     },
     login: async (username: string, password: string) => {
@@ -104,11 +106,18 @@ const player = {
         // Assign a token to the user
         const token = await player.setToken(username);
         log.debug(`User ${username} logged in`);
+        // Update last_login
+        await query("UPDATE accounts SET last_login = CURRENT_TIMESTAMP WHERE username = ?", [username]);
         return token;
     },
-    getUsername: async (session_id: string) => {
+    getUsernameBySession: async (session_id: string) => {
         if (!session_id) return;
         const response = await query("SELECT username FROM accounts WHERE session_id = ?", [session_id]);
+        return response;
+    },
+    getUsernameByToken: async (token: string) => {
+        if (!token) return;
+        const response = await query("SELECT username FROM accounts WHERE token = ?", [token]);
         return response;
     },
     getEmail: async (session_id: string) => {
@@ -127,6 +136,16 @@ const player = {
         const response = await query("UPDATE accounts SET token = ? WHERE username = ?", [token, username]);
         if (!response) return;
         return token;
+    },
+    isOnline: async (username: string) => {
+        if (!username) return;
+        const response = await query("SELECT online FROM accounts WHERE username = ?", [username]);
+        return response;
+    },
+    isBanned: async (username: string) => {
+        if (!username) return;
+        const response = await query("SELECT banned FROM accounts WHERE username = ?", [username]);
+        return response;
     },
 };
 

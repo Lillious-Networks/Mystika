@@ -156,6 +156,10 @@ socket.addEventListener("message", async (event) => {
       }
       socket.send(JSON.stringify({ type: "AUTH", data: sessionToken }));
       break;
+
+    case "LOGIN_FAILED":
+      window.location.href = "/";
+      break;
   }
 });
 
