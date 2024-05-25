@@ -1,5 +1,6 @@
 import query from "../controllers/sqldatabase";
 import { hash, randomBytes } from "../modules/hash";
+import log from "../modules/logger";
 
 const player = {
     register: async (username: string, password: string, email: string, req: any) => {
@@ -75,19 +76,33 @@ const player = {
     },
     logout: async (session_id: string) => {
         if (!session_id) return;
+        const data = await player.getUsername(session_id) as any[];
+        const username = data[0]?.username as string;
         const response = await query("UPDATE accounts SET token = NULL WHERE session_id = ?", [session_id]);
+        log.debug(`User ${username} logged out`);
         return response;
     },
     clearSessionId: async (session_id: string) => {
         if (!session_id) return;
+        const data = await player.getUsername(session_id) as any[];
+        const username = data[0]?.username as string;
         const response = await query("UPDATE accounts SET session_id = NULL WHERE session_id = ?", [session_id]);
+        log.debug(`User ${username} as disconnected`);
         return response;
     },
     login: async (username: string, password: string) => {
         if (!username || !password) return;
         // Validate credentials
-        const response = await query("SELECT username FROM accounts WHERE username = ? AND password_hash = ?", [username, hash(password)]);
-        return response;
+        const response = await query("SELECT username FROM accounts WHERE username = ? AND password_hash = ?", [username, hash(password)]) as string[];
+        if (response.length === 0) {
+            log.debug(`User ${username} failed to login`);
+            return;
+        }
+
+        // Assign a token to the user
+        const token = await player.setToken(username);
+        log.debug(`User ${username} logged in`);
+        return token;
     },
     getUsername: async (session_id: string) => {
         if (!session_id) return;
