@@ -8,6 +8,10 @@ socket.addEventListener("open", (ws) => {
   socket.send(JSON.stringify(packet));
 });
 
+socket.addEventListener("close", (ws) => {
+  window.location.href = "/";
+});
+
 socket.addEventListener("message", async (event) => {
   switch (JSON.parse(event.data)["type"]) {
     case "PONG":
