@@ -1,0 +1,30 @@
+name: 🐜 Code Scanning
+
+on: 
+  workflow_dispatch:
+  push:
+    branches:
+        - main
+
+jobs:
+  analyze-js:
+    name: JavaScript/TypeScript - Analyze 
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 360
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Initialize Code Scanning
+      uses: github/codeql-action/init@v3
+      with:
+        languages: 'javascript-typescript'
+        queries: security-extended
+        config: |
+          paths:
+          - "/"
