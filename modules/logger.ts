@@ -2,8 +2,8 @@ import path from "path";
 import fs from "fs";
 
 const config = {
-  debug: false,
-  trace: false,
+  debug: true,
+  trace: true,
 };
 
 const types = {

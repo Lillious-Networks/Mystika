@@ -10,7 +10,7 @@ router.post("/register", async (req, res) => {
 
   const user = await player.register(req.body.username, req.body.password, req.body.email, req) as string;
   if (!user) {
-    res.status(500).send("Database error");
+    res.status(500).send("An error occurred while registering the user");
     return;
   }
   

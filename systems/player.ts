@@ -5,7 +5,6 @@ import log from "../modules/logger";
 const player = {
     register: async (username: string, password: string, email: string, req: any) => {
         if (!username || !password || !email) return;
-
         // Validate field lengths
         if (username.length < 5 || password.length < 5 || email.length < 5) return;
 
@@ -13,24 +12,27 @@ const player = {
         if (!email.includes("@") || !email.includes(".")) return;
 
         // Check if the user exists by username
-        const usernameExists = await player.findByUsername(username);
-        if (usernameExists) return;
+        const usernameExists = await player.findByUsername(username) as string[];
+        if (usernameExists && usernameExists.length != 0) return;
 
         // Check if the user exists by email
-        const emailExists = await player.findByEmail(email);
-        if (emailExists) return;
+        const emailExists = await player.findByEmail(email) as string[];
+        if (emailExists && emailExists.length != 0) return;
 
         const response = await query(
-            "INSERT INTO accounts (email, username, password_hash, ip_address, geo_location) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO accounts (email, username, token, password_hash, ip_address, geo_location) VALUES (?, ?, ?, ?, ?, ?)",
             [
               email,
               username,
+              "", // empty token
               hash(password),
               req.ip,
               req.headers["cf-ipcountry"],
             ]
-          )
-
+          ).catch((err) => {
+            log.error(err);
+            return;
+          });
           if (!response) return;
           return username;
     },
