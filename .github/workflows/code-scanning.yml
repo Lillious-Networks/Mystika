@@ -1,0 +1,23 @@
+name: 🐜 Code Scanning
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+    js-analyse:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v4.0.2
+        
+            - name: Install Retire.js
+              run: npm install -g retire
+
+            - name: Run Retire.js
+              run: |
+                retire --outputformat json --outputpath retire.json --path . --ignore node_modules --exitwith 0 --verbose --colors --ext js,ts
