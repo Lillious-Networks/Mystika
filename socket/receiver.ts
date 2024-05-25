@@ -37,7 +37,7 @@ export default async function PacketReceiver(ws: any, message: string) {
         break;
       }
       case 'LOGIN': {
-        log.success(`Client with id: ${ws.data.id} logged in`);
+        log.info(`Client connected with id: ${ws.data.id}`);
         ws.send(JSON.stringify({ type: 'LOGIN_SUCCESS', data: ws.data.id }));
         break;
       }

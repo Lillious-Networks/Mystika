@@ -106,28 +106,28 @@ socket.addEventListener("message", async (event) => {
           ctx.mozImageSmoothingEnabled = false;
           ctx.webkitImageSmoothingEnabled = false;
           ctx.msImageSmoothingEnabled = false;
-
+        
           for (let i = 0; i < mapData.layers.length; i++) {
             const layer = mapData.layers[i];
             if (!layer || !layer.data) continue;
-            const tileset =
-              tilesets.find((tileset) => tileset.firstgid <= layer.data[0]) ||
-              tilesets[0];
+        
+            const tileset = tilesets.find(tileset => tileset.firstgid <= layer.data[0]) || tilesets[0];
             const image = images[tilesets.indexOf(tileset)];
             const tileWidth = tileset.tilewidth;
             const tileHeight = tileset.tileheight;
             const tilesetWidth = tileset.imagewidth;
+        
             for (let y = 0; y < mapData.height; y++) {
               for (let x = 0; x < mapData.width; x++) {
                 const tileIndex = layer.data[y * mapData.width + x];
-                if (!tileIndex || tileIndex === 0) {
-                  continue;
+                if (tileIndex == 0) {
+                  continue; // Skip drawing if tileIndex is 0
                 }
+        
                 const tilesPerRow = tilesetWidth / tileWidth;
-                const tileY = Math.floor(
-                  (tileIndex - tileset.firstgid) / tilesPerRow
-                );
+                const tileY = Math.floor((tileIndex - tileset.firstgid) / tilesPerRow);
                 const tileX = (tileIndex - tileset.firstgid) % tilesPerRow;
+        
                 ctx.drawImage(
                   image,
                   tileX * tileWidth,
@@ -143,7 +143,7 @@ socket.addEventListener("message", async (event) => {
             }
           }
           canvas.style.display = "block";
-        }
+        }        
       }
       break;
 

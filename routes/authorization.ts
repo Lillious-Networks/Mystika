@@ -1,8 +1,19 @@
 import express from "express";
 export const router = express.Router();
 import query from "../controllers/sqldatabase";
+// Get all root directories in webserver/www and return them as an array
+import fs from "fs";
+import path from "path";
+const directories = fs.readdirSync(path.join(import.meta.dir, "..", "webserver", "www"));
 
 router.use((req, res, next) => {
+    // Reduce unnecessary checks by checking if the path is a root directory
+    // This will prevent the middleware from running on every request
+    const match = directories.find((dir: string) => dir === req.path.split("/")[1]);
+    if (!match) {
+        next();
+        return;
+    }
     const token = readCookieValue(req, "token");
     if (!token) {
         res.status(403).redirect("/");

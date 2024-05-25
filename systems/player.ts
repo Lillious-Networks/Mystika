@@ -109,6 +109,16 @@ const player = {
         const response = await query("SELECT username FROM accounts WHERE session_id = ?", [session_id]);
         return response;
     },
+    getEmail: async (session_id: string) => {
+        if (!session_id) return;
+        const response = await query("SELECT email FROM accounts WHERE session_id = ?", [session_id]);
+        return response;
+    },
+    returnHome: async (session_id: string) => {
+        if (!session_id) return;
+        const response = await query("UPDATE accounts SET map = 'main', position = '0,0' WHERE session_id = ?", [session_id]);
+        return response;
+    },
     setToken: async (username: string) => {
         const token = randomBytes(32);
         if (!username || !token) return;

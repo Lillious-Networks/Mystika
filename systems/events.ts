@@ -5,7 +5,7 @@ import { Listener } from "../socket/server";
 
 // Online runs once the Server is online
 Event.on("online", (data) => {
-  log.info(`TCP server is listening on ${data.port}`);
+  log.info(`TCP server is listening on localhost:${data.port}`);
   // Emit awake event
   Listener.emit("onAwake");
   // Emit start event

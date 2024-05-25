@@ -323,3 +323,17 @@ await player.findByEmail(email);
 ```ts
 await player.setToken(username);
 ```
+
+<h5>player.getEmail();</h5>
+<p style="font-size:0.8em;">Gets a players email</p>
+
+```ts
+await player.getEmail(sessionId);
+```
+
+<h5>player.returnHome();</h5>
+<p style="font-size:0.8em;">Sets the players location to the main map at 0, 0</p>
+
+```ts
+await player.returnHome(sessionId);
+```

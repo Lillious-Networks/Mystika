@@ -116,7 +116,7 @@ export const Server = Bun.serve<Packet>({
       if (clientToDelete) {
         const deleted = connections.delete(clientToDelete);
         if (deleted) {
-          log.debug(`Client disconnected with id: ${ws.data.id}`);
+          log.info(`Client disconnected with id: ${ws.data.id}`);
           player.clearSessionId(ws.data.id);
           // Publish the new connection count and unsubscribe from the event
           const packet = {
