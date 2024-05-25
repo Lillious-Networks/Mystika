@@ -33,6 +33,7 @@ const PacketTypes: PacketType = {
   9: "MOVEXY",
   10: "AUTH",
   11: "LOGOUT",
+  12: "DISCONNECT"
 };
 ```
 
@@ -267,12 +268,25 @@ await player.setSessionId(token, sessionId);
 await player.getSessionId(token);
 ```
 
-<h5>player.logout();</h5>
-<p style="font-size:0.8em;">Logs a player out</p>
+<h5>player.login();</h5>
+<p style="font-size:0.8em;">Logs a player in</p>
 
+```ts
+await player.login(username, password);
+```
+
+<h5>player.logout();</h5>
+<p style="font-size:0.8em;">Logs the player out by clearing the auth token</p>
 
 ```ts
 await player.logout(sessionId);
+```
+
+<h5>player.clearSessionId();</h5>
+<p style="font-size:0.8em;">Clears the players session by clearing the session id</p>
+
+```ts
+await player.clearSessionId(sessionId);
 ```
 
 <h5>player.getUsername();</h5>
@@ -280,4 +294,32 @@ await player.logout(sessionId);
 
 ```ts
 await player.getUsername(sessionId);
+```
+
+<h5>player.register();</h5>
+<p style="font-size:0.8em;">Registers a new player account</p>
+
+```ts
+await player.register(username, password, email, request);
+```
+
+<h5>player.findByUsername();</h5>
+<p style="font-size:0.8em;">Finds a player by username</p>
+
+```ts
+await player.findByUsername(username);
+```
+
+<h5>player.findByEmail();</h5>
+<p style="font-size:0.8em;">Finds a player by email</p>
+
+```ts
+await player.findByEmail(email);
+```
+
+<h5>player.setToken();</h5>
+<p style="font-size:0.8em;">Assigns a player an authentication token</p>
+
+```ts
+await player.setToken(username);
 ```

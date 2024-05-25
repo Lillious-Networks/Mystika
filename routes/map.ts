@@ -1,9 +1,7 @@
 import express from "express";
 export const router = express.Router();
 import { GetMaps } from "../modules/assetloader";
-
 const maps = GetMaps();
-Object.freeze(maps);
 
 // Get map hash
 router.get("/map/hash", (req, res) => {

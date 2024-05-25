@@ -1,7 +1,6 @@
 import express from "express";
 export const router = express.Router();
-import query from "../controllers/sqldatabase";
-import { hash, randomBytes } from "../modules/hash";
+import player from "../systems/player";
 import log from "../modules/logger";
 
 router.post("/login", async (req, res) => {
@@ -11,61 +10,36 @@ router.post("/login", async (req, res) => {
   }
 
   // Check if the user exists
-  try {
-    let result = (await query("SELECT * FROM accounts WHERE username = ?", [
-      req.body.username,
-    ])) as any;
-    if (result.length === 0) {
-      log.debug(`User ${req.body.username} does not exist`);
-      res.status(403).redirect("back");
-      return;
-    }
-  } catch (err: any) {
-    log.error(err);
-    res.status(500).send("Database error");
+  const exists = await player.findByUsername(req.body.username) as string[];
+  if (exists?.length === 0) {
+    log.debug(`User ${req.body.username} failed to login`);
+    res.status(403).redirect("back");
     return;
   }
 
   // Validate credentials
-  try {
-    let result = (await query(
-      "SELECT * FROM accounts WHERE username = ? AND password_hash = ?",
-      [req.body.username, hash(req.body.password)]
-    )) as any;
-    if (result.length === 0) {
-      log.debug(`User ${req.body.username} failed to login`);
-      res.status(403).redirect("back");
-      return;
-    }
-  } catch (err: any) {
-    log.error(err);
+  const login = await player.login(req.body.username, req.body.password) as string[];
+  if (login?.length === 0) {
+    log.debug(`User ${req.body.username} failed to login`);
+    res.status(403).redirect("back");
+    return;
+  }
+
+  // Assign a token to the user
+  const token = await player.setToken(req.body.username);
+  if (!token) {
     res.status(500).send("Database error");
     return;
   }
 
-  // Update the token and redirect to the game
-  try {
-    const token = randomBytes(32);
-    let result = (await query(
-      "UPDATE accounts SET token = ? WHERE username = ?",
-      [token, req.body.username]
-    )) as any;
+  // Set the token in a cookie
+  res.cookie("token", token, {
+    maxAge: 900000,
+    httpOnly: false,
+  });
 
-    if (result.affectedRows === 0) {
-      log.error(`Failed to update token for ${req.body.username}`);
-      res.status(500).send("Database error");
-      return;
-    } else {
-      log.debug(`User ${req.body.username} logged in`);
-      res.cookie("token", token, {
-        maxAge: 900000,
-        httpOnly: false,
-      });
-      res.status(200).redirect("/game/");
-    }
-  } catch (err: any) {
-    log.error(err);
-    res.status(500).send("Database error");
-    return;
-  }
+  log.debug(`User ${req.body.username} logged in`);
+
+  // Redirect the user to the game
+  res.status(200).redirect("/game/");
 });

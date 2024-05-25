@@ -2,7 +2,6 @@ import express from "express";
 export const router = express.Router();
 import { GetScripts } from "../modules/assetloader";
 const scripts = GetScripts();
-Object.freeze(scripts);
 
 router.get("/function", (req, res) => {
     const scriptName = `${req?.query?.name?.toString()}.js`;

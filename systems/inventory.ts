@@ -2,7 +2,6 @@ import query from "../controllers/sqldatabase";
 import items from "./items";
 
 const inventory = {
-  // Check if the player has an item in their inventory by name
   async find(name: string, item: InventoryItem) {
     if (!name || !item.name) return;
     return await query(
@@ -13,9 +12,9 @@ const inventory = {
   async add(name: string, item: InventoryItem) {
     if (!name || !item?.quantity || !item?.name) return;
     if (Number(item.quantity) <= 0) return;
-    if (!await items.find({ name: item.name } as unknown as Item)) return;
+    if (!(await items.find({ name: item.name } as unknown as Item))) return;
     const response = (await inventory.find(name, item)) as InventoryItem[];
-    
+
     if (response.length === 0)
       return await query(
         "INSERT IGNORE INTO inventory (username, item, quantity) VALUES (?, ?, ?)",
@@ -33,7 +32,7 @@ const inventory = {
   async remove(name: string, item: InventoryItem) {
     if (!name || !item?.quantity || !item?.name) return;
     if (Number(item.quantity) <= 0) return;
-    if (!await items.find({ name: item.name } as unknown as Item)) return;
+    if (!(await items.find({ name: item.name } as unknown as Item))) return;
     const response = (await inventory.find(name, item)) as InventoryItem[];
     if (response.length === 0) return;
     if (Number(item.quantity) >= Number(response[0].quantity))

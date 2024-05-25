@@ -3,73 +3,77 @@ import { GetMaps } from "../modules/assetloader";
 import log from "../modules/logger";
 import player from "../systems/player";
 const maps = GetMaps();
-Object.freeze(maps);
 
 export default async function PacketReceiver(ws: any, message: string) {
   try {
-    if (!message) return;
+    // Check if the message is empty
+    if (!message) return ws.close(1008, "Empty message");
+    // Check if the message is too large
     if (message.length > 512) return ws.close(1009, "Message too large");
     const parsedMessage: Packet = tryParsePacket(message) as Packet;
-    if (!parsedMessage) return;
+    // Check if the packet is malformed
+    if (!parsedMessage) return ws.close(1007, "Malformed message");
+    const data = parsedMessage?.data;
+    const type = parsedMessage?.type;
+    // Check if the packet has a type and data
+    if (!type || (!data && data != null)) return ws.close(1007, "Malformed message");
+    // Check if the packet type is valid
+    if (Object.values(PacketTypes).indexOf(parsedMessage?.type as string) === -1) ws.close(1007, "Invalid packet type");
 
-    const type = parsedMessage.type;
-    const data = parsedMessage.data;
-    const index = Object.values(PacketTypes).indexOf(type as string);
-    if (index === -1) return;
-
-    switch (PacketTypes[index]) {
-      // PING
-      case PacketTypes[0]: {
-        ws.send(JSON.stringify({ type: PacketTypes[1], data: data }));
-        // Send TIME_SYNC packet
+    // Handle the packet
+    switch (type) {
+      case 'PING': {
+        ws.send(JSON.stringify({ type: 'PONG', data: data }));
         ws.send(
           JSON.stringify({
-            type: PacketTypes[8],
+            type: 'TIME_SYNC',
             data: Date.now(),
           })
         );
         break;
       }
-      // PONG
-      case PacketTypes[1]: {
-        ws.send(JSON.stringify({ type: PacketTypes[0], data: data }));
+      case 'PONG': {
+        ws.send(JSON.stringify({ type: 'PING', data: data }));
         break;
       }
-      // LOGIN
-      case PacketTypes[4]: {
+      case 'LOGIN': {
         log.success(`Client with id: ${ws.data.id} logged in`);
-        // Send a message to the client to load the main map
-        ws.send(
-          JSON.stringify({ type: PacketTypes[5], data: ws.data.id })
-        );
+        ws.send(JSON.stringify({ type: 'LOGIN_SUCCESS', data: ws.data.id }));
         break;
       }
-      case PacketTypes[8]: {
+      case 'TIME_SYNC': {
         // Calculate latency
         const latency = Date.now() - Number(data) - 5000;
         if (latency >= 3000) {
-          log.error(`Client with id: ${ws.data.id} has high latency: ${latency}ms and will be disconnected`);
+          log.error(
+            `Client with id: ${ws.data.id} has high latency: ${latency}ms and will be disconnected`
+          );
           ws.close(1001, "High latency");
         }
         const ServerTime = Date.now();
         ws.send(
           JSON.stringify({
-            type: PacketTypes[8],
+            type: 'TIME_SYNC',
             data: ServerTime,
           })
         );
         break;
       }
-      // AUTH
-      case PacketTypes[10]: {
+      case 'AUTH': {
         // Set the session id for the player
         await player.setSessionId(data.toString(), ws.data.id);
-        const getUsername = await player.getUsername(ws.data.id) as any[];
+        const getUsername = (await player.getUsername(ws.data.id)) as any[];
         const username = getUsername[0]?.username as string;
-        const location = await player.getLocation({ name: username }) as LocationData | null;
+        const location = (await player.getLocation({
+          name: username,
+        })) as LocationData | null;
         const position = location?.position as unknown as PositionData;
-        
-        if (!location || (!position?.x && position.x.toString() != '0') || (!position?.y && position.y.toString() != '0')) {
+
+        if (
+          !location ||
+          (!position?.x && position.x.toString() != "0") ||
+          (!position?.y && position.y.toString() != "0")
+        ) {
           log.error("Malformed location data, spawning player at main (0, 0)");
           const map = (maps as any[]).find(
             (map: MapData) => map.name === "main.json"
@@ -78,7 +82,7 @@ export default async function PacketReceiver(ws: any, message: string) {
 
           ws.send(
             JSON.stringify({
-              type: PacketTypes[7],
+              type: 'LOAD_MAP',
               data: [map.data, map.hash, map.name, 0, 0],
             })
           );
@@ -105,7 +109,7 @@ export default async function PacketReceiver(ws: any, message: string) {
 
           ws.send(
             JSON.stringify({
-              type: PacketTypes[7],
+              type: 'LOAD_MAP',
               data: [defaultMap.data, defaultMap.hash, "main.json", 0, 0],
             })
           );
@@ -115,18 +119,29 @@ export default async function PacketReceiver(ws: any, message: string) {
         }
 
         // If the player's location is found, send the map data
-        log.debug(`Spawning player ${username} at ${location?.map} (${position.x}, ${position.y})`)
+        log.debug(
+          `Spawning player ${username} at ${location?.map} (${position.x}, ${position.y})`
+        );
         ws.send(
           JSON.stringify({
-            type: PacketTypes[7],
-            data: [map?.data, map?.hash, `${location?.map}.json`, position.x, position.y],
+            type: 'LOAD_MAP',
+            data: [
+              map?.data,
+              map?.hash,
+              `${location?.map}.json`,
+              position.x,
+              position.y,
+            ],
           })
         );
         break;
       }
-      // Logout
-      case PacketTypes[11]: {
+      case 'LOGOUT': {
         await player.logout(ws.data.id);
+        break;
+      }
+      case 'DISCONNECT': {
+        await player.clearSessionId(ws.data.id);
         break;
       }
       // Unknown packet type
@@ -139,8 +154,7 @@ export default async function PacketReceiver(ws: any, message: string) {
   }
 }
 
-Object.freeze(PacketReceiver);
-
+// Try to parse the packet data
 function tryParsePacket(data: any) {
   try {
     return JSON.parse(data.toString());
@@ -148,5 +162,3 @@ function tryParsePacket(data: any) {
     return null;
   }
 }
-
-Object.freeze(tryParsePacket);

@@ -1,9 +1,7 @@
 import express from "express";
 export const router = express.Router();
 import { GetTilesets } from "../modules/assetloader";
-
 const tilesets = GetTilesets();
-Object.freeze(tilesets);
 
 // Get tileset hash
 router.get("/tileset/hash", (req, res) => {

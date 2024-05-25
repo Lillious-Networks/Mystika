@@ -15,8 +15,6 @@ const RateLimitOptions: RateLimitOptions = {
   maxWindowTime: 4000,
 };
 
-Object.freeze(RateLimitOptions);
-
 export const PacketTypes: PacketType = {
   0: "PING",
   1: "PONG",
@@ -30,13 +28,11 @@ export const PacketTypes: PacketType = {
   9: "MOVEXY",
   10: "AUTH",
   11: "LOGOUT",
+  12: "DISCONNECT"
 };
-
-Object.freeze(PacketTypes);
 
 // Set to store all connected clients
 const connections = new Set<Identity>();
-Object.freeze(connections);
 
 // Set to track the amount of requests
 const ClientRateLimit = [] as ClientRateLimit[];
@@ -121,7 +117,7 @@ export const Server = Bun.serve<Packet>({
         const deleted = connections.delete(clientToDelete);
         if (deleted) {
           log.debug(`Client disconnected with id: ${ws.data.id}`);
-          player.logout(ws.data.id);
+          player.clearSessionId(ws.data.id);
           // Publish the new connection count and unsubscribe from the event
           const packet = {
             type: PacketTypes[2],
@@ -180,8 +176,6 @@ export const Server = Bun.serve<Packet>({
   },
 });
 
-Object.freeze(Server);
-
 // Awake event
 Listener.on("onAwake", async () => {});
 
@@ -235,5 +229,3 @@ export const Events = {
     return ClientRateLimit.filter((client) => client.rateLimited);
   },
 };
-
-Object.freeze(Events);

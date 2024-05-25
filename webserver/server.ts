@@ -125,13 +125,10 @@ app.use(AuthorizationRouter);
 app.use("/game", express.static(path.join(import.meta.dirname, "www/game")));
 import { router as mapRouter } from "../routes/map";
 app.use(mapRouter);
-Object.freeze(mapRouter);
 import { router as tilesetRouter } from "../routes/tileset";
 app.use(tilesetRouter);
-Object.freeze(tilesetRouter);
 import { router as functionRouter } from "../routes/functions";
 app.use(functionRouter);
-Object.freeze(functionRouter);
 
 const server = http.createServer(app);
 const httpsServer = https.createServer(credentials, app);

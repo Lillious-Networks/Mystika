@@ -23,8 +23,6 @@ export function GetMaps(): MapData[] {
   return maps;
 }
 
-Object.freeze(GetMaps);
-
 // Load tilesets
 export function GetTilesets(): TilesetData[] {
   const tilesets = [] as TilesetData[];
@@ -44,8 +42,6 @@ export function GetTilesets(): TilesetData[] {
   return tilesets;
 }
 
-Object.freeze(GetTilesets);
-
 // Load scripts
 export function GetScripts(): ScriptData[] {
   const scripts = [] as ScriptData[];
@@ -64,5 +60,3 @@ export function GetScripts(): ScriptData[] {
 
   return scripts;
 }
-
-Object.freeze(GetScripts);
