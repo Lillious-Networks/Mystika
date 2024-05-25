@@ -29,6 +29,10 @@ const PacketTypes: PacketType = {
   5: "LOGIN_SUCCESS",
   6: "LOGIN_FAILED",
   7: "LOAD_MAP",
+  8: "TIME_SYNC",
+  9: "MOVEXY",
+  10: "AUTH",
+  11: "LOGOUT",
 };
 ```
 
