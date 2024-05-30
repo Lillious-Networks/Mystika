@@ -1,2 +1,3 @@
 services/email.ts linguist-vendored
 webserver/www/** linguist-vendored
+assets/** linguist-vendored
