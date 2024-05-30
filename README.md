@@ -127,25 +127,25 @@ import { Events } from "../socket/server";
 ```
 
 <h5>Events.GetOnlineCount();</h5>
-<p style="font-size:0.8em;">Returns the amount of clients that are currently connected</p>
+<p style="font-size:0.75em;">Returns the amount of clients that are currently connected</p>
 
 <h5>Events.GetOnlineData();</h5>
-<p style="font-size:0.8em;">Returns a list that contains client connection data</p>
+<p style="font-size:0.75em;">Returns a list that contains client connection data</p>
 
 <h5>Events.Broadcast(packet: string);</h5>
-<p style="font-size:0.8em;">Broadcasts a message to all connected clients</p>
+<p style="font-size:0.75em;">Broadcasts a message to all connected clients</p>
 
 <h5>Events.GetClientRequests();</h5>
-<p style="font-size:0.8em;">Returns a list that contains client request data
+<p style="font-size:0.75em;">Returns a list that contains client request data
 
 <h5>Events.GetRateLimitedClients();</h5>
-<p style="font-size:0.8em;">Returns a list of rate limited clients</p>
+<p style="font-size:0.75em;">Returns a list of rate limited clients</p>
 
 <hr>
 <h3>Listener Events</h3>
 
 <h5>onAwake</h5>
-<p style="font-size:0.8em;">Fires immediately after the server starts</p>
+<p style="font-size:0.75em;">Fires immediately after the server starts</p>
 
 ```ts
 Listener.on("onAwake", (data) => {
@@ -154,7 +154,7 @@ Listener.on("onAwake", (data) => {
 ```
 
 <h5>onStart</h5>
-<p style="font-size:0.8em;">Fires immediately after <b>onAwake</b></p>
+<p style="font-size:0.75em;">Fires immediately after <b>onAwake</b></p>
 
 ```ts
 Listener.on("onStart", (data) => {
@@ -163,7 +163,7 @@ Listener.on("onStart", (data) => {
 ```
 
 <h5>onUpdate</h5>
-<p style="font-size:0.8em;">Fires immediately after <b>onStart</b> every 60 frames</p>
+<p style="font-size:0.75em;">Fires immediately after <b>onStart</b> every 60 frames</p>
 
 ```ts
 Listener.on("onUpdate", (data) => {
@@ -172,7 +172,7 @@ Listener.on("onUpdate", (data) => {
 ```
 
 <h5>onFixedUpdate</h5>
-<p style="font-size:0.8em;">Fires immediately after <b>onStart</b> every 100ms</p>
+<p style="font-size:0.75em;">Fires immediately after <b>onStart</b> every 100ms</p>
 
 ```ts
 Listener.on("onFixedUpdate", (data) => {
@@ -181,7 +181,7 @@ Listener.on("onFixedUpdate", (data) => {
 ```
 
 <h5>onSave</h5>
-<p style="font-size:0.8em;">Runs every 5 minutes</p>
+<p style="font-size:0.75em;">Runs every 5 minutes</p>
 
 ```ts
 Listener.on("onSave", (data) => {
@@ -190,7 +190,7 @@ Listener.on("onSave", (data) => {
 ```
 
 <h5>onConnection</h5>
-<p style="font-size:0.8em;">Fires when a new connection is established</p>
+<p style="font-size:0.75em;">Fires when a new connection is established</p>
 
 ```ts
 Listener.on("onConnection", (data) => {
@@ -199,7 +199,7 @@ Listener.on("onConnection", (data) => {
 ```
 
 <h5>onDisconnect</h5>
-<p style="font-size:0.8em;">Fires when a connection is dropped</p>
+<p style="font-size:0.75em;">Fires when a connection is dropped</p>
 
 ```ts
 Listener.on("onDisconnect", (data) => {
@@ -224,28 +224,28 @@ declare interface InventoryItem {
 ```
 
 <h5>inventory.add();</h5>
-<p style="font-size:0.8em;">Add an item to player inventory</p>
+<p style="font-size:0.75em;">Add an item to player inventory</p>
 
 ```ts
 await inventory.add("user_name", { name: "item_name", quantity: number });
 ```
 
 <h5>inventory.remove();</h5>
-<p style="font-size:0.8em;">Remove an item from player inventory</p>
+<p style="font-size:0.75em;">Remove an item from player inventory</p>
 
 ```ts
 await inventory.remove("user_name", { name: "item_name", quantity: number });
 ```
 
 <h5>inventory.find();</h5>
-<p style="font-size:0.8em;">Find an item from player inventory</p>
+<p style="font-size:0.75em;">Find an item from player inventory</p>
 
 ```ts
 await inventory.find("user_name", { name: "item_name" });
 ```
 
 <h5>inventory.delete();</h5>
-<p style="font-size:0.8em;">Delete an item from player inventory</p>
+<p style="font-size:0.75em;">Delete an item from player inventory</p>
 
 ```ts
 await inventory.delete("user_name", { name: "item_name" });
@@ -269,28 +269,28 @@ declare interface Item {
 ```
 
 <h5>items.add();</h5>
-<p style="font-size:0.8em;">Add an item to the item database</p>
+<p style="font-size:0.75em;">Add an item to the item database</p>
 
 ```ts
 await items.add({ name: "item_name", quality: "item_quality", description: "item_description" });
 ```
 
 <h5>items.remove();</h5>
-<p style="font-size:0.8em;">Remove an item from the item database</p>
+<p style="font-size:0.75em;">Remove an item from the item database</p>
 
 ```ts
 await items.remove({ name: "item_name" });
 ```
 
 <h5>items.list();</h5>
-<p style="font-size:0.8em;">List all items from the item database</p>
+<p style="font-size:0.75em;">List all items from the item database</p>
 
 ```ts
 await items.list();
 ```
 
 <h5>items.find();</h5>
-<p style="font-size:0.8em;">Find an item from the item database</p>
+<p style="font-size:0.75em;">Find an item from the item database</p>
 
 ```ts
 await items.find({ name: "item_name" });
@@ -315,112 +315,112 @@ declare interface Player {
 ```
 
 <h5>player.getLocation();</h5>
-<p style="font-size:0.8em;">Get a player's location data</p>
+<p style="font-size:0.75em;">Get a player's location data</p>
 
 ```ts
 await player.getLocation({ name: username }) as LocationData | null;
 ```
 
 <h5>player.setSessionId();</h5>
-<p style="font-size:0.8em;">Sets a player's sessionId</p>
+<p style="font-size:0.75em;">Sets a player's sessionId</p>
 
 ```ts
 await player.setSessionId(token, sessionId);
 ```
 
 <h5>player.getSessionId();</h5>
-<p style="font-size:0.8em;">Get a player's sessionId</p>
+<p style="font-size:0.75em;">Get a player's sessionId</p>
 
 ```ts
 await player.getSessionId(token);
 ```
 
 <h5>player.login();</h5>
-<p style="font-size:0.8em;">Logs a player in</p>
+<p style="font-size:0.75em;">Logs a player in</p>
 
 ```ts
 await player.login(username, password);
 ```
 
 <h5>player.logout();</h5>
-<p style="font-size:0.8em;">Logs the player out by clearing the auth token</p>
+<p style="font-size:0.75em;">Logs the player out by clearing the auth token</p>
 
 ```ts
 await player.logout(sessionId);
 ```
 
 <h5>player.clearSessionId();</h5>
-<p style="font-size:0.8em;">Clears the players session by clearing the session id</p>
+<p style="font-size:0.75em;">Clears the players session by clearing the session id</p>
 
 ```ts
 await player.clearSessionId(sessionId);
 ```
 
 <h5>player.getUsernameBySession();</h5>
-<p style="font-size:0.8em;">Gets a player's username by sessionId</p>
+<p style="font-size:0.75em;">Gets a player's username by sessionId</p>
 
 ```ts
 await player.getUsernameBySession(sessionId);
 ```
 
 <h5>player.getUsernameByToken();</h5>
-<p style="font-size:0.8em;">Gets a player's username by authentication token</p>
+<p style="font-size:0.75em;">Gets a player's username by authentication token</p>
 
 ```ts
 await player.getUsernameByToken(sessionId);
 ```
 
 <h5>player.register();</h5>
-<p style="font-size:0.8em;">Registers a new player account</p>
+<p style="font-size:0.75em;">Registers a new player account</p>
 
 ```ts
 await player.register(username, password, email, request);
 ```
 
 <h5>player.findByUsername();</h5>
-<p style="font-size:0.8em;">Finds a player by username</p>
+<p style="font-size:0.75em;">Finds a player by username</p>
 
 ```ts
 await player.findByUsername(username);
 ```
 
 <h5>player.findByEmail();</h5>
-<p style="font-size:0.8em;">Finds a player by email</p>
+<p style="font-size:0.75em;">Finds a player by email</p>
 
 ```ts
 await player.findByEmail(email);
 ```
 
 <h5>player.setToken();</h5>
-<p style="font-size:0.8em;">Assigns a player an authentication token</p>
+<p style="font-size:0.75em;">Assigns a player an authentication token</p>
 
 ```ts
 await player.setToken(username);
 ```
 
 <h5>player.getEmail();</h5>
-<p style="font-size:0.8em;">Gets a players email</p>
+<p style="font-size:0.75em;">Gets a players email</p>
 
 ```ts
 await player.getEmail(sessionId);
 ```
 
 <h5>player.returnHome();</h5>
-<p style="font-size:0.8em;">Sets the players location to the main map at 0, 0</p>
+<p style="font-size:0.75em;">Sets the players location to the main map at 0, 0</p>
 
 ```ts
 await player.returnHome(sessionId);
 ```
 
 <h5>player.isOnline();</h5>
-<p style="font-size:0.8em;">Checks if the player is currently online</p>
+<p style="font-size:0.75em;">Checks if the player is currently online</p>
 
 ```ts
 await player.isOnline(username);
 ```
 
 <h5>player.isBanned();</h5>
-<p style="font-size:0.8em;">Checks if the player is currently banned</p>
+<p style="font-size:0.75em;">Checks if the player is currently banned</p>
 
 ```ts
 await player.isBanned(username);
