@@ -1,1 +1,2 @@
-services/* linguist-vendored
+services/email.ts linguist-vendored
+webserver/www/public/** linguist-vendored
