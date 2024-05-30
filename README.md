@@ -1,12 +1,15 @@
 <h1 align="center">Mystika - Game Engine</h1>
 
-> [!NOTE]
-> This project is currently a **work in progress**
-> Core Develoopment Team: Lillious
-
 <p align="center">
   <img src="../../blob/main/webserver/www/public/img/logo.png?raw=true">
 </p>
+
+> [!NOTE]
+> This project is currently a **work in progress**
+>
+> Core Develoopment Team: [Lillious](https://github.com/Lillious)
+>
+> [Discord](https://discord.gg/4spUbuXBvZ)
 
 <h3>Getting Started</h3>
 
