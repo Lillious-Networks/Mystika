@@ -1,8 +1,54 @@
 <h1 align="center">Mystika - Game Engine</h1>
 
+> [!NOTE]
+> This project is currently a **work in progress**
+> Core Develoopment Team: Lillious
+
 <p align="center">
   <img src="../../blob/main/webserver/www/public/img/logo.png?raw=true">
 </p>
+
+<h3>Getting Started</h3>
+
+> [!IMPORTANT]
+> Database setup must be ran prior to first run
+
+<h5>Running the server</h5>
+
+```
+bun start
+```
+
+<h5>Unit Tests</h5>
+
+```
+bun test
+```
+
+<h5>Database Setup<h5>
+
+```
+bun setup
+```
+
+<h3>Environment Variables</h3>
+
+> [!IMPORTANT]
+> The below environment variables are required
+
+<p style="font-size:1em;">Location: /.env</p>
+
+
+```
+DATABASE_HOST
+DATABASE_USER
+DATABASE_PASSWORD
+DATABASE_NAME
+EMAIL_USER
+EMAIL_PASSWORD
+EMAIL_SERVICE
+EMAIL_TEST
+```
 
 <h3>Client Identity</h3>
 

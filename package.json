@@ -2,6 +2,10 @@
   "name": "mystika",
   "module": "./webserver/server.ts",
   "type": "module",
+  "scripts": {
+    "start": "bun ./webserver/server.ts",
+    "setup": "bun ./utility/database_setup.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
