@@ -1,7 +1,7 @@
 // This file is used to create the database and tables if they don't exist
 import query from "../controllers/sqldatabase";
 import log from "../modules/logger";
-const database = process.env.DB_NAME || "TEMP_Mystika";
+const database = process.env.DATABASE_NAME || "TEMP_Mystika";
 
 // Create TEMP_Mystika Database if it doesn't exist
 const createDatabase = async () => {
