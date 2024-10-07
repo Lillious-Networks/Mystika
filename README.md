@@ -18,7 +18,9 @@
 > - [Bun](https://bun.sh/)
 > - [MySQL](https://www.mysql.com/downloads/)
 > <br>
-> Database Creation: `bun run setup`
+> Database Creation:
+>
+> ``bun run setup``
 
 <h5>Running the server</h5>
 
