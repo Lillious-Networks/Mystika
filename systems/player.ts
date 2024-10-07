@@ -20,7 +20,7 @@ const player = {
         if (emailExists && emailExists.length != 0) return;
 
         const response = await query(
-            "INSERT INTO accounts (email, username, token, password_hash, ip_address, geo_location) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO accounts (email, username, token, password_hash, ip_address, geo_location, map, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             [
               email,
               username,
@@ -28,6 +28,8 @@ const player = {
               hash(password),
               req.ip,
               req.headers["cf-ipcountry"],
+              "main",
+              "0,0"
             ]
           ).catch((err) => {
             log.error(err);
