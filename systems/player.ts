@@ -3,6 +3,10 @@ import { hash, randomBytes } from "../modules/hash";
 import log from "../modules/logger";
 
 const player = {
+    clear: async () => {
+        // Clear all session_ids, set online to 0, and clear all tokens
+        await query("UPDATE accounts SET session_id = NULL, online = 0, token = NULL WHERE session_id IS NOT NULL;");
+    },    
     register: async (username: string, password: string, email: string, req: any) => {
         if (!username || !password || !email) return;
         // Validate field lengths

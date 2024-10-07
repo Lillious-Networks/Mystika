@@ -179,7 +179,10 @@ export const Server = Bun.serve<Packet>({
 });
 
 // Awake event
-Listener.on("onAwake", async () => {});
+Listener.on("onAwake", async () => {
+  // Clean up the player session ids, set them to offline, and clear all tokens
+  await player.clear();
+});
 
 // Start event
 Listener.on("onStart", async () => {});
