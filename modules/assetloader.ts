@@ -1,27 +1,39 @@
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import log from "./logger";
 
 // Load maps
 export function GetMaps(): MapData[] {
   const maps = [] as MapData[];
+  const failedMaps = [] as string[];
   const mapDir = path.join(import.meta.dir, "..", "assets", "maps");
   if (!fs.existsSync(mapDir)) return maps;
 
   const mapFiles = fs.readdirSync(mapDir);
   mapFiles.forEach((file) => {
-    const mapData = JSON.parse(
-      fs.readFileSync(path.join(mapDir, file), "utf-8")
-    );
-    const mapHash = crypto
-      .createHash("sha256")
-      .update(JSON.stringify(mapData))
-      .digest("hex");
-    maps.push({ name: file, data: mapData, hash: mapHash });
-  });
+    if (!file.endsWith(".json")) return;
+    const f = path.join(mapDir, file);
+    const result = tryParse(fs.readFileSync(f, "utf-8")) || failedMaps.push(f);
+    
+    if (result) {
+      const mapHash = crypto
+        .createHash("sha256")
+        .update(JSON.stringify(result))
+        .digest("hex");
+      maps.push({ name: file, data: result, hash: mapHash });
+    }
+    log.debug(`Loaded map: ${file}`);
+  })
 
-  return maps;
-}
+  if (failedMaps.length > 0) {
+    for (const map of failedMaps) {
+      log.error(`Failed to parse ${map} as a map`);
+    }
+  }
+
+  return maps || [];
+};
 
 // Load tilesets
 export function GetTilesets(): TilesetData[] {
@@ -59,4 +71,12 @@ export function GetScripts(): ScriptData[] {
   });
 
   return scripts;
+}
+
+function tryParse(data: string): any {
+  try {
+    return JSON.parse(data);
+  } catch (err) {
+    return null;
+  }
 }

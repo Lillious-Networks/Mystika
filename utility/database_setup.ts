@@ -5,7 +5,7 @@ const database = process.env.DATABASE_NAME || "TEMP_Mystika";
 
 // Create TEMP_Mystika Database if it doesn't exist
 const createDatabase = async () => {
-  const sql = `CREATE DATABASE IF NOT EXISTS ${database}`;
+  const sql = `CREATE DATABASE IF NOT EXISTS ${database};`;
   await query(sql);
 };
 
