@@ -11,6 +11,9 @@ const player = {
         // Validate email format
         if (!email.includes("@") || !email.includes(".")) return;
 
+        const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!regex.test(email)) return;
+
         // Check if the user exists by username
         const usernameExists = await player.findByUsername(username) as string[];
         if (usernameExists && usernameExists.length != 0) return;
