@@ -17,8 +17,8 @@
 > **Requirements**:
 > - [Bun](https://bun.sh/)
 > - [MySQL](https://www.mysql.com/downloads/)
-> 
-> *Database setup must be ran prior to first run*
+> <br>
+> Database Creation: `bun run setup`
 
 <h5>Running the server</h5>
 
