@@ -7,7 +7,7 @@
 > [!NOTE]
 > This project is currently a **work in progress**
 >
-> Core Develoopment Team: [Lillious](https://github.com/Lillious)
+> Core Development Team: [Lillious](https://github.com/Lillious)
 >
 > [Discord](https://discord.gg/4spUbuXBvZ)
 
