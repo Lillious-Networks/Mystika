@@ -14,9 +14,13 @@
 <h3>Getting Started</h3>
 
 > [!IMPORTANT]
-> Download and install [MySQL](https://www.mysql.com/downloads/)
-> 
-> Database setup must be ran prior to first run
+> **Requirements**:
+> - [Bun](https://bun.sh/)
+> - [MySQL](https://www.mysql.com/downloads/)
+> <br>
+> Database Creation:
+>
+> ``bun run setup``
 
 <h5>Running the server</h5>
 
