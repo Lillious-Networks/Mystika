@@ -5,6 +5,7 @@ import { Event } from "../systems/events";
 import EventEmitter from "node:events";
 import log from "../modules/logger";
 import player from "../systems/player";
+import { PacketTypes } from "./types";
 
 const RateLimitOptions: RateLimitOptions = {
   // Maximum amount of requests
@@ -13,22 +14,6 @@ const RateLimitOptions: RateLimitOptions = {
   time: 5000,
   // Maximum window time in milliseconds
   maxWindowTime: 4000,
-};
-
-export const PacketTypes: PacketType = {
-  0: "PING",
-  1: "PONG",
-  2: "CONNECTION_COUNT",
-  3: "RATE_LIMITED",
-  4: "LOGIN",
-  5: "LOGIN_SUCCESS",
-  6: "LOGIN_FAILED",
-  7: "LOAD_MAP",
-  8: "TIME_SYNC",
-  9: "MOVEXY",
-  10: "AUTH",
-  11: "LOGOUT",
-  12: "DISCONNECT"
 };
 
 // Set to store all connected clients

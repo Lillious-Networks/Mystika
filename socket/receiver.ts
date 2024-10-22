@@ -1,4 +1,4 @@
-import { PacketTypes } from "./server";
+import { PacketTypes } from "./types";
 import { GetMaps } from "../modules/assetloader";
 import log from "../modules/logger";
 import player from "../systems/player";
