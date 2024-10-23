@@ -5,27 +5,27 @@
     throw new Error(`HTTP error! status: ${websocket.status}`);
   }
 
-  // Get the response
-  const response = await websocket.json();
-  if (!response || !response.script || !response.hash) {
-    throw new Error("No response or script found");
+  // Get the websocket_response
+  const websocket_response = await websocket.json();
+  if (!websocket_response || !websocket_response.script || !websocket_response.hash) {
+    throw new Error("No websocket_response or script found");
   }
 
   // Fetch the hash
-  const hash = await fetch(`/function/hash?name=websocket`);
-  if (!hash.ok) {
-    throw new Error(`HTTP error! status: ${hash.status}`);
+  const websocket_hash = await fetch(`/function/hash?name=websocket`);
+  if (!websocket_hash.ok) {
+    throw new Error(`HTTP error! status: ${websocket_hash.status}`);
   }
 
   // Check the hash
-  if (response.hash !== (await hash.json()).hash) {
+  if (websocket_response.hash !== (await websocket_hash.json()).hash) {
     throw new Error("Hash mismatch");
   }
 
-  // Execute the function in its own scope
+  // Execute all functions in their own scope
   {
     try {
-      new Function(response.script)();
+      new Function(websocket_response.script)();
     } catch (error) {
       console.error(error);
     }

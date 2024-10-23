@@ -56,8 +56,8 @@ const player = {
         return response;
     },
     getLocation: async (player: Player) => {
-        if (!player?.name) return;
-        const response = await query("SELECT map, position FROM accounts WHERE username = ?", [player.name]) as LocationData[];
+        let username = player.username || player.id;
+        const response = await query("SELECT map, position FROM accounts WHERE username = ? OR session_id = ?", [username, username]) as LocationData[];
         const map = response[0]?.map as string;
         const position = {
             x: Number(response[0]?.position?.split(",")[0]),
@@ -70,9 +70,9 @@ const player = {
 
         return { map, position };
     },
-    setLocation: async (player: Player, map: string, position: PositionData) => {
-        if (!player?.name || !map || !position) return;
-        const response = await query("UPDATE accounts SET map = ?, position = ? WHERE username = ?", [map, `${position.x},${position.y}`, player.name]);
+    setLocation: async (session_id: string, map: string, position: PositionData) => {
+        if (!session_id || !map || !position) return;
+        const response = await query("UPDATE accounts SET map = ?, position = ? WHERE session_id = ?", [map, `${position.x},${position.y}`, session_id]);
         return response;
     },
     setSessionId: async (token: string, sessionId: string) => {
@@ -156,6 +156,15 @@ const player = {
         const response = await query("SELECT banned FROM accounts WHERE username = ?", [username]);
         return response;
     },
+    getPlayers: async (map: string) => {
+        const response = await query("SELECT username, session_id as id, position, map FROM accounts WHERE online = 1 and map = ?", [map]);
+        return response;
+    },
+    getMap: async (session_id: string) => {
+        if (!session_id) return;
+        const response = await query("SELECT map FROM accounts WHERE session_id = ?", [session_id]) as any;
+        return response[0]?.map as string
+    }
 };
 
 export default player;

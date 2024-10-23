@@ -57,6 +57,7 @@ EMAIL_USER
 EMAIL_PASSWORD
 EMAIL_SERVICE
 EMAIL_TEST
+SQL_SSL_MODE DISABLED | ENABLED
 ```
 
 <h3>Client Identity</h3>
@@ -88,7 +89,10 @@ const PacketTypes: PacketType = {
   9: "MOVEXY",
   10: "AUTH",
   11: "LOGOUT",
-  12: "DISCONNECT"
+  12: "DISCONNECT",
+  13: "SPAWN_PLAYER",
+  14: "LOAD_PLAYERS",
+  15: "DISCONNECT_PLAYER",
 };
 ```
 
@@ -109,9 +113,9 @@ declare interface Packet {
 
 ```ts
 const RateLimitOptions: RateLimitOptions = {
-  maxRequests: 100,
-  time: 5000,
-  maxWindowTime: 4000,
+  maxRequests: 2000,
+  time: 2000,
+  maxWindowTime: 1000,
 };
 ```
 
@@ -124,6 +128,34 @@ declare interface RateLimitOptions {
   maxWindowTime: number;
 }
 ```
+
+<hr>
+<h3>Caching</h3>
+
+```ts
+import cache from '../services/cache'; // Main player cache
+import assetCache from '../services/assetCache'; // Asset caching
+```
+
+<h5>cache.add(key: string, value: any);</h5>
+<h5>assetCache.add(key: string, value: any);</h5>
+<p style="font-size:0.75em;">Adds an item to the cache</p>
+
+<h5>cache.get(key: string)</h5>
+<h5>assetCache.get(key: string)</h5>
+<p style="font-size:0.75em;">Fetches an item from the cache</p>
+
+<h5>cache.remove(key: string)</h5>
+<h5>assetCache.remove(key: string)</h5>
+<p style="font-size:0.75em;">Removes an item from the cache</p>
+
+<h5>cache.clear()</h5>
+<h5>assetCache.clear()</h5>
+<p style="font-size:0.75em;">Clears the cache</p>
+
+<h5>cache.list()</h5>
+<h5>assetCache.list()</h5>
+<p style="font-size:0.75em;">Fetches all items from the cache</p>
 
 <hr>
 <h3>Events</h3>

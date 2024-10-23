@@ -1,25 +1,25 @@
 import EventEmitter from "node:events";
 import log from "../modules/logger";
-export const Event = new EventEmitter();
-import { Listener } from "../socket/server";
+export const event = new EventEmitter();
+import { listener } from "../socket/server";
 
 // Online runs once the Server is online
-Event.on("online", (data) => {
+event.on("online", (data) => {
   log.info(`TCP server is listening on localhost:${data.port}`);
   // Emit awake event
-  Listener.emit("onAwake");
+  listener.emit("onAwake");
   // Emit start event
-  Listener.emit("onStart");
+  listener.emit("onStart");
   // Update loop runs every frame of the Server at 60fps
   setInterval(() => {
-    Listener.emit("onUpdate");
+    listener.emit("onUpdate");
   }, 1000 / 60);
   // Fixed update loop runs every 100ms
   setInterval(() => {
-    Listener.emit("onFixedUpdate");
+    listener.emit("onFixedUpdate");
   }, 100);
   // Save loop runs every 5 minutes
   setInterval(() => {
-    Listener.emit("onSave");
+    listener.emit("onSave");
   }, 1000);
 });

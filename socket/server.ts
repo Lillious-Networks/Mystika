@@ -1,19 +1,20 @@
 import crypto from "crypto";
-import PacketReceiver from "./receiver";
-export const Listener = new EventEmitter();
-import { Event } from "../systems/events";
-import EventEmitter from "node:events";
+import packetReceiver from "./receiver";
+export const listener = new eventEmitter();
+import { event } from "../systems/events";
+import eventEmitter from "node:events";
 import log from "../modules/logger";
 import player from "../systems/player";
-import { PacketTypes } from "./types";
+import { packetTypes } from "./types";
+import cache from '../services/cache.ts';
 
 const RateLimitOptions: RateLimitOptions = {
   // Maximum amount of requests
-  maxRequests: 100,
+  maxRequests: 2000,
   // Time in milliseconds to remove rate limiting
-  time: 5000,
+  time: 2000,
   // Maximum window time in milliseconds
-  maxWindowTime: 4000,
+  maxWindowTime: 1000,
 };
 
 // Set to store all connected clients
@@ -44,7 +45,7 @@ export const Server = Bun.serve<Packet>({
       if (!ws.data.id || !ws.data.useragent) return;
       connections.add({ id: ws.data.id, useragent: ws.data.useragent });
       // Emit the onConnection event
-      Listener.emit("onConnection", ws.data.id);
+      listener.emit("onConnection", ws.data.id);
       // Add the client to the clientRequests array
       ClientRateLimit.push({
         id: ws.data.id,
@@ -76,16 +77,19 @@ export const Server = Bun.serve<Packet>({
 
       // Subscribe to the CONNECTION_COUNT event and publish the current count
       ws.subscribe("CONNECTION_COUNT" as Subscription["event"]);
+      ws.subscribe("BROADCAST" as Subscription["event"]);
+      ws.subscribe("LOAD_PLAYERS" as Subscription["event"]);
+      ws.subscribe("SPAWN_PLAYER" as Subscription["event"]);
+      ws.subscribe("MOVEXY" as Subscription["event"]);
+      ws.subscribe("DISCONNECT_PLAYER" as Subscription["event"]);
       const packet = {
-        type: PacketTypes[2],
+        type: packetTypes[2],
         data: connections.size,
       } as unknown as Packet;
       Server.publish(
         "CONNECTION_COUNT" as Subscription["event"],
         JSON.stringify(packet)
       );
-      // Subscribe to the BROADCAST event
-      ws.subscribe("BROADCAST" as Subscription["event"]);
     },
     async close(ws) {
       // Remove the client from the set of connected clients
@@ -100,14 +104,15 @@ export const Server = Bun.serve<Packet>({
       }
       // Check if we found the client object
       if (clientToDelete) {
+        cache.remove(ws.data.id);
         const deleted = connections.delete(clientToDelete);
         if (deleted) {
           // Emit the onDisconnect event
-          Listener.emit("onDisconnect", ws.data.id);
+          listener.emit("onDisconnect", ws.data.id);
           player.clearSessionId(ws.data.id);
           // Publish the new connection count and unsubscribe from the event
           const packet = {
-            type: PacketTypes[2],
+            type: packetTypes[2],
             data: connections.size,
           } as unknown as Packet;
           Server.publish(
@@ -117,6 +122,10 @@ export const Server = Bun.serve<Packet>({
           ws.unsubscribe("CONNECTION_COUNT" as Subscription["event"]);
           // Unsubscribe from the BROADCAST event
           ws.unsubscribe("BROADCAST" as Subscription["event"]);
+          ws.unsubscribe("SPAWN_PLAYER" as Subscription["event"]);
+          ws.unsubscribe("LOAD_PLAYERS" as Subscription["event"]);
+          ws.unsubscribe("MOVEXY" as Subscription["event"]);
+          ws.unsubscribe("DISCONNECT_PLAYER" as Subscription["event"]);
           // Remove the client from clientRequests
           for (let i = 0; i < ClientRateLimit.length; i++) {
             if (ClientRateLimit[i].id === ws.data.id) {
@@ -125,6 +134,13 @@ export const Server = Bun.serve<Packet>({
             }
           }
         }
+        ws.publish(
+          "DISCONNECT_PLAYER" as Subscription["event"],
+          JSON.stringify({
+            type: packetTypes[15],
+            data: ws.data.id,
+          })
+        );
       }
     },
     async message(ws, message: string | Buffer) {
@@ -149,13 +165,13 @@ export const Server = Bun.serve<Packet>({
                 ).toString()
               );
               ws.send(
-                JSON.stringify({ type: PacketTypes[3], data: "Rate limited" })
+                JSON.stringify({ type: packetTypes[3], data: "Rate limited" })
               );
               return;
             }
           }
         }
-        PacketReceiver(ws, message.toString());
+        packetReceiver(Server, ws, message.toString());
       } catch (e) {
         log.error(e as string);
       }
@@ -164,22 +180,22 @@ export const Server = Bun.serve<Packet>({
 });
 
 // Awake event
-Listener.on("onAwake", async () => {
+listener.on("onAwake", async () => {
   // Clean up the player session ids, set them to offline, and clear all tokens
   await player.clear();
 });
 
 // Start event
-Listener.on("onStart", async () => {});
+listener.on("onStart", async () => {});
 
 // Register the Server as online
-Event.emit("online", Server);
+event.emit("online", Server);
 
 // Fixed update loop
-Listener.on("onUpdate", async () => {});
+listener.on("onUpdate", async () => {});
 
 // Fixed update loop
-Listener.on("onFixedUpdate", async () => {
+listener.on("onFixedUpdate", async () => {
   {
     if (ClientRateLimit.length < 1) return;
     const timestamp = Date.now();
@@ -198,19 +214,25 @@ Listener.on("onFixedUpdate", async () => {
 });
 
 // On new connection
-Listener.on("onConnection", (data) => {
+listener.on("onConnection", (data) => {
   if (!data) return;
   log.debug(`New connection: ${data}`);
 });
 
 // On disconnect
-Listener.on("onDisconnect", (data) => {
+listener.on("onDisconnect", (data) => {
   if (!data) return;
   log.debug(`Disconnected: ${data}`);
 });
 
 // Save loop
-Listener.on("onSave", () => {});
+listener.on("onSave", async () => {
+  const playerCache = cache.list();
+  for (const p in playerCache) {
+    await player.setLocation(p, playerCache[p].location.map, playerCache[p].location.position);
+    console.log(`Saved location for ${p}`);
+  }
+});
 
 // Exported Server events
 export const Events = {

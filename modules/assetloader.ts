@@ -2,9 +2,10 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import log from "./logger";
+import assetCache from "../services/assetCache";
 
 // Load maps
-export function GetMaps(): MapData[] {
+export function loadMaps() {
   const maps = [] as MapData[];
   const failedMaps = [] as string[];
   const mapDir = path.join(import.meta.dir, "..", "assets", "maps");
@@ -32,11 +33,12 @@ export function GetMaps(): MapData[] {
     }
   }
 
-  return maps || [];
+  assetCache.add("maps", maps);
 };
+loadMaps();
 
 // Load tilesets
-export function GetTilesets(): TilesetData[] {
+export function loadTilesets() {
   const tilesets = [] as TilesetData[];
   const tilesetDir = path.join(import.meta.dir, "..", "assets", "tilesets");
   if (!fs.existsSync(tilesetDir)) return tilesets;
@@ -44,6 +46,7 @@ export function GetTilesets(): TilesetData[] {
   const tilesetFiles = fs.readdirSync(tilesetDir);
   tilesetFiles.forEach((file) => {
     const tilesetData = fs.readFileSync(path.join(tilesetDir, file), "base64");
+    log.debug(`Loaded tileset: ${file}`);
     const tilesetHash = crypto
       .createHash("sha256")
       .update(tilesetData)
@@ -51,11 +54,12 @@ export function GetTilesets(): TilesetData[] {
     tilesets.push({ name: file, data: tilesetData, hash: tilesetHash });
   });
 
-  return tilesets;
+  assetCache.add("tilesets", tilesets);
 }
+loadTilesets();
 
 // Load scripts
-export function GetScripts(): ScriptData[] {
+export function loadScripts() {
   const scripts = [] as ScriptData[];
   const scriptDir = path.join(import.meta.dir, "..", "assets", "scripts");
   if (!fs.existsSync(scriptDir)) return scripts;
@@ -63,15 +67,16 @@ export function GetScripts(): ScriptData[] {
   const scriptFiles = fs.readdirSync(scriptDir);
   scriptFiles.forEach((file) => {
     const scriptData = fs.readFileSync(path.join(scriptDir, file), "utf-8");
+    log.debug(`Loaded script: ${file}`);
     const scriptHash = crypto
       .createHash("sha256")
       .update(scriptData)
       .digest("hex");
     scripts.push({ name: file, data: scriptData, hash: scriptHash });
   });
-
-  return scripts;
+  assetCache.add("scripts", scripts);
 }
+loadScripts();
 
 function tryParse(data: string): any {
   try {

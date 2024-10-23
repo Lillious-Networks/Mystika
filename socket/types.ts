@@ -1,4 +1,4 @@
-export const PacketTypes: PacketType = {
+export const packetTypes: PacketType = {
   0: "PING",
   1: "PONG",
   2: "CONNECTION_COUNT",
@@ -12,4 +12,7 @@ export const PacketTypes: PacketType = {
   10: "AUTH",
   11: "LOGOUT",
   12: "DISCONNECT",
+  13: "SPAWN_PLAYER",
+  14: "LOAD_PLAYERS",
+  15: "DISCONNECT_PLAYER",
 };

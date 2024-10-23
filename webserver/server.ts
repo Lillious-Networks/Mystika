@@ -11,10 +11,8 @@ const app = express();
 import log from "../modules/logger";
 import "../services/security";
 
-// Garbage collection
-setInterval(() => {
-  Bun.gc(true)
-}, 1000);
+// Load assets
+import "../modules/assetloader";
 
 /* SSL Certificate Setup */
 const _cert = path.join(import.meta.dir, "../certs/cert.crt");

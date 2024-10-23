@@ -1,22 +1,18 @@
 import express from "express";
 export const router = express.Router();
-import { GetScripts } from "../modules/assetloader";
-const scripts = GetScripts();
+import assetCache from "../services/assetCache";
+const scripts = assetCache.get("scripts");
 
 router.get("/function", (req, res) => {
-    const scriptName = `${req?.query?.name?.toString()}.js`;
-    if (!scriptName) return res.json({ data: null });
-    const script = (scripts as any[]).find((script: any) => script.name === scriptName);
-    if (!script) return res.json({ data: null });
-    res.json({ script: script.data, hash: script.hash});
+    Object.keys(scripts).forEach((key) => {
+        res.json({ script: scripts[key].data, hash: scripts[key].hash });
+    });
 })
 
 router.get("/function/hash", (req, res) => {
-    const scriptName = `${req?.query?.name?.toString()}.js`;
-    if (!scriptName) return res.json({ hash: null });
-    const script = (scripts as any[]).find((script: any) => script.name === scriptName);
-    if (!script) return res.json({ hash: null });
-    res.json({ hash: script.hash });
+    Object.keys(scripts).forEach((key) => {
+        res.json({ hash: scripts[key].hash });
+    });
 })
 
 export default router;

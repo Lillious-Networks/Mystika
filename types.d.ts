@@ -67,7 +67,7 @@ declare interface ScriptData {
 // Define player data
 declare interface Player {
   id?: string;
-  name?: string;
+  username?: string;
   position?: PositionData;
   map?: string;
 }
