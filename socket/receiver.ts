@@ -82,6 +82,7 @@ export default async function packetReceiver(
         const location = (await player.getLocation({
           username: username,
         })) as LocationData | null;
+        const isAdmin = await player.isAdmin(username);
         const position = location?.position as unknown as PositionData;
         let spawnLocation;
         if (!location || (!position?.x && position.x.toString() != "0") || (!position?.y && position.y.toString() != "0")) {
@@ -97,7 +98,7 @@ export default async function packetReceiver(
 
         spawnLocation.map = map.name;
         await player.setLocation(ws.data.id, spawnLocation.map.replace(".json", ""), {x: spawnLocation.x, y: spawnLocation.y});
-        cache.add(ws.data.id, { id: ws.data.id, location: { map: spawnLocation.map.replace(".json", ""), position: { x: spawnLocation.x, y: spawnLocation.y } } });
+        cache.add(ws.data.id, { username: username, isAdmin: isAdmin, id: ws.data.id, location: { map: spawnLocation.map.replace(".json", ""), position: { x: spawnLocation.x, y: spawnLocation.y } } });
         log.debug(`Spawn location for ${username}: ${spawnLocation.map.replace(".json", "")} at ${spawnLocation.x},${spawnLocation.y}`);
         ws.send(
           JSON.stringify({
@@ -124,6 +125,7 @@ export default async function packetReceiver(
                 y: position.y,
               },
               username,
+              isAdmin,
             },
           })
         );
@@ -143,6 +145,7 @@ export default async function packetReceiver(
               y: location.position.y,
             },
             username: player.username,
+            isAdmin: player.isAdmin,
           };
           playerData.push(data);
         });

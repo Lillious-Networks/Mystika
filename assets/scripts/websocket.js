@@ -350,13 +350,39 @@ function createPlayer(data) {
       x: playerCanvas.width / 2 + data.location.x,
       y: playerCanvas.height / 2 + data.location.y,
     },
-    speed: 5,
     show: function (context) {
       context.fillStyle = "white";
       context.fillRect(this.position.x, this.position.y, 32, 48);
+      
+      // Draw the player's username
+      context.font = "14px Arial";
+      context.textAlign = "center";
+
+      // Current player
+      if (data.id === sessionStorage.getItem("connectionId")) { 
+        context.fillStyle = "#ffe561";
+      } else {
+        context.fillStyle = "#ffffff";
+      }
+      
+      context.shadowColor = "black";
+      context.shadowBlur = 5;
+      context.shadowOffsetX = 2;
+      context.strokeStyle = "black";
+      // Uppercase the first letter of the username
+      data.username = data.username.charAt(0).toUpperCase() + data.username.slice(1);
+      // Display (Admin) tag if the player is an admin
+      if (data.isAdmin) {
+        context.strokeText(data.username + " (Admin)", this.position.x + 16, this.position.y + 65);
+        context.fillText(data.username + " (Admin)", this.position.x + 16, this.position.y + 65);
+      } else {
+        context.strokeText(data.username, this.position.x + 16, this.position.y + 65);
+        context.fillText(data.username, this.position.x + 16, this.position.y + 65);
+      }
     }
   };
 
+  // Current player
   if (data.id === sessionStorage.getItem("connectionId")) {
     player.move = function (dx, dy) {
       this.position.x += dx;

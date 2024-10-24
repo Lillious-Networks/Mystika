@@ -23,6 +23,7 @@ const createAccountsTable = async () => {
         password_hash VARCHAR(500) NOT NULL,
         last_login DATETIME DEFAULT NULL,
         online INT DEFAULT 0 NOT NULL,
+        role INT DEFAULT 0 NOT NULL,
         access_level INT DEFAULT 0 NOT NULL,
         banned INT DEFAULT 0 NOT NULL,
         ip_address VARCHAR(255) DEFAULT NULL,

@@ -164,6 +164,11 @@ const player = {
         if (!session_id) return;
         const response = await query("SELECT map FROM accounts WHERE session_id = ?", [session_id]) as any;
         return response[0]?.map as string
+    },
+    isAdmin: async (username: string) => {
+        if (!username) return;
+        const response = await query("SELECT role FROM accounts WHERE username = ?", [username]) as any;
+        return response[0]?.role === 1;
     }
 };
 
