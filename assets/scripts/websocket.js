@@ -9,18 +9,23 @@ let loaded;
 function animationLoop() {
   // Clear the canvas
   playerContext.clearRect(0, 0, playerCanvas.width, playerCanvas.height);
-  playerContext.width = window.innerWidth;
-  playerContext.height = window.innerHeight;
 
-  // Render all players
+
+  // Render all players but ensure the current player is rendered last
   players.forEach((player) => {
-    player.show(playerContext);
+    if (player.id !== sessionStorage.getItem("connectionId")) {
+      player.show(playerContext);
+    }
+  });
+
+  players.forEach((player) => {
+    if (player.id === sessionStorage.getItem("connectionId")) {
+      player.show(playerContext);
+    }
   });
 
   requestAnimationFrame(animationLoop);
 }
-
-animationLoop();
 
 socket.addEventListener("open", (ws) => {
   const packet = {
@@ -219,6 +224,7 @@ socket.addEventListener("message", async (event) => {
           }
           canvas.style.display = "block";
           loaded = true;
+          animationLoop();
         }
       }
       break;
@@ -367,7 +373,7 @@ function createPlayer(data) {
       
       context.shadowColor = "black";
       context.shadowBlur = 5;
-      context.shadowOffsetX = 2;
+      context.shadowOffsetX = 0;
       context.strokeStyle = "black";
       // Uppercase the first letter of the username
       data.username = data.username.charAt(0).toUpperCase() + data.username.slice(1);
