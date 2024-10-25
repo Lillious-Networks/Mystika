@@ -73,7 +73,8 @@ export default async function packetReceiver(
         const auth = await player.setSessionId(data.toString(), ws.data.id);
         if (!auth) {
           ws.send(JSON.stringify({ type: "LOGIN_FAILED", data: null }));
-          return;
+          ws.close(1008, "Already logged in");
+          break;
         }
         const getUsername = (await player.getUsernameBySession(
           ws.data.id

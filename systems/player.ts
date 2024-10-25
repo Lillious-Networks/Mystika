@@ -77,6 +77,11 @@ const player = {
     },
     setSessionId: async (token: string, sessionId: string) => {
         if (!token || !sessionId) return;
+        // Check if the user already has a session id
+        const sessionExists = await player.getSessionId(token) as any[];
+        if (sessionExists[0]?.session_id) {
+            if (sessionExists[0]?.session_id != sessionId) return;
+        }
         const getUsername = await player.getUsernameByToken(token) as any[];
         const username = await getUsername[0]?.username as string;
         const isBanned = await player.isBanned(username) as any[];
@@ -112,8 +117,11 @@ const player = {
             return;
         }
 
+        // Check if a token exists and use it
+        const _token = await query("SELECT token FROM accounts WHERE username = ?", [username]) as any;
         // Assign a token to the user
-        const token = await player.setToken(username);
+        const token = _token[0]?.token || await player.setToken(username);
+
         log.debug(`User ${username} logged in`);
         // Update last_login
         await query("UPDATE accounts SET last_login = CURRENT_TIMESTAMP WHERE username = ?", [username]);
@@ -169,6 +177,11 @@ const player = {
         if (!username) return;
         const response = await query("SELECT role FROM accounts WHERE username = ?", [username]) as any;
         return response[0]?.role === 1;
+    },
+    getSession: async (username: string) => {
+        if (!username) return;
+        const response = await query("SELECT session_id FROM accounts WHERE username = ?", [username]) as any;
+        return response[0]?.session_id;
     }
 };
 
