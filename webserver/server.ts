@@ -6,7 +6,8 @@ import http from "http";
 import https from "https";
 import path from "path";
 import fs from "fs";
-const port = 80;
+const port = process.env.WEBSRV_PORT || 80;
+const sslport = process.env.WEBSRV_PORTSSL || 443;
 const app = express();
 import log from "../modules/logger";
 import "../services/security";
@@ -132,8 +133,8 @@ const server = http.createServer(app);
 const httpsServer = https.createServer(credentials, app);
 
 if (_https) {
-  httpsServer.listen(443, async () => {
-    log.info(`HTTPS server is listening on localhost:443`);
+  httpsServer.listen(sslport, async () => {
+    log.info(`HTTPS server is listening on localhost:${sslport}`);
   });
 }
 
