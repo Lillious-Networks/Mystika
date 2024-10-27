@@ -81,7 +81,8 @@ loadScripts();
 function tryParse(data: string): any {
   try {
     return JSON.parse(data);
-  } catch (err) {
+  } catch (e: any) {
+    log.error(e);
     return null;
   }
 }

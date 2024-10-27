@@ -56,7 +56,7 @@ const player = {
         return response;
     },
     getLocation: async (player: Player) => {
-        let username = player.username || player.id;
+        const username = player.username || player.id;
         const response = await query("SELECT map, position FROM accounts WHERE username = ? OR session_id = ?", [username, username]) as LocationData[];
         const map = response[0]?.map as string;
         const position = {

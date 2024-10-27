@@ -134,11 +134,11 @@ export default async function packetReceiver(
         const playerCache = cache.list();
         const players = Object.values(playerCache);
         
-        let playerData = [] as any[];
+        const playerData = [] as any[];
 
         players.forEach((player) => {
           const location = player.location;
-          let data = {
+          const data = {
             id: player.id,
             location: {
               map: location.map,
@@ -220,7 +220,8 @@ export default async function packetReceiver(
 function tryParsePacket(data: any) {
   try {
     return JSON.parse(data.toString());
-  } catch (e) {
+  } catch (e: any) {
+    log.error(e);
     return null;
   }
 }

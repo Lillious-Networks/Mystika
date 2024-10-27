@@ -29,6 +29,9 @@ jobs:
             echo "EMAIL_USER=${{secrets.EMAIL_USER}}" >> .env
             echo "SQL_SSL_MODE=${{secrets.SQL_SSL_MODE}}" >> .env
 
+      - name: ESLint
+        run: bun eslint
+
       - name: Unit tests
         run: |
             bun test database

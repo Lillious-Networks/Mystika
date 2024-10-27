@@ -47,7 +47,9 @@ query("SELECT * FROM allowed_ips", [])
     });
   })
   .catch((err: any) => {
-    // Do nothing, we don't want to spam the console with errors
+    if (err) {
+      // Do nothing, we don't want to spam the console with errors
+    }
   });
 
 export default function filter(req: any, res: any, next: any, ip: any): void {
