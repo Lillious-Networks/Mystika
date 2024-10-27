@@ -1,12 +1,12 @@
 {
   "name": "mystika",
-  "module": "./webserver/server.ts",
+  "module": "./src/webserver/server.ts",
   "type": "module",
   "scripts": {
-    "production": "bun --env-file=.env.production ./webserver/server.ts",
-    "development": "bun --env-file=.env.development ./webserver/server.ts",
-    "setup": "bun ./utility/database_setup.ts",
-    "setup-sqlite": "bun ./utility/database_setup_sqlite.ts"
+    "production": "bun --env-file=.env.production ./src/webserver/server.ts",
+    "development": "bun --env-file=.env.development ./src/webserver/server.ts",
+    "setup": "bun ./src/utility/database_setup.ts",
+    "setup-sqlite": "bun ./src/utility/database_setup_sqlite.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"

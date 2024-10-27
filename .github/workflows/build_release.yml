@@ -1,5 +1,8 @@
 name: Build and Release
-on: [push, workflow_dispatch]
+on: 
+  push:
+    paths:
+      - 'src/**'
 
 jobs:
   build:
