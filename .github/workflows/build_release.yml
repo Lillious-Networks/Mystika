@@ -1,5 +1,5 @@
 name: Build and Release
-on: [push]
+on: [push, workflow_dispatch]
 
 jobs:
   build:
@@ -31,4 +31,3 @@ jobs:
 
       - name: Unit tests
         run: bun test
-        if : failure()
