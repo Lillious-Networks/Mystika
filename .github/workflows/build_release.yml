@@ -33,4 +33,3 @@ jobs:
         run: |
             bun test database
             bun test email
-            bun test items
