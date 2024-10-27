@@ -1,0 +1,31 @@
+name: Build and Release
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+            bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Create env file
+        run: |
+            echo "DATABASE_HOST=${{secrets.DATABASE_HOST}}" > .env
+            echo "DATABASE_USER=${{secrets.DATABASE_USER}}" >> .env
+            echo "DATABASE_PASSWORD=${{secrets.DATABASE_PASSWORD}}" >> .env
+            echo "DATABASE_NAME=${{secrets.DATABASE_NAME}}" >> .env
+            echo "EMAIL_PASSWORD=${{secrets.EMAIL_PASSWORD}}" >> .env
+            echo "EMAIL_SERVICE=${{secrets.EMAIL_SERVICE}}" >> .env
+            echo "EMAIL_TEST=${{secrets.EMAIL_TEST}}" >> .env
+            echo "EMAIL_USER=${{secrets.EMAIL_USER}}" >> .env
+            echo "SQL_SSL_MODE=${{secrets.SQL_SSL_MODE}}" >> .env
+
+      - name: Unit tests
+        run: bun test
