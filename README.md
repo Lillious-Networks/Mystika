@@ -24,20 +24,36 @@
 
 <h5>Running the server</h5>
 
-```
-bun start
-```
-
-<h5>Unit Tests</h5>
+<p><b>- Production (MySQL)</b></p>
 
 ```
-bun test
+bun run production
 ```
 
-<h5>Database Setup<h5>
+<p><b>- Development (Sqlite)</b></p>
+
+```
+bun run development
+```
+
+<h5>Database Setup</h5>
+
+<p><b>- Production (MySQL)</b></p>
 
 ```
 bun setup
+```
+
+<p><b>- Development (Sqlite)</b></p>
+
+```
+bun setup-sqlite
+```
+
+<h5>Unit Tests (Production Build Only)</h5>
+
+```
+bun test
 ```
 
 <h3>Environment Variables</h3>
@@ -58,6 +74,11 @@ EMAIL_PASSWORD
 EMAIL_SERVICE
 EMAIL_TEST
 SQL_SSL_MODE DISABLED | ENABLED
+DATABASE_ENGINE sqlite | mysql
+WEBSRV_PORT
+WEBSRV_PORTSSL
+WEBSRV_USESSL
+WEBSRV_USECERT
 ```
 
 <h3>Client Identity</h3>

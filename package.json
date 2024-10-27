@@ -3,7 +3,8 @@
   "module": "./webserver/server.ts",
   "type": "module",
   "scripts": {
-    "start": "bun ./webserver/server.ts",
+    "production": "bun --env-file=.env.production ./webserver/server.ts",
+    "development": "bun --env-file=.env.development ./webserver/server.ts",
     "setup": "bun ./utility/database_setup.ts",
     "setup-sqlite": "bun ./utility/database_setup_sqlite.ts"
   },

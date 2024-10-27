@@ -156,3 +156,4 @@ zig-out
 /playerdata
 /REST
 /logs
+.env.production
