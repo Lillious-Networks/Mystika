@@ -3,6 +3,7 @@ on: [push]
 
 jobs:
   build:
+    name: Build and Release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,6 +18,7 @@ jobs:
 
       - name: Create env file
         run: |
+            touch .env
             echo "DATABASE_HOST=${{secrets.DATABASE_HOST}}" > .env
             echo "DATABASE_USER=${{secrets.DATABASE_USER}}" >> .env
             echo "DATABASE_PASSWORD=${{secrets.DATABASE_PASSWORD}}" >> .env
@@ -29,3 +31,4 @@ jobs:
 
       - name: Unit tests
         run: bun test
+        if : failure()
