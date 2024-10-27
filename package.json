@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "bun ./webserver/server.ts",
-    "setup": "bun ./utility/database_setup.ts"
+    "setup": "bun ./utility/database_setup.ts",
+    "setup-sqlite": "bun ./utility/database_setup_sqlite.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
