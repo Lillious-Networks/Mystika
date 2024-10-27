@@ -30,4 +30,6 @@ jobs:
             echo "SQL_SSL_MODE=${{secrets.SQL_SSL_MODE}}" >> .env
 
       - name: Unit tests
-        run: bun test database
+        run: |
+            bun test database
+            bun test email
