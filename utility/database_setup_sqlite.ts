@@ -130,8 +130,8 @@ const setupDatabase = async () => {
 try {
   log.info("Setting up database...");
   await setupDatabase();
-  // const ips = await getAllowedIPs();
-  // log.trace(`Created allowed ips: ${JSON.stringify(ips)}`);
+  const ips = await getAllowedIPs();
+  log.trace(`Created allowed ips: ${JSON.stringify(ips)}`);
   await insertDemoAccount();
   log.success("Database setup complete!");
   process.exit(0);
