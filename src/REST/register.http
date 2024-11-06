@@ -1,8 +1,8 @@
-POST https://wild-hex-wg96rqv7q6395vp-8080.app.github.dev/register HTTP/1.1
+POST http://45.56.101.160/register HTTP/1.1
 content-type: application/json
 
 {
-    "email": "logan@lillious.com",
-    "username": "lillious",
+    "email": "test3@lillious.com",
+    "username": "xavier",
     "password": "123456"
 }
