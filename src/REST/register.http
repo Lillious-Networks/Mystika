@@ -1,8 +1,0 @@
-POST http://45.56.101.160/register HTTP/1.1
-content-type: application/json
-
-{
-    "email": "test3@lillious.com",
-    "username": "xavier",
-    "password": "123456"
-}
