@@ -27,8 +27,9 @@ export default async function packetReceiver(
     // Check if the packet type is valid
     if (
       Object.values(packetTypes).indexOf(parsedMessage?.type as string) === -1
-    )
+    ) {
       ws.close(1007, "Invalid packet type");
+    }
 
     // Handle the packet
     switch (type) {
@@ -86,21 +87,47 @@ export default async function packetReceiver(
         const isAdmin = await player.isAdmin(username);
         const position = location?.position as unknown as PositionData;
         let spawnLocation;
-        if (!location || (!position?.x && position.x.toString() != "0") || (!position?.y && position.y.toString() != "0")) {
+        if (
+          !location ||
+          (!position?.x && position.x.toString() != "0") ||
+          (!position?.y && position.y.toString() != "0")
+        ) {
           spawnLocation = { map: "main.json", x: 0, y: 0 };
         } else {
-          spawnLocation = { map: `${location.map}.json`, x: position.x, y: position.y };
+          spawnLocation = {
+            map: `${location.map}.json`,
+            x: position.x,
+            y: position.y,
+          };
         }
-        const map = (maps as any[]).find(
-          (map: MapData) => map.name === spawnLocation?.map
-        ) || (maps as any[]).find((map: MapData) => map.name === "main.json");
+        const map =
+          (maps as any[]).find(
+            (map: MapData) => map.name === spawnLocation?.map
+          ) || (maps as any[]).find((map: MapData) => map.name === "main.json");
 
         if (!map) return;
 
         spawnLocation.map = map.name;
-        await player.setLocation(ws.data.id, spawnLocation.map.replace(".json", ""), {x: spawnLocation.x, y: spawnLocation.y});
-        cache.add(ws.data.id, { username: username, isAdmin: isAdmin, id: ws.data.id, location: { map: spawnLocation.map.replace(".json", ""), position: { x: spawnLocation.x, y: spawnLocation.y } } });
-        log.debug(`Spawn location for ${username}: ${spawnLocation.map.replace(".json", "")} at ${spawnLocation.x},${spawnLocation.y}`);
+        await player.setLocation(
+          ws.data.id,
+          spawnLocation.map.replace(".json", ""),
+          { x: spawnLocation.x, y: spawnLocation.y }
+        );
+        cache.add(ws.data.id, {
+          username: username,
+          isAdmin: isAdmin,
+          id: ws.data.id,
+          location: {
+            map: spawnLocation.map.replace(".json", ""),
+            position: { x: spawnLocation.x, y: spawnLocation.y },
+          },
+        });
+        log.debug(
+          `Spawn location for ${username}: ${spawnLocation.map.replace(
+            ".json",
+            ""
+          )} at ${spawnLocation.x},${spawnLocation.y}`
+        );
         ws.send(
           JSON.stringify({
             type: "LOAD_MAP",
@@ -133,7 +160,7 @@ export default async function packetReceiver(
 
         const playerCache = cache.list();
         const players = Object.values(playerCache);
-        
+
         const playerData = [] as any[];
 
         players.forEach((player) => {
@@ -197,7 +224,7 @@ export default async function packetReceiver(
         server.publish(
           "MOVEXY" as Subscription["event"],
           JSON.stringify({
-            type: packetTypes[9],
+            type: "MOVEXY",
             data: {
               id: ws.data.id,
               _data: player.location.position,

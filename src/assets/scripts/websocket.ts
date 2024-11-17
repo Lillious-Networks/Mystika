@@ -1,13 +1,14 @@
 const socket = new WebSocket(`ws://localhost:3000/`);
-const players = [];
-const canvas = document.getElementById("game");
+const players = [] as any[];
+const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d");
-const playerCanvas = document.getElementById("players");
+const playerCanvas = document.getElementById("players") as HTMLCanvasElement;
 const playerContext = playerCanvas.getContext("2d");
-let loaded;
+let loaded: boolean = false;
 
 function animationLoop() {
   // Clear the canvas
+  if (!ctx || !playerContext) return;
   playerContext.clearRect(0, 0, playerCanvas.width, playerCanvas.height);
 
 
@@ -66,7 +67,7 @@ socket.addEventListener("message", async (event) => {
     case "LOAD_PLAYERS": {
       await isLoaded();
       if (!data) return;
-      data.forEach((player) => {
+      data.forEach((player: any) => {
         if (player.id != sessionStorage.getItem("connectionId")) {
           // Check if the player is already created and remove it
           players.forEach((p, index) => {
@@ -105,9 +106,8 @@ socket.addEventListener("message", async (event) => {
     case "LOAD_MAP":
       {
         const mapData = data[0];
-        const mapHash = data[1];
+        const mapHash = data[1] as string;
         const mapName = data[2];
-        const position = data[3];
         const fetchMap = async () => {
           const response = await fetch(`/map/hash?name=${mapName}`);
           if (!response.ok) {
@@ -115,7 +115,7 @@ socket.addEventListener("message", async (event) => {
           }
           return response.json();
         };
-        const serverMapHashResponse = await fetchMap(mapHash);
+        const serverMapHashResponse = await fetchMap();
         const serverMapHashData = serverMapHashResponse.hash;
         if (!serverMapHashData) {
           throw new Error("No map hash data found");
@@ -147,7 +147,7 @@ socket.addEventListener("message", async (event) => {
           throw new Error("No tileset images found");
         }
 
-        const images = [];
+        const images = [] as string[];
         result.forEach(async (r) => {
           const response = await fetch(`/tileset/hash?name=${r.tileset.name}`);
           if (!response.ok) {
@@ -159,9 +159,9 @@ socket.addEventListener("message", async (event) => {
             throw new Error("Tileset hash mismatch");
           }
 
-          const image = new Image();
+          const image = new Image() as HTMLImageElement;
           image.onload = function () {
-            images.push(image);
+            images.push(image as unknown as string);
             if (images.length === result.length) {
               drawMap(images);
             }
@@ -169,7 +169,7 @@ socket.addEventListener("message", async (event) => {
           image.src = `data:image/png;base64,${r.tileset.data}`;
         });
 
-        function drawMap(images) {
+        function drawMap(images: string[]) {
           canvas.width = mapData.width * mapData.tilewidth;
           canvas.height = mapData.height * mapData.tileheight;
           playerCanvas.width = mapData.width * mapData.tilewidth;
@@ -178,19 +178,17 @@ socket.addEventListener("message", async (event) => {
           canvas.style.height = mapData.height * mapData.tileheight + "px";
           playerCanvas.style.width = mapData.width * mapData.tilewidth + "px";
           playerCanvas.style.height = mapData.height * mapData.tileheight + "px";
+          if (!ctx) return;
           ctx.imageSmoothingEnabled = false;
-          ctx.mozImageSmoothingEnabled = false;
-          ctx.webkitImageSmoothingEnabled = false;
-          ctx.msImageSmoothingEnabled = false;
 
           for (let i = 0; i < mapData.layers.length; i++) {
             const layer = mapData.layers[i];
             if (!layer || !layer.data) continue;
 
             const tileset =
-              tilesets.find((tileset) => tileset.firstgid <= layer.data[0]) ||
+              tilesets.find((tileset: any) => tileset.firstgid <= layer.data[0]) ||
               tilesets[0];
-            const image = images[tilesets.indexOf(tileset)];
+            const image = images[tilesets.indexOf(tileset)] as any;
             const tileWidth = tileset.tilewidth;
             const tileHeight = tileset.tileheight;
             const tilesetWidth = tileset.imagewidth;
@@ -243,7 +241,7 @@ socket.addEventListener("message", async (event) => {
   }
 });
 
-function getCookie(cname) {
+function getCookie(cname: string) {
   let name = cname + "=";
   let decodedCookie = decodeURIComponent(document.cookie);
   let ca = decodedCookie.split(";");
@@ -266,7 +264,7 @@ const movementKeys = new Set(["w", "a", "s", "d"]);
 
 window.addEventListener("keydown", (e) => {
   const clientSocketId = sessionStorage.getItem("connectionId");
-  const player = players.find((player) => player.id === clientSocketId);
+  const player = players.find((player) => player.id === clientSocketId) as any;
   if (!player) return;
 
   if (movementKeys.has(e.key.toLowerCase())) {
@@ -274,7 +272,7 @@ window.addEventListener("keydown", (e) => {
     if (!isKeyPressed) {
       isKeyPressed = true;
       if (!isMoving) {
-        handleKeyPress(player);
+        handleKeyPress();
       }
     }
   }
@@ -339,7 +337,7 @@ function handleKeyPress() {
 
 async function isLoaded() {
   // Check every second if the map is loaded
-  await new Promise((resolve) => {
+  await new Promise<void>((resolve) => {
     const interval = setInterval(() => {
       if (loaded) {
         clearInterval(interval);
@@ -349,14 +347,14 @@ async function isLoaded() {
   });
 }
 
-function createPlayer(data) {
+function createPlayer(data: any) {
   let player = {
     id: data.id,
     position: {
       x: playerCanvas.width / 2 + data.location.x,
       y: playerCanvas.height / 2 + data.location.y,
     },
-    show: function (context) {
+    show: function (context: CanvasRenderingContext2D) {
       context.fillStyle = "white";
       context.fillRect(this.position.x, this.position.y, 32, 48);
       
@@ -390,10 +388,6 @@ function createPlayer(data) {
 
   // Current player
   if (data.id === sessionStorage.getItem("connectionId")) {
-    player.move = function (dx, dy) {
-      this.position.x += dx;
-      this.position.y += dy;
-    };
     window.scrollTo(
       player.position.x - window.innerWidth / 2 + 32,
       player.position.y - window.innerHeight / 2 + 48

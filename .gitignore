@@ -157,3 +157,4 @@ src/playerdata
 REST/
 src/logs
 .env.production
+src/assets/scripts/*.js

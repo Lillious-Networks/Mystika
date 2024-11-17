@@ -5,7 +5,6 @@ import { event } from "../systems/events";
 import eventEmitter from "node:events";
 import log from "../modules/logger";
 import player from "../systems/player";
-import { packetTypes } from "./types";
 import cache from '../services/cache.ts';
 
 const RateLimitOptions: RateLimitOptions = {
@@ -83,7 +82,7 @@ export const Server = Bun.serve<Packet>({
       ws.subscribe("MOVEXY" as Subscription["event"]);
       ws.subscribe("DISCONNECT_PLAYER" as Subscription["event"]);
       const packet = {
-        type: packetTypes[2],
+        type: "CONNECTION_COUNT",
         data: connections.size,
       } as unknown as Packet;
       Server.publish(
@@ -112,7 +111,7 @@ export const Server = Bun.serve<Packet>({
           player.clearSessionId(ws.data.id);
           // Publish the new connection count and unsubscribe from the event
           const packet = {
-            type: packetTypes[2],
+            type: "CONNECTION_COUNT",
             data: connections.size,
           } as unknown as Packet;
           Server.publish(
@@ -137,7 +136,7 @@ export const Server = Bun.serve<Packet>({
         ws.publish(
           "DISCONNECT_PLAYER" as Subscription["event"],
           JSON.stringify({
-            type: packetTypes[15],
+            type: "DISCONNECT_PLAYER",
             data: ws.data.id,
           })
         );
@@ -165,7 +164,7 @@ export const Server = Bun.serve<Packet>({
                 ).toString()
               );
               ws.send(
-                JSON.stringify({ type: packetTypes[3], data: "Rate limited" })
+                JSON.stringify({ type: "RATE_LIMITED", data: "Rate limited" })
               );
               return;
             }

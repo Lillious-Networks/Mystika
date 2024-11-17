@@ -64,7 +64,7 @@ export function loadScripts() {
   const scriptDir = path.join(import.meta.dir, "..", "assets", "scripts");
   if (!fs.existsSync(scriptDir)) return scripts;
 
-  const scriptFiles = fs.readdirSync(scriptDir);
+  const scriptFiles = fs.readdirSync(scriptDir).filter((file) => file.endsWith(".js"));
   scriptFiles.forEach((file) => {
     const scriptData = fs.readFileSync(path.join(scriptDir, file), "utf-8");
     log.debug(`Loaded script: ${file}`);
