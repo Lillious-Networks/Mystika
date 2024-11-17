@@ -56,12 +56,12 @@ bun setup-sqlite
 bun test
 ```
 
-<h3>Environment Variables</h3>
+<h3>Production Environment Variables</h3>
 
 > [!IMPORTANT]
 > The below environment variables are required
 
-<p style="font-size:1em;">Location: /.env</p>
+<p style="font-size:1em;">Location: /.env.production</p>
 
 
 ```
