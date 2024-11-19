@@ -64,15 +64,15 @@ const inventory = {
     
     if (!items || items.length === 0) return []; // Return if no items found
   
-    // Sanitize items
-    const sanitizedItems = items.map((item: any) => {
-      const { id, username, ...rest } = item;
-      return rest;
+    // Sanitize items by removing the username and id
+    items.filter((item: any) => {
+      delete item.username;
+      delete item.id;
     });
   
     // Fetch and process details for each item
     const details = await Promise.all(
-      sanitizedItems.map(async (item: any) => {
+      items.map(async (item: any) => {
         // Fetch item details
         const [itemDetails] = await query("SELECT quality, description FROM items WHERE name = ?", [item.item]) as any[];
         

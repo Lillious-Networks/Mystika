@@ -13,7 +13,6 @@ function animationLoop() {
   if (!ctx || !playerContext) return;
   playerContext.clearRect(0, 0, playerCanvas.width, playerCanvas.height);
 
-
   // Render all players but ensure the current player is rendered last
   players.forEach((player) => {
     if (player.id !== sessionStorage.getItem("connectionId")) {
@@ -30,7 +29,7 @@ function animationLoop() {
   requestAnimationFrame(animationLoop);
 }
 
-socket.addEventListener("open", (ws) => {
+socket.addEventListener("open", () => {
   const packet = {
     type: "PING",
     data: null,
@@ -38,7 +37,7 @@ socket.addEventListener("open", (ws) => {
   socket.send(JSON.stringify(packet));
 });
 
-socket.addEventListener("close", (ws) => {
+socket.addEventListener("close", () => {
   window.location.href = "/";
 });
 
@@ -179,7 +178,8 @@ socket.addEventListener("message", async (event) => {
           canvas.style.width = mapData.width * mapData.tilewidth + "px";
           canvas.style.height = mapData.height * mapData.tileheight + "px";
           playerCanvas.style.width = mapData.width * mapData.tilewidth + "px";
-          playerCanvas.style.height = mapData.height * mapData.tileheight + "px";
+          playerCanvas.style.height =
+            mapData.height * mapData.tileheight + "px";
           if (!ctx) return;
           ctx.imageSmoothingEnabled = false;
 
@@ -188,8 +188,9 @@ socket.addEventListener("message", async (event) => {
             if (!layer || !layer.data) continue;
 
             const tileset =
-              tilesets.find((tileset: any) => tileset.firstgid <= layer.data[0]) ||
-              tilesets[0];
+              tilesets.find(
+                (tileset: any) => tileset.firstgid <= layer.data[0]
+              ) || tilesets[0];
             const image = images[tilesets.indexOf(tileset)] as any;
             const tileWidth = tileset.tilewidth;
             const tileHeight = tileset.tileheight;
@@ -229,50 +230,57 @@ socket.addEventListener("message", async (event) => {
       }
       break;
     case "LOGIN_SUCCESS":
-      const connectionId = JSON.parse(event.data)["data"];
-      sessionStorage.setItem("connectionId", connectionId); // Store client's socket ID
-      const sessionToken = getCookie("token");
-      if (!sessionToken) {
-        throw new Error("No session token found");
+      {
+        const connectionId = JSON.parse(event.data)["data"];
+        sessionStorage.setItem("connectionId", connectionId); // Store client's socket ID
+        const sessionToken = getCookie("token");
+        if (!sessionToken) {
+          throw new Error("No session token found");
+        }
+        socket.send(JSON.stringify({ type: "AUTH", data: sessionToken }));
       }
-      socket.send(JSON.stringify({ type: "AUTH", data: sessionToken }));
       break;
     case "LOGIN_FAILED":
-      window.location.href = "/";
+      {
+        window.location.href = "/";
+      }
       break;
-    case "INVENTORY": {
-      const data = JSON.parse(event.data)["data"];
-      if (data.length > 0) {
-        // Assign each item to a slot
-        for (let i = 0; i < data.length; i++) {
-          // Create a new item slot
+    case "INVENTORY":
+      {
+        const data = JSON.parse(event.data)["data"];
+        if (data.length > 0) {
+          // Assign each item to a slot
+          for (let i = 0; i < data.length; i++) {
+            // Create a new item slot
+            const slot = document.createElement("div");
+            slot.classList.add("slot");
+            const item = data[i];
+            slot.classList.add(item.quality.toLowerCase() || "empty");
+            slot.innerHTML = `${item.item}${
+              item.quantity > 1 ? `<br>x${item.quantity}` : ""
+            }`;
+            inventoryGrid.appendChild(slot);
+          }
+        }
+
+        // TODO: Make bag slots a server sided value
+        for (let i = data.length; i < data.length + 32; i++) {
           const slot = document.createElement("div");
           slot.classList.add("slot");
-          const item = data[i];
-          slot.classList.add(item.quality.toLowerCase() || "empty");
-          slot.innerHTML = `${item.item}${item.quantity > 1 ? `<br>x${item.quantity}` : ""}`;
+          slot.classList.add("empty");
           inventoryGrid.appendChild(slot);
         }
       }
-
-      // TODO: Make bag slots a server sided value
-      for (let i = data.length; i < data.length + 32; i++) {
-        const slot = document.createElement("div");
-        slot.classList.add("slot");
-        slot.classList.add("empty");
-        inventoryGrid.appendChild(slot);
-      }
-    }
-    break;
+      break;
     default:
       break;
   }
 });
 
 function getCookie(cname: string) {
-  let name = cname + "=";
-  let decodedCookie = decodeURIComponent(document.cookie);
-  let ca = decodedCookie.split(";");
+  const name = cname + "=";
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const ca = decodedCookie.split(";");
   for (let i = 0; i < ca.length; i++) {
     let c = ca[i];
     while (c.charAt(0) == " ") {
@@ -369,7 +377,7 @@ function handleKeyPress() {
         })
       );
     }
-  }, 0); 
+  }, 0);
 }
 
 async function isLoaded() {
@@ -385,7 +393,7 @@ async function isLoaded() {
 }
 
 function createPlayer(data: any) {
-  let player = {
+  const player = {
     id: data.id,
     position: {
       x: playerCanvas.width / 2 + data.location.x,
@@ -394,33 +402,50 @@ function createPlayer(data: any) {
     show: function (context: CanvasRenderingContext2D) {
       context.fillStyle = "white";
       context.fillRect(this.position.x, this.position.y, 32, 48);
-      
+
       // Draw the player's username
       context.font = "14px Arial";
       context.textAlign = "center";
 
       // Current player
-      if (data.id === sessionStorage.getItem("connectionId")) { 
+      if (data.id === sessionStorage.getItem("connectionId")) {
         context.fillStyle = "#ffe561";
       } else {
         context.fillStyle = "#ffffff";
       }
-      
+
       context.shadowColor = "black";
       context.shadowBlur = 5;
       context.shadowOffsetX = 0;
       context.strokeStyle = "black";
       // Uppercase the first letter of the username
-      data.username = data.username.charAt(0).toUpperCase() + data.username.slice(1);
+      data.username =
+        data.username.charAt(0).toUpperCase() + data.username.slice(1);
       // Display (Admin) tag if the player is an admin
       if (data.isAdmin) {
-        context.strokeText(data.username + " (Admin)", this.position.x + 16, this.position.y + 65);
-        context.fillText(data.username + " (Admin)", this.position.x + 16, this.position.y + 65);
+        context.strokeText(
+          data.username + " (Admin)",
+          this.position.x + 16,
+          this.position.y + 65
+        );
+        context.fillText(
+          data.username + " (Admin)",
+          this.position.x + 16,
+          this.position.y + 65
+        );
       } else {
-        context.strokeText(data.username, this.position.x + 16, this.position.y + 65);
-        context.fillText(data.username, this.position.x + 16, this.position.y + 65);
+        context.strokeText(
+          data.username,
+          this.position.x + 16,
+          this.position.y + 65
+        );
+        context.fillText(
+          data.username,
+          this.position.x + 16,
+          this.position.y + 65
+        );
       }
-    }
+    },
   };
 
   // Current player
