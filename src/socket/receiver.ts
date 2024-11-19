@@ -1,6 +1,7 @@
 import { packetTypes } from "./types";
 import log from "../modules/logger";
 import player from "../systems/player";
+import inventory from "../systems/inventory";
 import cache from "../services/cache";
 import assetCache from "../services/assetCache";
 
@@ -81,6 +82,16 @@ export default async function packetReceiver(
           ws.data.id
         )) as any[];
         const username = getUsername[0]?.username as string;
+        // Retrieve the player's inventory
+        const items = await inventory.get(username);
+        if (items.length > 0) {
+          ws.send(
+            JSON.stringify({
+              type: "INVENTORY",
+              data: items,
+            })
+          );
+        }
         const location = (await player.getLocation({
           username: username,
         })) as LocationData | null;

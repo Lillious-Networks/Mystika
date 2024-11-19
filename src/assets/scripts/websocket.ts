@@ -4,6 +4,8 @@ const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d");
 const playerCanvas = document.getElementById("players") as HTMLCanvasElement;
 const playerContext = playerCanvas.getContext("2d");
+const inventoryUI = document.getElementById("inventory") as HTMLDivElement;
+const inventoryGrid = document.getElementById("grid") as HTMLDivElement;
 let loaded: boolean = false;
 
 function animationLoop() {
@@ -238,6 +240,32 @@ socket.addEventListener("message", async (event) => {
     case "LOGIN_FAILED":
       window.location.href = "/";
       break;
+    case "INVENTORY": {
+      const data = JSON.parse(event.data)["data"];
+      if (data.length > 0) {
+        // Assign each item to a slot
+        for (let i = 0; i < data.length; i++) {
+          // Create a new item slot
+          const slot = document.createElement("div");
+          slot.classList.add("slot");
+          const item = data[i];
+          slot.classList.add(item.quality.toLowerCase() || "empty");
+          slot.innerHTML = `${item.item}${item.quantity > 1 ? `<br>x${item.quantity}` : ""}`;
+          inventoryGrid.appendChild(slot);
+        }
+      }
+
+      // TODO: Make bag slots a server sided value
+      for (let i = data.length; i < data.length + 32; i++) {
+        const slot = document.createElement("div");
+        slot.classList.add("slot");
+        slot.classList.add("empty");
+        inventoryGrid.appendChild(slot);
+      }
+    }
+    break;
+    default:
+      break;
   }
 });
 
@@ -274,6 +302,15 @@ window.addEventListener("keydown", (e) => {
       if (!isMoving) {
         handleKeyPress();
       }
+    }
+  }
+
+  // Open inventory UI
+  if (e.key === "b") {
+    if (!inventoryUI.style.display || inventoryUI.style.display === "none") {
+      inventoryUI.style.display = "block";
+    } else {
+      inventoryUI.style.display = "none";
     }
   }
 });

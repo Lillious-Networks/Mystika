@@ -32,3 +32,70 @@ body {
   bottom: 0;
   right: 0;
 }
+
+#overlay {
+  z-index: 100;
+}
+
+#inventory {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  z-index: 100;
+}
+
+#inventory #grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px;
+  max-width: calc((50px + 10px) * 5 - 30px);
+  gap: 5px;
+}
+
+#inventory #grid .slot {
+  width: 50px;
+  height: 50px;
+  box-sizing: border-box;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow: hidden;
+  color: #bdbdbd;
+}
+
+.empty {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid #000;
+}
+
+.common {
+  border: 1px solid rgb(255, 255, 255);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.uncommon {
+  border: 1px solid rgb(0, 255, 0);
+  background: rgba(0, 255, 0, 0.2);
+}
+
+.rare {
+  border: 1px solid rgb(0, 0, 255);
+  background: rgba(0, 0, 255, 0.2);
+}
+
+.epic {
+  border: 1px solid rgb(255, 0, 255);
+  background: rgba(255, 0, 255, 0.2);
+}
+
+.legendary {
+  border: 1px solid rgb(255, 136, 0);
+  background: rgba(255, 136, 0, 0.2);
+}

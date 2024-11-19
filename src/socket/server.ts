@@ -6,6 +6,7 @@ import eventEmitter from "node:events";
 import log from "../modules/logger";
 import player from "../systems/player";
 import cache from '../services/cache.ts';
+import inventory from "../systems/inventory.ts";
 
 const RateLimitOptions: RateLimitOptions = {
   // Maximum amount of requests

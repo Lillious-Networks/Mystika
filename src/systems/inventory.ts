@@ -56,6 +56,35 @@ const inventory = {
       [item.name, name]
     );
   },
+  async get(name: string) {
+    if (!name) return [];
+    
+    // Fetch items for the user
+    const items = await query("SELECT * FROM inventory WHERE username = ?", [name]) as any[];
+    
+    if (!items || items.length === 0) return []; // Return if no items found
+  
+    // Sanitize items
+    const sanitizedItems = items.map((item: any) => {
+      const { id, username, ...rest } = item;
+      return rest;
+    });
+  
+    // Fetch and process details for each item
+    const details = await Promise.all(
+      sanitizedItems.map(async (item: any) => {
+        // Fetch item details
+        const [itemDetails] = await query("SELECT quality, description FROM items WHERE name = ?", [item.item]) as any[];
+        
+        // Merge item data with its details
+        return {
+          ...item,
+          ...itemDetails,
+        };
+      })
+    );
+    return details;
+  }
 };
 
 export default inventory;

@@ -15,4 +15,5 @@ export const packetTypes: PacketType = {
   13: "SPAWN_PLAYER",
   14: "LOAD_PLAYERS",
   15: "DISCONNECT_PLAYER",
+  16: "INVENTORY"
 };
