@@ -175,6 +175,7 @@ body {
   padding: 10px;
   overflow-y: auto;
   height: 100%;
+  user-select: none;
 }
 
 #chat input {
@@ -311,6 +312,7 @@ input::placeholder {
   z-index: 101;
   width: 218px;
   height: 224px;
+  user-select: none;
 }
 
 #map-border {
