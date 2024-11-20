@@ -707,7 +707,7 @@ async function updateMiniMap() {
 
 
 // Update minimap less frequently to avoid freezing
-const updateInterval = 10; // Update every 300ms
+const updateInterval = 100; // Update every 300ms
 
 setTimeout(() => {
   const updateLoop = () => {
