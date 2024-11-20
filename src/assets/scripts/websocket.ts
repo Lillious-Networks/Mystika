@@ -10,6 +10,7 @@ const chatInput = document.getElementById("chat-input") as HTMLInputElement;
 const healthBar = document.getElementById("health-progress-bar") as HTMLDivElement;
 const staminaBar = document.getElementById("stamina-progress-bar") as HTMLDivElement;
 const map = document.getElementById("map") as HTMLDivElement;
+const pauseMenu = document.getElementById("pause-menu-container") as HTMLDivElement;
 let loaded: boolean = false;
 var toggleInventory = false;
 
@@ -354,6 +355,7 @@ const movementKeys = new Set(["w", "a", "s", "d"]);
 
 window.addEventListener("keydown", (e) => {
   if (movementKeys.has(e.key.toLowerCase()) && chatInput !== document.activeElement) {
+    if(pauseMenu.style.display == "block") return;
     pressedKeys.add(e.key.toLowerCase());
     if (!isKeyPressed) {
       isKeyPressed = true;
@@ -363,9 +365,19 @@ window.addEventListener("keydown", (e) => {
     }
   }
 
+  // Open pause menu
+  if (e.key === "Escape"){
+    chatInput.blur();
+    if(pauseMenu.style.display == "block")
+      pauseMenu.style.display = "none";
+    else
+      pauseMenu.style.display = "block";
+  }
+
   // Open inventory UI
   if (e.key === "b") {
     if (chatInput === document.activeElement) return;
+    if(pauseMenu.style.display == "block") return;
     if (toggleInventory) {
       inventoryUI.style.transition = "1s";
       inventoryUI.style.right = "-350";
@@ -378,8 +390,10 @@ window.addEventListener("keydown", (e) => {
   }
 
   if (e.key === "Enter" && chatInput !== document.activeElement) {
+    if(pauseMenu.style.display == "block") return;
     chatInput.focus();
   } else if (e.key === "Enter" && chatInput == document.activeElement) {
+    if(pauseMenu.style.display == "block") return;
     if (chatInput.value.trim() === "") return;
     socket.send(
       JSON.stringify({
@@ -707,7 +721,7 @@ async function updateMiniMap() {
 
 
 // Update minimap less frequently to avoid freezing
-const updateInterval = 100; // Update every 300ms
+const updateInterval = 150; // Update every 150ms
 
 setTimeout(() => {
   const updateLoop = () => {
@@ -716,3 +730,17 @@ setTimeout(() => {
   };
   updateLoop();
 }, 1000);
+
+document.getElementById("pause-menu-action-back")?.addEventListener("click", () => {
+  pauseMenu.style.display = "none";
+})
+
+document.getElementById("pause-menu-action-exit")?.addEventListener("click", () => {
+  socket.send(
+    JSON.stringify({
+      type: "LOGOUT",
+      data: null,
+    })
+  );
+  window.location.href = "/";
+})

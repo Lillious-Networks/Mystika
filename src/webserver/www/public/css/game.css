@@ -330,3 +330,98 @@ input::placeholder {
   z-index: 99;
   border-radius: 50%;
 }
+
+#pause-menu-container{
+  display:none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(2px);
+}
+
+#pause-menu {
+  width: 318px;
+  height: 280px;
+  align-items: center;
+  align-content: center;
+  position: absolute;
+  top: 525px;
+  left: 0;
+  right: 0;
+  margin: auto;
+  transform: translateY(-50%);
+  background: url("../img/ui/ui-backdrop.png");
+  background-repeat: no-repeat;
+}
+
+#pause-menu-button-container {
+  width: 100%;
+  height: 100%;
+  display: block;
+  align-content: center;
+  justify-content: center;
+  justify-items: center;
+  align-items: center;
+}
+
+#pause-menu-button-container button {
+  display: block;
+  border: none;
+  outline: none;
+  margin: 25px;
+}
+
+#pause-menu-action-back {
+  width: 110px;
+  height: 32px;
+  background: url("../img/ui/ui-back-button.png");
+}
+
+#pause-menu-action-back:hover {
+  background: url("../img/ui/ui-back-button-hover.png");
+  cursor: pointer;
+}
+
+#pause-menu-action-back:active {
+  background: url("../img/ui/ui-back-button-onPress.png");
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+#pause-menu-action-options {
+  width: 110px;
+  height: 32px;
+  background: url("../img/ui/ui-options-button.png");
+}
+
+#pause-menu-action-options:hover {
+  background: url("../img/ui/ui-options-button-hover.png");
+  cursor: pointer;
+}
+
+#pause-menu-action-options:active {
+  background: url("../img/ui/ui-options-button-onPress.png");
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+#pause-menu-action-exit {
+  width: 110px;
+  height: 46px;
+  background: url("../img/ui/ui-exit-game-button.png");
+}
+
+#pause-menu-action-exit:hover {
+  background: url("../img/ui/ui-exit-game-button-hover.png");
+  cursor: pointer;
+}
+
+#pause-menu-action-exit:active {
+  background: url("../img/ui/ui-exit-game-button-onPress.png");
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
