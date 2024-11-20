@@ -4,6 +4,8 @@ const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d");
 const playerCanvas = document.getElementById("players") as HTMLCanvasElement;
 const playerContext = playerCanvas.getContext("2d");
+const currentPlayerCanvas = document.getElementById("current-player") as HTMLCanvasElement;
+const currentPlayerContext = currentPlayerCanvas.getContext("2d");
 const inventoryUI = document.getElementById("inventory") as HTMLDivElement;
 const inventoryGrid = document.getElementById("grid") as HTMLDivElement;
 const chatInput = document.getElementById("chat-input") as HTMLInputElement;
@@ -27,29 +29,60 @@ const effectsSlider = document.getElementById("effects-slider") as HTMLInputElem
 const mutedCheckbox = document.getElementById("muted-checkbox") as HTMLInputElement;
 let loaded: boolean = false;
 var toggleInventory = false;
+var times = [] as number[];
+var fps: number;
+var lastFrameTime = 0; // Track the time of the last frame
 
 function animationLoop() {
-  // Clear the canvas
   if (!ctx || !playerContext) return;
-  playerContext.clearRect(0, 0, playerCanvas.width, playerCanvas.height);
 
-  // Render all players but ensure the current player is rendered last
-  players.forEach((player) => {
-    if (player.id !== sessionStorage.getItem("connectionId")) {
-      player.show(playerContext);
+  // Get the desired frame rate from the slider
+  const fpsTarget = parseFloat(fpsSlider.value); // Convert to a number if needed
+  const frameDuration = 1000 / fpsTarget; // Duration of each frame in milliseconds
+
+  // Get the current time
+  const now = performance.now();
+
+  // If enough time has passed since the last frame, proceed
+  if (now - lastFrameTime >= frameDuration) {
+    lastFrameTime = now;
+
+    // Clear the canvas
+    playerContext.clearRect(0, 0, playerCanvas.width, playerCanvas.height);
+
+    // Render all players but ensure the current player is rendered last    
+    players.forEach((player) => {
+      if (player.id !== sessionStorage.getItem("connectionId")) {
+        player.show(playerContext);
+      }
+    });
+
+    // Calculate FPS
+    while (times.length > 0 && times[0] <= now - 1000) {
+      times.shift();
     }
-  });
+    times.push(now);
+    fps = times.length;
+  }
 
+  // Request the next frame
+  window.requestAnimationFrame(animationLoop);
+}
+
+function currentPlayerLoop () {
+  if (!ctx || !currentPlayerContext) return;
+  currentPlayerContext.clearRect(0, 0, currentPlayerCanvas.width, currentPlayerCanvas.height);
   players.forEach((player) => {
     if (player.id === sessionStorage.getItem("connectionId")) {
-      player.show(playerContext);
+      player.show(currentPlayerContext);
     }
   });
-
-  setTimeout(() => {
-    window.requestAnimationFrame(animationLoop);
-  }, 1000 / parseInt(fpsSlider.value));
+  window.requestAnimationFrame(currentPlayerLoop);
 }
+
+// Start the animation loops
+animationLoop();
+currentPlayerLoop();
 
 socket.addEventListener("open", () => {
   const packet = {
@@ -199,12 +232,21 @@ socket.addEventListener("message", async (event) => {
         async function drawMap(images: string[]) {
           canvas.width = mapData.width * mapData.tilewidth;
           canvas.height = mapData.height * mapData.tileheight;
+
           playerCanvas.width = mapData.width * mapData.tilewidth;
           playerCanvas.height = mapData.height * mapData.tileheight;
+
+          currentPlayerCanvas.width = playerCanvas.width;
+          currentPlayerCanvas.height = playerCanvas.height;
+
           canvas.style.width = mapData.width * mapData.tilewidth + "px";
           canvas.style.height = mapData.height * mapData.tilewidth + "px";
+
           playerCanvas.style.width = mapData.width * mapData.tilewidth + "px";
           playerCanvas.style.height = mapData.height * mapData.tilewidth + "px";
+
+          currentPlayerCanvas.style.width = playerCanvas.style.width;
+          currentPlayerCanvas.style.height = playerCanvas.style.height;
 
           if (!ctx) return;
           ctx.imageSmoothingEnabled = false;
@@ -235,7 +277,7 @@ socket.addEventListener("message", async (event) => {
             const tileHeight = tileset.tileheight;
             const tilesetWidth = tileset.imagewidth;
 
-            const batchSize = 5; // Adjust batch size for performance
+            const batchSize = 1; // Adjust batch size for performance
 
             function processRowBatch(startY: number) {
               for (
@@ -383,6 +425,7 @@ const pressedKeys = new Set();
 const movementKeys = new Set(["w", "a", "s", "d"]);
 
 window.addEventListener("keydown", (e) => {
+  if (!loaded) return;
   if (
     movementKeys.has(e.key.toLowerCase()) &&
     chatInput !== document.activeElement
@@ -399,6 +442,7 @@ window.addEventListener("keydown", (e) => {
 
   // Open pause menu
   if (e.key === "Escape") {
+    if (!loaded) return;
     chatInput.blur();
     if (document.getElementById("pause-menu-container")?.style.display != "block") {
       pauseMenu.style.display = "block"
@@ -418,6 +462,7 @@ window.addEventListener("keydown", (e) => {
 
   // Open inventory UI
   if (e.key === "b") {
+    if (!loaded) return;
     if (chatInput === document.activeElement) return;
     if (pauseMenu.style.display == "block") return;
     if (toggleInventory) {

@@ -133,7 +133,7 @@ const createClientConfig = async () => {
       CREATE TABLE IF NOT EXISTS clientconfig (
         id INT AUTO_INCREMENT PRIMARY KEY UNIQUE NOT NULL,
         username VARCHAR(255) NOT NULL UNIQUE,
-        fps INT NOT NULL DEFAULT 60,
+        fps INT NOT NULL DEFAULT 240,
         music_volume INT NOT NULL DEFAULT 100,
         effects_volume INT NOT NULL DEFAULT 100,
         muted INT NOT NULL DEFAULT 0
