@@ -18,4 +18,5 @@ export const packetTypes: PacketType = {
   16: "INVENTORY",
   17: "CHAT",
   18: "STATS",
+  19: "CLIENTCONFIG",
 };

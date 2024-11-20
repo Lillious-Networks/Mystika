@@ -333,6 +333,62 @@ input::placeholder {
   border-radius: 50%;
 }
 
+#options-menu-container {
+  display:none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(2px);
+}
+
+#options-menu {
+  width: 318px;
+  height: 280px;
+  align-items: center;
+  align-content: center;
+  position: absolute;
+  top: 525px;
+  left: 0;
+  right: 0;
+  margin: auto;
+  transform: translateY(-50%);
+  background: url("../img/ui/ui-backdrop.png");
+  background-repeat: no-repeat;
+}
+
+#options-menu-selections-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+#options-menu-left-container, #options-menu-right-container  {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-evenly;
+  margin-left: 35px;
+}
+
+#options-menu-right-container {
+  margin-right: 40px;
+  align-items: center;
+}
+
+#fps-slider, #music-slider, #effects-slider {
+  width: 100%;
+}
+
+#limit-fps-label {
+  text-align: left;
+}
+
 #pause-menu-container{
   display:none;
   position: fixed;
@@ -405,6 +461,7 @@ input::placeholder {
   cursor: pointer;
 }
 
+/* When the options menu is pressed*/
 #pause-menu-action-options:active {
   background: url("../img/ui/ui-options-button-onPress.png");
   background-repeat: no-repeat;

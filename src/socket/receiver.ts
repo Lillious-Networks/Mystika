@@ -102,6 +102,14 @@ export default async function packetReceiver(
             data: stats,
           })
         );
+        // Get client configuration
+        const clientConfig = await player.getConfig(username);
+        ws.send(
+          JSON.stringify({
+            type: "CLIENTCONFIG",
+            data: clientConfig,
+          })
+        );
         const location = (await player.getLocation({
           username: username,
         })) as LocationData | null;
@@ -265,6 +273,10 @@ export default async function packetReceiver(
             },
           })
         );
+        break;
+      }
+      case "CLIENTCONFIG": {
+        await player.setConfig(ws.data.id, data);
         break;
       }
       // Unknown packet type

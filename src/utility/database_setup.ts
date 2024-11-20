@@ -108,6 +108,40 @@ const createItemsTable = async () => {
   await query(sql);
 };
 
+const createStatsTable = async () => {
+  const useDatabaseSql = `USE ${database};`;
+  await query(useDatabaseSql);
+
+  const sql = `
+    CREATE TABLE IF NOT EXISTS stats (
+        id INT AUTO_INCREMENT PRIMARY KEY UNIQUE NOT NULL,
+        username VARCHAR(255) NOT NULL UNIQUE,
+        health INT NOT NULL DEFAULT 100,
+        max_health INT NOT NULL DEFAULT 100,
+        stamina INT NOT NULL DEFAULT 100,
+        max_stamina INT NOT NULL DEFAULT 100
+    )
+  `;
+  await query(sql);
+}
+
+const createClientConfig = async () => {
+  const useDatabaseSql = `USE ${database};`;
+  await query(useDatabaseSql);
+
+  const sql = `
+      CREATE TABLE IF NOT EXISTS clientconfig (
+        id INT AUTO_INCREMENT PRIMARY KEY UNIQUE NOT NULL,
+        username VARCHAR(255) NOT NULL UNIQUE,
+        fps INT NOT NULL DEFAULT 60,
+        music_volume INT NOT NULL DEFAULT 100,
+        effects_volume INT NOT NULL DEFAULT 100,
+        muted INT NOT NULL DEFAULT 0
+    )
+  `;
+  await query(sql);
+}
+
 // Run the database setup
 const setupDatabase = async () => {
   await createDatabase();
@@ -117,6 +151,8 @@ const setupDatabase = async () => {
   await insertLocalhost();
   await createInventoryTable();
   await createItemsTable();
+  await createStatsTable();
+  await createClientConfig();
 };
 
 try {

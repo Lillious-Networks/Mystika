@@ -103,3 +103,8 @@ declare interface StatsData {
   stamina: number;
   max_stamina: number;
 }
+
+// Define config data
+declare interface ConfigData {
+  [key: string]: number | string | boolean;
+}

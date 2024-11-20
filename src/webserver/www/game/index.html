@@ -20,6 +20,24 @@
           </div>
         </div>
       </div>
+      <div id="options-menu-container">
+        <div id="options-menu">
+          <div id="options-menu-selections-container">
+            <div id="options-menu-left-container">
+              <label id="limit-fps-label">FPS:</label>
+              <label id="music-volume-label">Music:</label>
+              <label id="effects-volume-label">Effects:</label>
+              <label id="muted-label">Muted:</label>
+            </div>
+            <div id="options-menu-right-container">
+              <input type="range" min="30" max="144" value="50" step="1" class="slider" id="fps-slider">
+              <input type="range" min="0" max="100" value="50" step="10" class="slider" id="music-slider">
+              <input type="range" min="0" max="100" value="50" step="10" class="slider" id="effects-slider">
+              <input type="checkbox" id="muted-checkbox">
+            </div>
+          </div>
+        </div>
+      </div>
       <div id="map-container">
         <div id="map-border"></div>
         <div id="map"></div>

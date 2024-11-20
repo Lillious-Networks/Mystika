@@ -198,12 +198,28 @@ const player = {
             max_stamina: response[0].max_stamina
         };
     },
-    setStats: async (username: string, stats: StatsData) => {
+    setStats: async (session_id: string, stats: StatsData) => {
         // If the stats don't exist, fuck off
-        if (!stats.health || !stats.max_health || !stats.stamina || !stats.max_stamina || !username) return;
+        if (!stats.health || !stats.max_health || !stats.stamina || !stats.max_stamina) return;
+        // Retrieve the username from the session id
+        const result = await query("SELECT username FROM accounts WHERE session_id = ?", [session_id]) as any;
+         if(!result[0].username) return [];
         // Tell the database to update the stats
-        const response = await query("UPDATE stats SET health = ?, max_health = ?, stamina = ?, max_stamina = ? WHERE username = ?", [stats.health, stats.max_health, stats.stamina, stats.max_stamina, username]);
+        const response = await query("UPDATE stats SET health = ?, max_health = ?, stamina = ?, max_stamina = ? WHERE username = ?", [stats.health, stats.max_health, stats.stamina, stats.max_stamina, result[0].username]);
         // Do the thing
+        if (!response) return [];
+        return response ;
+    },
+    getConfig: async (username: string) => {
+        const response = await query("SELECT * FROM clientconfig WHERE username = ?", [username]);
+        return response || [];
+    },
+    setConfig: async (session_id: string, data: any) => {
+        if (!data.fps || !data.music_volume || !data.effects_volume || !data.muted) return [];
+        const result = await query("SELECT username FROM accounts WHERE session_id = ?", [session_id]) as any;
+        if (!result[0].username) return [];
+        const response = await query("UPDATE clientconfig SET fps = ?, music_volume = ?, effects_volume = ?, muted = ? WHERE username = ?", [data.fps, data.music_volume, data.effects_volume, data.muted, result[0].username]);
+        if (!response) return [];
         return response;
     }
 };

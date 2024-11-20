@@ -7,10 +7,24 @@ const playerContext = playerCanvas.getContext("2d");
 const inventoryUI = document.getElementById("inventory") as HTMLDivElement;
 const inventoryGrid = document.getElementById("grid") as HTMLDivElement;
 const chatInput = document.getElementById("chat-input") as HTMLInputElement;
-const healthBar = document.getElementById("health-progress-bar") as HTMLDivElement;
-const staminaBar = document.getElementById("stamina-progress-bar") as HTMLDivElement;
+const healthBar = document.getElementById(
+  "health-progress-bar"
+) as HTMLDivElement;
+const staminaBar = document.getElementById(
+  "stamina-progress-bar"
+) as HTMLDivElement;
 const map = document.getElementById("map") as HTMLDivElement;
-const pauseMenu = document.getElementById("pause-menu-container") as HTMLDivElement;
+const pauseMenu = document.getElementById(
+  "pause-menu-container"
+) as HTMLDivElement;
+const optionsMenu = document.getElementById(
+  "options-menu-container"
+) as HTMLDivElement;
+const menuElements = ["options-menu-container"];
+const fpsSlider = document.getElementById("fps-slider") as HTMLInputElement;
+const musicSlider = document.getElementById("music-slider") as HTMLInputElement;
+const effectsSlider = document.getElementById("effects-slider") as HTMLInputElement;
+const mutedCheckbox = document.getElementById("muted-checkbox") as HTMLInputElement;
 let loaded: boolean = false;
 var toggleInventory = false;
 
@@ -32,7 +46,9 @@ function animationLoop() {
     }
   });
 
-  requestAnimationFrame(animationLoop);
+  setTimeout(() => {
+    window.requestAnimationFrame(animationLoop);
+  }, 1000 / parseInt(fpsSlider.value));
 }
 
 socket.addEventListener("open", () => {
@@ -115,7 +131,7 @@ socket.addEventListener("message", async (event) => {
         const mapData = data[0];
         const mapHash = data[1] as string;
         const mapName = data[2];
-    
+
         const fetchMap = async () => {
           const response = await fetch(`/map/hash?name=${mapName}`);
           if (!response.ok) {
@@ -123,23 +139,23 @@ socket.addEventListener("message", async (event) => {
           }
           return response.json();
         };
-    
+
         const serverMapHashResponse = await fetchMap();
         const serverMapHashData = serverMapHashResponse.hash;
-    
+
         if (!serverMapHashData) {
           throw new Error("No map hash data found");
         }
-    
+
         if (serverMapHashData !== mapHash) {
           throw new Error("Map hash mismatch");
         }
-    
+
         const tilesets = mapData.tilesets;
         if (!tilesets) {
           throw new Error("No tilesets found");
         }
-    
+
         const fetchTilesetImages = async () => {
           const fetchPromises = tilesets.map(async (tileset: any) => {
             const name = tileset.image.split("/").pop();
@@ -150,15 +166,15 @@ socket.addEventListener("message", async (event) => {
             const data = await response.json();
             return data;
           });
-    
+
           return Promise.all(fetchPromises);
         };
-    
+
         const result = await fetchTilesetImages();
         if (result.length === 0) {
           throw new Error("No tileset images found");
         }
-    
+
         const images = [] as string[];
         for (const r of result) {
           const response = await fetch(`/tileset/hash?name=${r.tileset.name}`);
@@ -166,11 +182,11 @@ socket.addEventListener("message", async (event) => {
             throw new Error("Failed to fetch tileset hash");
           }
           const data = await response.json();
-    
+
           if (data.hash !== r.tileset.hash) {
             throw new Error("Tileset hash mismatch");
           }
-    
+
           const image = new Image();
           image.src = `data:image/png;base64,${r.tileset.data}`;
           await new Promise((resolve) => {
@@ -178,7 +194,7 @@ socket.addEventListener("message", async (event) => {
           });
           images.push(image as unknown as string);
         }
-    
+
         // Optimized drawMap function using batch processing
         async function drawMap(images: string[]) {
           canvas.width = mapData.width * mapData.tilewidth;
@@ -189,13 +205,13 @@ socket.addEventListener("message", async (event) => {
           canvas.style.height = mapData.height * mapData.tilewidth + "px";
           playerCanvas.style.width = mapData.width * mapData.tilewidth + "px";
           playerCanvas.style.height = mapData.height * mapData.tilewidth + "px";
-    
+
           if (!ctx) return;
           ctx.imageSmoothingEnabled = false;
-    
+
           const layers = mapData.layers;
           let currentLayer = 0;
-    
+
           function processLayer() {
             if (currentLayer >= layers.length) {
               canvas.style.display = "block";
@@ -203,23 +219,24 @@ socket.addEventListener("message", async (event) => {
               animationLoop();
               return;
             }
-    
+
             const layer = layers[currentLayer];
             if (!layer || !layer.data) {
               currentLayer++;
               processLayer();
               return;
             }
-    
+
             const tileset =
-              tilesets.find((t: any) => t.firstgid <= layer.data[0]) || tilesets[0];
+              tilesets.find((t: any) => t.firstgid <= layer.data[0]) ||
+              tilesets[0];
             const image = images[tilesets.indexOf(tileset)];
             const tileWidth = tileset.tilewidth;
             const tileHeight = tileset.tileheight;
             const tilesetWidth = tileset.imagewidth;
-    
+
             const batchSize = 5; // Adjust batch size for performance
-    
+
             function processRowBatch(startY: number) {
               for (
                 let y = startY;
@@ -229,13 +246,13 @@ socket.addEventListener("message", async (event) => {
                 for (let x = 0; x < mapData.width; x++) {
                   const tileIndex = layer.data[y * mapData.width + x];
                   if (tileIndex === 0) continue;
-    
+
                   const tilesPerRow = tilesetWidth / tileWidth;
                   const tileY = Math.floor(
                     (tileIndex - tileset.firstgid) / tilesPerRow
                   );
                   const tileX = (tileIndex - tileset.firstgid) % tilesPerRow;
-    
+
                   if (!ctx || !image) return;
 
                   ctx.drawImage(
@@ -251,7 +268,7 @@ socket.addEventListener("message", async (event) => {
                   );
                 }
               }
-    
+
               if (startY + batchSize < mapData.height) {
                 setTimeout(() => processRowBatch(startY + batchSize), 0);
               } else {
@@ -259,13 +276,13 @@ socket.addEventListener("message", async (event) => {
                 processLayer();
               }
             }
-    
+
             processRowBatch(0);
           }
-    
+
           processLayer();
         }
-    
+
         await drawMap(images);
       }
       break;
@@ -303,7 +320,7 @@ socket.addEventListener("message", async (event) => {
             inventoryGrid.appendChild(slot);
           }
         }
-        
+
         for (let i = 0; i < slots - data.length; i++) {
           const slot = document.createElement("div");
           slot.classList.add("slot");
@@ -325,6 +342,18 @@ socket.addEventListener("message", async (event) => {
       const health = (data.health / data.max_health) * 100;
       const stamina = (data.stamina / data.max_stamina) * 100;
       updateStats(health, stamina);
+      break;
+    }
+    case "CLIENTCONFIG": {
+      const data = JSON.parse(event.data)["data"][0];
+      fpsSlider.value = data.fps;
+      document.getElementById("limit-fps-label")!.innerText = `FPS: (${fpsSlider.value})`;
+      musicSlider.value = data.music_volume;
+      document.getElementById("music-volume-label")!.innerText = `Music: (${musicSlider.value})`;
+      effectsSlider.value = data.effects_volume;
+      document.getElementById("effects-volume-label")!.innerText = `Effects: (${effectsSlider.value})`;
+      mutedCheckbox.checked = data.muted;
+      document.getElementById("muted-checkbox")!.innerText = `Muted: ${mutedCheckbox.checked}`;
       break;
     }
     default:
@@ -354,8 +383,11 @@ const pressedKeys = new Set();
 const movementKeys = new Set(["w", "a", "s", "d"]);
 
 window.addEventListener("keydown", (e) => {
-  if (movementKeys.has(e.key.toLowerCase()) && chatInput !== document.activeElement) {
-    if(pauseMenu.style.display == "block") return;
+  if (
+    movementKeys.has(e.key.toLowerCase()) &&
+    chatInput !== document.activeElement
+  ) {
+    if (pauseMenu.style.display == "block") return;
     pressedKeys.add(e.key.toLowerCase());
     if (!isKeyPressed) {
       isKeyPressed = true;
@@ -366,18 +398,28 @@ window.addEventListener("keydown", (e) => {
   }
 
   // Open pause menu
-  if (e.key === "Escape"){
+  if (e.key === "Escape") {
     chatInput.blur();
-    if(pauseMenu.style.display == "block")
+    if (document.getElementById("pause-menu-container")?.style.display != "block") {
+      pauseMenu.style.display = "block"
+    } else {
       pauseMenu.style.display = "none";
-    else
-      pauseMenu.style.display = "block";
+    }
+
+    for (const element of menuElements) {
+      if (document.getElementById(element)?.style.display == "block") {
+        const menuElement = document.getElementById(element);
+        if (menuElement) {
+          menuElement.style.display = "none";
+        }
+      }
+    }
   }
 
   // Open inventory UI
   if (e.key === "b") {
     if (chatInput === document.activeElement) return;
-    if(pauseMenu.style.display == "block") return;
+    if (pauseMenu.style.display == "block") return;
     if (toggleInventory) {
       inventoryUI.style.transition = "1s";
       inventoryUI.style.right = "-350";
@@ -390,10 +432,10 @@ window.addEventListener("keydown", (e) => {
   }
 
   if (e.key === "Enter" && chatInput !== document.activeElement) {
-    if(pauseMenu.style.display == "block") return;
+    if (pauseMenu.style.display == "block") return;
     chatInput.focus();
   } else if (e.key === "Enter" && chatInput == document.activeElement) {
-    if(pauseMenu.style.display == "block") return;
+    if (pauseMenu.style.display == "block") return;
     if (chatInput.value.trim() === "") return;
     socket.send(
       JSON.stringify({
@@ -419,7 +461,7 @@ window.addEventListener("keydown", (e) => {
         }
       });
     }, 5000 + chatInput.value.length * 35);
-    chatInput.value = '';
+    chatInput.value = "";
     chatInput.blur();
   }
 });
@@ -510,7 +552,7 @@ function createPlayer(data: any) {
       x: playerCanvas.width / 2 + data.location.x,
       y: playerCanvas.height / 2 + data.location.y,
     },
-    chat: '',
+    chat: "",
     show: function (context: CanvasRenderingContext2D) {
       context.fillStyle = "white";
       context.fillRect(this.position.x, this.position.y, 32, 48);
@@ -563,11 +605,10 @@ function createPlayer(data: any) {
       context.fillStyle = "white";
       context.font = "12px Arial";
       context.textAlign = "center";
-      if (this.chat.trim() !== '') {
-
+      if (this.chat.trim() !== "") {
         const lines = getLines(context, this.chat, 500).reverse();
         let startingPosition = this.position.y;
-        
+
         for (let i = 0; i < lines.length; i++) {
           startingPosition -= 15;
           context.fillText(lines[i], this.position.x + 16, startingPosition);
@@ -592,14 +633,14 @@ function getLines(ctx: any, text: string, maxWidth: number) {
   var currentLine = words[0];
 
   for (var i = 1; i < words.length; i++) {
-      var word = words[i];
-      var width = ctx.measureText(currentLine + " " + word).width;
-      if (width < maxWidth) {
-          currentLine += " " + word;
-      } else {
-          lines.push(currentLine);
-          currentLine = word;
-      }
+    var word = words[i];
+    var width = ctx.measureText(currentLine + " " + word).width;
+    if (width < maxWidth) {
+      currentLine += " " + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
+    }
   }
   lines.push(currentLine);
   return lines;
@@ -634,7 +675,7 @@ function updateStats(health: number, stamina: number) {
     return;
   }
   if (health >= 50 && health < 80) {
-    healthBar.classList.add("yellow")
+    healthBar.classList.add("yellow");
     return;
   }
   if (health >= 30 && health < 50) {
@@ -681,10 +722,7 @@ async function updateMiniMap() {
   // Ensure the player stays centered in the minimap
   const cropX = Math.max(
     0,
-    Math.min(
-      currentPlayer.position.x - cropWidth / 2,
-      canvasWidth - cropWidth
-    )
+    Math.min(currentPlayer.position.x - cropWidth / 2, canvasWidth - cropWidth)
   );
   const cropY = Math.max(
     0,
@@ -696,15 +734,15 @@ async function updateMiniMap() {
 
   // Draw the cropped and scaled-down region of the canvas to the minimap
   context.drawImage(
-    canvas,             // Source canvas
-    cropX,              // Crop start X
-    cropY,              // Crop start Y
-    cropWidth,          // Crop width
-    cropHeight,         // Crop height
-    0,                  // Destination X
-    0,                  // Destination Y
-    minimapWidth,       // Destination width
-    minimapHeight       // Destination height
+    canvas, // Source canvas
+    cropX, // Crop start X
+    cropY, // Crop start Y
+    cropWidth, // Crop width
+    cropHeight, // Crop height
+    0, // Destination X
+    0, // Destination Y
+    minimapWidth, // Destination width
+    minimapHeight // Destination height
   );
 
   // Generate the data URL for the minimap
@@ -719,7 +757,6 @@ async function updateMiniMap() {
   }
 }
 
-
 // Update minimap less frequently to avoid freezing
 const updateInterval = 150; // Update every 150ms
 
@@ -731,16 +768,97 @@ setTimeout(() => {
   updateLoop();
 }, 1000);
 
-document.getElementById("pause-menu-action-back")?.addEventListener("click", () => {
-  pauseMenu.style.display = "none";
-})
+document
+  .getElementById("pause-menu-action-back")
+  ?.addEventListener("click", () => {
+    pauseMenu.style.display = "none";
+  });
 
-document.getElementById("pause-menu-action-exit")?.addEventListener("click", () => {
+document
+  .getElementById("pause-menu-action-options")
+  ?.addEventListener("click", () => {
+    // If any other menu is open, close all other menus
+
+    pauseMenu.style.display = "none";
+    optionsMenu.style.display = "block";
+  });
+
+document
+  .getElementById("pause-menu-action-exit")
+  ?.addEventListener("click", () => {
+    socket.send(
+      JSON.stringify({
+        type: "LOGOUT",
+        data: null,
+      })
+    );
+    window.location.href = "/";
+  });
+
+fpsSlider.addEventListener("input", () => {
+  document.getElementById("limit-fps-label")!.innerText = `FPS: (${fpsSlider.value})`;
+});
+
+musicSlider.addEventListener("input", () => {
+  document.getElementById("music-volume-label")!.innerText = `Music: (${musicSlider.value})`;
+});
+
+effectsSlider.addEventListener("input", () => {
+  document.getElementById("effects-volume-label")!.innerText = `Effects: (${effectsSlider.value})`;
+});
+
+fpsSlider.addEventListener("change", () => {
   socket.send(
     JSON.stringify({
-      type: "LOGOUT",
-      data: null,
+      type: "CLIENTCONFIG",
+      data: {
+        fps: parseInt(fpsSlider.value),
+        music_volume: parseInt(musicSlider.value),
+        effects_volume: parseInt(effectsSlider.value),
+        muted: mutedCheckbox.checked,
+      } as ConfigData,
     })
   );
-  window.location.href = "/";
-})
+});
+
+musicSlider.addEventListener("change", () => {
+  socket.send(
+    JSON.stringify({
+      type: "CLIENTCONFIG",
+      data: {
+        fps: parseInt(fpsSlider.value),
+        music_volume: parseInt(musicSlider.value),
+        effects_volume: parseInt(effectsSlider.value),
+        muted: mutedCheckbox.checked,
+      } as ConfigData,
+    })
+  );
+});
+
+effectsSlider.addEventListener("change", () => {
+  socket.send(
+    JSON.stringify({
+      type: "CLIENTCONFIG",
+      data: {
+        fps: parseInt(fpsSlider.value),
+        music_volume: parseInt(musicSlider.value),
+        effects_volume: parseInt(effectsSlider.value),
+        muted: mutedCheckbox.checked,
+      } as ConfigData,
+    })
+  );
+});
+
+mutedCheckbox.addEventListener("change", () => {
+  socket.send(
+    JSON.stringify({
+      type: "CLIENTCONFIG",
+      data: {
+        fps: parseInt(fpsSlider.value),
+        music_volume: parseInt(musicSlider.value),
+        effects_volume: parseInt(effectsSlider.value),
+        muted: mutedCheckbox.checked,
+      } as ConfigData,
+    })
+  );
+});
