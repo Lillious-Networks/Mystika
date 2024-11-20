@@ -6,7 +6,12 @@ const playerCanvas = document.getElementById("players") as HTMLCanvasElement;
 const playerContext = playerCanvas.getContext("2d");
 const inventoryUI = document.getElementById("inventory") as HTMLDivElement;
 const inventoryGrid = document.getElementById("grid") as HTMLDivElement;
+const chatInput = document.getElementById("chat-input") as HTMLInputElement;
+const healthBar = document.getElementById("health-progress-bar") as HTMLDivElement;
+const staminaBar = document.getElementById("stamina-progress-bar") as HTMLDivElement;
+const map = document.getElementById("map") as HTMLDivElement;
 let loaded: boolean = false;
+var toggleInventory = false;
 
 function animationLoop() {
   // Clear the canvas
@@ -109,6 +114,7 @@ socket.addEventListener("message", async (event) => {
         const mapData = data[0];
         const mapHash = data[1] as string;
         const mapName = data[2];
+    
         const fetchMap = async () => {
           const response = await fetch(`/map/hash?name=${mapName}`);
           if (!response.ok) {
@@ -116,117 +122,150 @@ socket.addEventListener("message", async (event) => {
           }
           return response.json();
         };
+    
         const serverMapHashResponse = await fetchMap();
         const serverMapHashData = serverMapHashResponse.hash;
+    
         if (!serverMapHashData) {
           throw new Error("No map hash data found");
         }
+    
         if (serverMapHashData !== mapHash) {
           throw new Error("Map hash mismatch");
         }
+    
         const tilesets = mapData.tilesets;
         if (!tilesets) {
           throw new Error("No tilesets found");
         }
+    
         const fetchTilesetImages = async () => {
-          const images = [];
-          for (let i = 0; i < tilesets.length; i++) {
-            const name = tilesets[i].image.split("/").pop();
+          const fetchPromises = tilesets.map(async (tileset: any) => {
+            const name = tileset.image.split("/").pop();
             const response = await fetch(`/tileset?name=${name}`);
             if (!response.ok) {
               throw new Error(`Failed to fetch tileset image: ${name}`);
             }
             const data = await response.json();
-            images.push(data);
-          }
-          return images;
+            return data;
+          });
+    
+          return Promise.all(fetchPromises);
         };
-
+    
         const result = await fetchTilesetImages();
-
-        if (result.length == 0) {
+        if (result.length === 0) {
           throw new Error("No tileset images found");
         }
-
+    
         const images = [] as string[];
-        result.forEach(async (r) => {
+        for (const r of result) {
           const response = await fetch(`/tileset/hash?name=${r.tileset.name}`);
           if (!response.ok) {
             throw new Error("Failed to fetch tileset hash");
           }
           const data = await response.json();
-
+    
           if (data.hash !== r.tileset.hash) {
             throw new Error("Tileset hash mismatch");
           }
-
-          const image = new Image() as HTMLImageElement;
-          image.onload = function () {
-            images.push(image as unknown as string);
-            if (images.length === result.length) {
-              drawMap(images);
-            }
-          };
+    
+          const image = new Image();
           image.src = `data:image/png;base64,${r.tileset.data}`;
-        });
-
-        function drawMap(images: string[]) {
+          await new Promise((resolve) => {
+            image.onload = () => resolve(true);
+          });
+          images.push(image as unknown as string);
+        }
+    
+        // Optimized drawMap function using batch processing
+        async function drawMap(images: string[]) {
           canvas.width = mapData.width * mapData.tilewidth;
           canvas.height = mapData.height * mapData.tileheight;
           playerCanvas.width = mapData.width * mapData.tilewidth;
           playerCanvas.height = mapData.height * mapData.tileheight;
           canvas.style.width = mapData.width * mapData.tilewidth + "px";
-          canvas.style.height = mapData.height * mapData.tileheight + "px";
+          canvas.style.height = mapData.height * mapData.tilewidth + "px";
           playerCanvas.style.width = mapData.width * mapData.tilewidth + "px";
-          playerCanvas.style.height =
-            mapData.height * mapData.tileheight + "px";
+          playerCanvas.style.height = mapData.height * mapData.tilewidth + "px";
+    
           if (!ctx) return;
           ctx.imageSmoothingEnabled = false;
-
-          for (let i = 0; i < mapData.layers.length; i++) {
-            const layer = mapData.layers[i];
-            if (!layer || !layer.data) continue;
-
+    
+          const layers = mapData.layers;
+          let currentLayer = 0;
+    
+          function processLayer() {
+            if (currentLayer >= layers.length) {
+              canvas.style.display = "block";
+              loaded = true;
+              animationLoop();
+              return;
+            }
+    
+            const layer = layers[currentLayer];
+            if (!layer || !layer.data) {
+              currentLayer++;
+              processLayer();
+              return;
+            }
+    
             const tileset =
-              tilesets.find(
-                (tileset: any) => tileset.firstgid <= layer.data[0]
-              ) || tilesets[0];
-            const image = images[tilesets.indexOf(tileset)] as any;
+              tilesets.find((t: any) => t.firstgid <= layer.data[0]) || tilesets[0];
+            const image = images[tilesets.indexOf(tileset)];
             const tileWidth = tileset.tilewidth;
             const tileHeight = tileset.tileheight;
             const tilesetWidth = tileset.imagewidth;
+    
+            const batchSize = 5; // Adjust batch size for performance
+    
+            function processRowBatch(startY: number) {
+              for (
+                let y = startY;
+                y < startY + batchSize && y < mapData.height;
+                y++
+              ) {
+                for (let x = 0; x < mapData.width; x++) {
+                  const tileIndex = layer.data[y * mapData.width + x];
+                  if (tileIndex === 0) continue;
+    
+                  const tilesPerRow = tilesetWidth / tileWidth;
+                  const tileY = Math.floor(
+                    (tileIndex - tileset.firstgid) / tilesPerRow
+                  );
+                  const tileX = (tileIndex - tileset.firstgid) % tilesPerRow;
+    
+                  if (!ctx || !image) return;
 
-            for (let y = 0; y < mapData.height; y++) {
-              for (let x = 0; x < mapData.width; x++) {
-                const tileIndex = layer.data[y * mapData.width + x];
-                if (tileIndex == 0) {
-                  continue; // Skip drawing if tileIndex is 0
+                  ctx.drawImage(
+                    image as unknown as CanvasImageSource,
+                    tileX * tileWidth,
+                    tileY * tileHeight,
+                    tileWidth,
+                    tileHeight,
+                    x * tileWidth,
+                    y * tileHeight,
+                    tileWidth,
+                    tileHeight
+                  );
                 }
-
-                const tilesPerRow = tilesetWidth / tileWidth;
-                const tileY = Math.floor(
-                  (tileIndex - tileset.firstgid) / tilesPerRow
-                );
-                const tileX = (tileIndex - tileset.firstgid) % tilesPerRow;
-
-                ctx.drawImage(
-                  image,
-                  tileX * tileWidth,
-                  tileY * tileHeight,
-                  tileWidth,
-                  tileHeight,
-                  x * tileWidth,
-                  y * tileHeight,
-                  tileWidth,
-                  tileHeight
-                );
+              }
+    
+              if (startY + batchSize < mapData.height) {
+                setTimeout(() => processRowBatch(startY + batchSize), 0);
+              } else {
+                currentLayer++;
+                processLayer();
               }
             }
+    
+            processRowBatch(0);
           }
-          canvas.style.display = "block";
-          loaded = true;
-          animationLoop();
+    
+          processLayer();
         }
+    
+        await drawMap(images);
       }
       break;
     case "LOGIN_SUCCESS":
@@ -248,6 +287,7 @@ socket.addEventListener("message", async (event) => {
     case "INVENTORY":
       {
         const data = JSON.parse(event.data)["data"];
+        const slots = JSON.parse(event.data)["slots"];
         if (data.length > 0) {
           // Assign each item to a slot
           for (let i = 0; i < data.length; i++) {
@@ -262,9 +302,8 @@ socket.addEventListener("message", async (event) => {
             inventoryGrid.appendChild(slot);
           }
         }
-
-        // TODO: Make bag slots a server sided value
-        for (let i = data.length; i < data.length + 32; i++) {
+        
+        for (let i = 0; i < slots - data.length; i++) {
           const slot = document.createElement("div");
           slot.classList.add("slot");
           slot.classList.add("empty");
@@ -272,6 +311,21 @@ socket.addEventListener("message", async (event) => {
         }
       }
       break;
+    case "CHAT": {
+      players.forEach((player) => {
+        if (player.id === data.id) {
+          player.chat = data.message;
+        }
+      });
+      break;
+    }
+    case "STATS": {
+      // Normalize the health and stamina values to a percentage value with 0-100
+      const health = (data.health / data.max_health) * 100;
+      const stamina = (data.stamina / data.max_stamina) * 100;
+      updateStats(health, stamina);
+      break;
+    }
     default:
       break;
   }
@@ -299,11 +353,7 @@ const pressedKeys = new Set();
 const movementKeys = new Set(["w", "a", "s", "d"]);
 
 window.addEventListener("keydown", (e) => {
-  const clientSocketId = sessionStorage.getItem("connectionId");
-  const player = players.find((player) => player.id === clientSocketId) as any;
-  if (!player) return;
-
-  if (movementKeys.has(e.key.toLowerCase())) {
+  if (movementKeys.has(e.key.toLowerCase()) && chatInput !== document.activeElement) {
     pressedKeys.add(e.key.toLowerCase());
     if (!isKeyPressed) {
       isKeyPressed = true;
@@ -315,16 +365,54 @@ window.addEventListener("keydown", (e) => {
 
   // Open inventory UI
   if (e.key === "b") {
-    if (!inventoryUI.style.display || inventoryUI.style.display === "none") {
-      inventoryUI.style.display = "block";
+    if (chatInput === document.activeElement) return;
+    if (toggleInventory) {
+      inventoryUI.style.transition = "1s";
+      inventoryUI.style.right = "-350";
+      toggleInventory = false;
     } else {
-      inventoryUI.style.display = "none";
+      inventoryUI.style.transition = "1s";
+      inventoryUI.style.right = "10";
+      toggleInventory = true;
     }
+  }
+
+  if (e.key === "Enter" && chatInput !== document.activeElement) {
+    chatInput.focus();
+  } else if (e.key === "Enter" && chatInput == document.activeElement) {
+    if (chatInput.value.trim() === "") return;
+    socket.send(
+      JSON.stringify({
+        type: "CHAT",
+        data: chatInput.value.trim().toString() || " ",
+      })
+    );
+    const previousMessage = chatInput.value.trim();
+    if (previousMessage === "") return;
+
+    setTimeout(() => {
+      // Check if the chat is still the same value
+      players.forEach((player) => {
+        if (player.id === sessionStorage.getItem("connectionId")) {
+          if (player.chat === previousMessage) {
+            socket.send(
+              JSON.stringify({
+                type: "CHAT",
+                data: " ",
+              })
+            );
+          }
+        }
+      });
+    }, 5000 + chatInput.value.length * 35);
+    chatInput.value = '';
+    chatInput.blur();
   }
 });
 
 // Listen for keyup events to stop movement
 window.addEventListener("keyup", (event) => {
+  if (chatInput === document.activeElement) return;
   if (movementKeys.has(event.key.toLowerCase())) {
     pressedKeys.delete(event.key.toLowerCase());
     if (pressedKeys.size === 0) {
@@ -386,6 +474,15 @@ async function isLoaded() {
     const interval = setInterval(() => {
       if (loaded) {
         clearInterval(interval);
+        const loadingScreen = document.getElementById("loading-screen");
+        if (loadingScreen) {
+          // Fade out the loading screen after the map is loaded
+          loadingScreen.style.transition = "1s";
+          loadingScreen.style.opacity = "0";
+          setTimeout(() => {
+            loadingScreen.style.display = "none";
+          }, 1000);
+        }
         resolve();
       }
     }, 100);
@@ -399,6 +496,7 @@ function createPlayer(data: any) {
       x: playerCanvas.width / 2 + data.location.x,
       y: playerCanvas.height / 2 + data.location.y,
     },
+    chat: '',
     show: function (context: CanvasRenderingContext2D) {
       context.fillStyle = "white";
       context.fillRect(this.position.x, this.position.y, 32, 48);
@@ -445,6 +543,22 @@ function createPlayer(data: any) {
           this.position.y + 65
         );
       }
+
+      // Draw the player's chat message
+      context.fillStyle = "black";
+      context.fillStyle = "white";
+      context.font = "12px Arial";
+      context.textAlign = "center";
+      if (this.chat.trim() !== '') {
+
+        const lines = getLines(context, this.chat, 500).reverse();
+        let startingPosition = this.position.y;
+        
+        for (let i = 0; i < lines.length; i++) {
+          startingPosition -= 15;
+          context.fillText(lines[i], this.position.x + 16, startingPosition);
+        }
+      }
     },
   };
 
@@ -456,6 +570,25 @@ function createPlayer(data: any) {
     );
   }
   players.push(player);
+}
+
+function getLines(ctx: any, text: string, maxWidth: number) {
+  var words = text.split(" ");
+  var lines = [];
+  var currentLine = words[0];
+
+  for (var i = 1; i < words.length; i++) {
+      var word = words[i];
+      var width = ctx.measureText(currentLine + " " + word).width;
+      if (width < maxWidth) {
+          currentLine += " " + word;
+      } else {
+          lines.push(currentLine);
+          currentLine = word;
+      }
+  }
+  lines.push(currentLine);
+  return lines;
 }
 
 // Snap to player's position on resize
@@ -477,3 +610,62 @@ window.addEventListener("blur", () => {
   // Clear the pressedKeys set
   pressedKeys.clear();
 });
+
+function updateStats(health: number, stamina: number) {
+  healthBar.removeAttribute("class");
+  healthBar.style.width = `${health}%`;
+  staminaBar.style.width = `${stamina}%`;
+  if (health >= 80) {
+    healthBar.classList.add("green");
+    return;
+  }
+  if (health >= 50 && health < 80) {
+    healthBar.classList.add("yellow")
+    return;
+  }
+  if (health >= 30 && health < 50) {
+    healthBar.classList.add("orange");
+    return;
+  }
+  if (health < 30) {
+    healthBar.classList.add("red");
+    return;
+  }
+}
+
+async function updateMiniMap() {
+  // Check if there is already a minimap image
+  const image = map.querySelector("img");
+
+  // Reduce the canvas size for minimap purposes
+  const tempCanvas = document.createElement("canvas");
+  const context = tempCanvas.getContext("2d");
+
+  if (!context) return;
+
+  // Draw scaled-down version of the canvas
+  context.drawImage(canvas, 0, 0, tempCanvas.width * 5, tempCanvas.height * 5);
+  // Center the canvas
+  context.translate(tempCanvas.width / 2, tempCanvas.height / 2);
+
+  const dataUrl = tempCanvas.toDataURL("image/png");
+
+  if (image) {
+    image.src = dataUrl;
+  } else {
+    const newImage = new Image();
+    newImage.src = dataUrl;
+    map.appendChild(newImage);
+  }
+}
+
+// Update minimap less frequently to avoid freezing
+const updateInterval = 300; // Update every 300ms
+
+setTimeout(() => {
+  const updateLoop = () => {
+    updateMiniMap();
+    setTimeout(updateLoop, updateInterval);
+  };
+  updateLoop();
+}, 1000);

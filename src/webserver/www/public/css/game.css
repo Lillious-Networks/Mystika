@@ -1,13 +1,26 @@
 /* Hide the scroll bars */
 html,
-
 body {
     overflow: hidden;
 }
+
 body {
     background-color: #000;
     margin: 0;
     padding: 0;
+}
+
+#loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("/img/background.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 1000;
 }
 
 #container {
@@ -39,17 +52,21 @@ body {
 
 #inventory {
   position: fixed;
-  bottom: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: none;
+  bottom: 10;
+  right: -350;
   z-index: 100;
+  background: url("/img/ui/ui-inventory-container.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  transition: right ease-in-out 1s;
 }
 
 #inventory #grid {
   display: flex;
   flex-wrap: wrap;
-  padding: 10px;
+  padding: 35px;
+  padding-bottom: 15px;
+  padding-top: 25px;
   max-width: calc((50px + 10px) * 5 - 30px);
   gap: 5px;
 }
@@ -59,7 +76,7 @@ body {
   height: 50px;
   box-sizing: border-box;
   font-size: 12px;
-  font-weight: bold;
+  font-weight: lighter;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -68,34 +85,248 @@ body {
   word-wrap: break-word;
   overflow: hidden;
   color: #bdbdbd;
+  background: url("/img/ui/ui-inventory-slot.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  user-select: none;
 }
 
 .empty {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid #000;
+  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid transparent;
+  border-radius: 5px;
+  transition: border ease-in-out 0.2s;
+}
+
+.empty:hover {
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  transition: border ease-in-out 0.2s;
 }
 
 .common {
-  border: 1px solid rgb(255, 255, 255);
-  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  transition: border ease-in-out 0.2s;
+}
+
+.common:hover {
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  transition: border ease-in-out 0.2s;
 }
 
 .uncommon {
-  border: 1px solid rgb(0, 255, 0);
-  background: rgba(0, 255, 0, 0.2);
+  border: 2px solid rgba(52, 235, 73, 0.3);
+  border-radius: 5px;
+  transition: border ease-in-out 0.2s;
+}
+
+.uncommon:hover {
+  border: 2px solid rgba(52, 235, 73, 0.7);
+  transition: border ease-in-out 0.2s;
 }
 
 .rare {
-  border: 1px solid rgb(0, 0, 255);
-  background: rgba(0, 0, 255, 0.2);
+  border: 2px solid rgba(52, 122, 235, 0.3);
+  border-radius: 5px;
+  transition: border ease-in-out 0.2s;
+}
+
+.rare:hover {
+  border: 2px solid rgba(52, 122, 235, 0.7);
+  transition: border ease-in-out 0.2s;
 }
 
 .epic {
-  border: 1px solid rgb(255, 0, 255);
-  background: rgba(255, 0, 255, 0.2);
+  border: 2px solid rgba(189, 52, 235, 0.3);
+  border-radius: 5px;
+  transition: border ease-in-out 0.2s;
+}
+
+.epic:hover {
+  border: 2px solid rgba(189, 52, 235, 0.7);
+  transition: border ease-in-out 0.2s;
 }
 
 .legendary {
-  border: 1px solid rgb(255, 136, 0);
-  background: rgba(255, 136, 0, 0.2);
+  border: 2px solid rgba(235, 156, 52, 0.3);
+  border-radius: 5px;
+  transition: border ease-in-out 0.2s;
+}
+
+.legendary:hover {
+  border: 2px solid rgba(235, 156, 52, 0.7);
+  transition: border ease-in-out 0.2s;
+}
+
+#chat-container {
+  position: fixed;
+  bottom: -162;
+  left: 10;
+  z-index: 100;
+  background: url("/img/ui/ui-chat-container.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  width: 500px;
+  height: 226px;
+  transition: bottom ease-in-out 1s;
+}
+
+#chat {
+  padding: 10px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+#chat input {
+  position: absolute;
+  padding: 6px;
+  top: 22;
+  right: 0;
+  left: 40;
+  box-sizing: border-box;
+  background: transparent;
+  color: #000000;
+}
+
+#chat-container:focus-within {
+  bottom: 25;
+  transition: bottom ease-in-out 1s;
+}
+
+input {
+  outline: none;
+  border: none;
+}
+
+input::placeholder {
+  color: #b17767;
+}
+
+#hotbar {
+  position: fixed;
+  bottom: 10;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: url("/img/ui/ui-hotbar-container.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  width: 469px;
+  height: 82px;
+}
+
+.loader {
+  position: fixed;
+  top: 0;
+  bottom:0;
+  left: 0;
+  right: 0;
+  /* height: 10px; */
+  --c:no-repeat linear-gradient(#ffffff25 0 0);
+  background:transparent var(--c);
+  background-size: 60% 100%;
+  animation: l16 3s infinite;
+}
+@keyframes l16 {
+  0%   {background-position:-150% 0,-150% 0}
+  66%  {background-position: 250% 0,-150% 0}
+  100% {background-position: 250% 0, 250% 0}
+}
+
+#stats-container {
+  position: fixed;
+  top: 27;
+  left: 120;
+  z-index: 100;
+  background: url("/img/ui/ui-stats-container.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  width: 330px;
+  height: 110px;
+}
+
+#player-image-container {
+  position: fixed;
+  z-index: 101;
+  top: 10;
+  left: 10;
+  width: 97px;
+  height: 102px;
+  background: url("/img/ui/ui-player-image.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+#health-bar-container {
+  position: absolute;
+  top: 18;
+  z-index: 101;
+  left: 26;
+  right: 26;
+  height: 44px;
+}
+
+#health-progress-bar {
+  width: 100%;
+  height: 100%;
+}
+
+/* Max Health */
+.green {
+  background: url("/img/ui/ui-health-green.png");
+}
+
+/* 70% Health */
+.yellow {
+  background: url("/img/ui/ui-health-yellow.png");  
+}
+/* */
+.orange {
+  background: url("/img/ui/ui-health-orange.png");
+}
+
+.red {
+  background: url("/img/ui/ui-health-red.png");
+}
+
+#stamina-bar-container {
+  position: absolute;
+  top: 77;
+  z-index: 101;
+  left: 26;
+  right: 26;
+  height: 8px;
+}
+
+#stamina-progress-bar {
+  height: 100%;
+  width: 100%;
+  background: url("/img/ui/ui-stamina.png");
+}
+
+#map-container {
+  position: fixed;
+  top: 10;
+  right: 10;
+  z-index: 101;
+  width: 218px;
+  height: 224px;
+}
+
+#map-border {
+  position: absolute;
+  z-index: 100;
+  background: url("/img/ui/ui-map.png");
+  width: 100%;
+  height: 100%;
+  scale: 1.05;
+}
+
+#map img {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 99;
+  border-radius: 50%;
 }

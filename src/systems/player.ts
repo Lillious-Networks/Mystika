@@ -43,7 +43,9 @@ const player = {
             return;
           });
           if (!response) return;
-          return username;
+
+        await query("INSERT INTO stats (username, health, max_health, stamina, max_stamina) VALUES (?, ?, ?, ?, ?)", [username, 100, 100, 100, 100]);
+        return username;
     },
     findByUsername: async (username: string) => {
         if (!username) return;
@@ -182,6 +184,27 @@ const player = {
         if (!username) return;
         const response = await query("SELECT session_id FROM accounts WHERE username = ?", [username]) as any;
         return response[0]?.session_id;
+    },
+    getStats: async (username: string) => {
+        // Grab the stats from the database
+        const response = await query("SELECT max_health, health, max_stamina, stamina FROM stats WHERE username = ?",
+            [username]) as StatsData[];
+            
+        if (!response || response.length === 0) return [];
+        return {
+            health: response[0].health,
+            max_health: response[0].max_health,
+            stamina: response[0].stamina,
+            max_stamina: response[0].max_stamina
+        };
+    },
+    setStats: async (username: string, stats: StatsData) => {
+        // If the stats don't exist, fuck off
+        if (!stats.health || !stats.max_health || !stats.stamina || !stats.max_stamina || !username) return;
+        // Tell the database to update the stats
+        const response = await query("UPDATE stats SET health = ?, max_health = ?, stamina = ?, max_stamina = ? WHERE username = ?", [stats.health, stats.max_health, stats.stamina, stats.max_stamina, username]);
+        // Do the thing
+        return response;
     }
 };
 

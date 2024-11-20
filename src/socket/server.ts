@@ -81,6 +81,7 @@ export const Server = Bun.serve<Packet>({
       ws.subscribe("SPAWN_PLAYER" as Subscription["event"]);
       ws.subscribe("MOVEXY" as Subscription["event"]);
       ws.subscribe("DISCONNECT_PLAYER" as Subscription["event"]);
+      ws.subscribe("CHAT" as Subscription["event"]);
       const packet = {
         type: "CONNECTION_COUNT",
         data: connections.size,
@@ -125,6 +126,7 @@ export const Server = Bun.serve<Packet>({
           ws.unsubscribe("LOAD_PLAYERS" as Subscription["event"]);
           ws.unsubscribe("MOVEXY" as Subscription["event"]);
           ws.unsubscribe("DISCONNECT_PLAYER" as Subscription["event"]);
+          ws.unsubscribe("CHAT" as Subscription["event"]);
           // Remove the client from clientRequests
           for (let i = 0; i < ClientRateLimit.length; i++) {
             if (ClientRateLimit[i].id === ws.data.id) {

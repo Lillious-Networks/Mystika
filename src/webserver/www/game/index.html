@@ -7,9 +7,37 @@
     <link rel="stylesheet" href="../css/game.css" />
   </head>
   <body>
+    <div id="loading-screen">
+      <div class="loader"></div>
+    </div>
     <div id="overlay">
+      <div id="map-container">
+        <div id="map-border"></div>
+        <div id="map"></div>
+      </div>
+      
+      <div id="chat-container">
+        <div id="chat">
+          <div id="chat-messages"></div>
+          <input id="chat-input" type="text" placeholder="Type here..." />
+        </div>
+      </div>
       <div id="inventory">
         <div id="grid"></div>
+      </div>
+      <div id="hotbar">
+        <div id="hotbar-grid"></div>
+      </div>
+      <div id="player-image-container"></div>
+      <div id="stats-container">
+        <div id="health-bar-container">
+          <div id="health-progress-bar">
+          </div>
+        </div>
+        <div id="stamina-bar-container">
+          <div id="stamina-progress-bar">
+          </div>
+        </div>
       </div>
     </div>
     <canvas id="game"></canvas>

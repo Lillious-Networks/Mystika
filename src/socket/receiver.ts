@@ -83,15 +83,25 @@ export default async function packetReceiver(
         )) as any[];
         const username = getUsername[0]?.username as string;
         // Retrieve the player's inventory
-        const items = await inventory.get(username);
-        if (items.length > 0) {
-          ws.send(
-            JSON.stringify({
-              type: "INVENTORY",
-              data: items,
-            })
-          );
+        const items = await inventory.get(username) || [];
+        if (items.length > 30) {
+          items.length = 30;
         }
+        ws.send(
+          JSON.stringify({
+            type: "INVENTORY",
+            data: items,
+            slots: 30,
+          })
+        );
+        // Get the player's stats
+        const stats = await player.getStats(username);
+        ws.send(
+          JSON.stringify({
+            type: "STATS",
+            data: stats,
+          })
+        );
         const location = (await player.getLocation({
           username: username,
         })) as LocationData | null;
@@ -151,7 +161,6 @@ export default async function packetReceiver(
             ],
           })
         );
-
         server.publish(
           "SPAWN_PLAYER" as Subscription["event"],
           JSON.stringify({
@@ -239,6 +248,20 @@ export default async function packetReceiver(
             data: {
               id: ws.data.id,
               _data: player.location.position,
+            },
+          })
+        );
+        break;
+      }
+      case "CHAT": {
+        if (data.toString().length > 255) return;
+        server.publish(
+          "CHAT" as Subscription["event"],
+          JSON.stringify({
+            type: "CHAT",
+            data: {
+              id: ws.data.id,
+              message: data,
             },
           })
         );

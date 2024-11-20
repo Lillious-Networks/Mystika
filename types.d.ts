@@ -95,3 +95,11 @@ declare interface PositionData {
   x: number;
   y: number;
 }
+
+// Define stats data
+declare interface StatsData {
+  health: number;
+  max_health: number;
+  stamina: number;
+  max_stamina: number;
+}
