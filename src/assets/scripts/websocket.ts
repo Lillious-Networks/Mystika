@@ -637,17 +637,63 @@ async function updateMiniMap() {
   // Check if there is already a minimap image
   const image = map.querySelector("img");
 
-  // Reduce the canvas size for minimap purposes
+  // Create a temporary canvas for the minimap
   const tempCanvas = document.createElement("canvas");
   const context = tempCanvas.getContext("2d");
 
   if (!context) return;
 
-  // Draw scaled-down version of the canvas
-  context.drawImage(canvas, 0, 0, tempCanvas.width * 5, tempCanvas.height * 5);
-  // Center the canvas
-  context.translate(tempCanvas.width / 2, tempCanvas.height / 2);
+  // Set the minimap size
+  const minimapWidth = 200; // Set to your desired minimap width
+  const minimapHeight = 200; // Set to your desired minimap height
+  tempCanvas.width = minimapWidth;
+  tempCanvas.height = minimapHeight;
 
+  // Get the current player's position
+  const currentPlayer = players.find(
+    (player) => player.id === sessionStorage.getItem("connectionId")
+  );
+
+  if (!currentPlayer) return;
+
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
+
+  // Calculate the cropping region centered around the current player
+  const scale = 5; // Scale factor for the minimap
+  const cropWidth = minimapWidth * scale;
+  const cropHeight = minimapHeight * scale;
+
+  // Ensure the player stays centered in the minimap
+  const cropX = Math.max(
+    0,
+    Math.min(
+      currentPlayer.position.x - cropWidth / 2,
+      canvasWidth - cropWidth
+    )
+  );
+  const cropY = Math.max(
+    0,
+    Math.min(
+      currentPlayer.position.y - cropHeight / 2,
+      canvasHeight - cropHeight
+    )
+  );
+
+  // Draw the cropped and scaled-down region of the canvas to the minimap
+  context.drawImage(
+    canvas,             // Source canvas
+    cropX,              // Crop start X
+    cropY,              // Crop start Y
+    cropWidth,          // Crop width
+    cropHeight,         // Crop height
+    0,                  // Destination X
+    0,                  // Destination Y
+    minimapWidth,       // Destination width
+    minimapHeight       // Destination height
+  );
+
+  // Generate the data URL for the minimap
   const dataUrl = tempCanvas.toDataURL("image/png");
 
   if (image) {
@@ -659,8 +705,9 @@ async function updateMiniMap() {
   }
 }
 
+
 // Update minimap less frequently to avoid freezing
-const updateInterval = 300; // Update every 300ms
+const updateInterval = 10; // Update every 300ms
 
 setTimeout(() => {
   const updateLoop = () => {
