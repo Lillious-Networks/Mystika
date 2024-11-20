@@ -30,7 +30,6 @@ const mutedCheckbox = document.getElementById("muted-checkbox") as HTMLInputElem
 let loaded: boolean = false;
 var toggleInventory = false;
 var times = [] as number[];
-var fps: number;
 var lastFrameTime = 0; // Track the time of the last frame
 
 function animationLoop() {
