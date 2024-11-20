@@ -114,6 +114,10 @@ const PacketTypes: PacketType = {
   13: "SPAWN_PLAYER",
   14: "LOAD_PLAYERS",
   15: "DISCONNECT_PLAYER",
+  16: "INVENTORY",
+  17: "CHAT",
+  18: "STATS",
+  19: "CLIENTCONFIG",
 };
 ```
 
@@ -286,28 +290,35 @@ declare interface InventoryItem {
 <p style="font-size:0.75em;">Add an item to player inventory</p>
 
 ```ts
-await inventory.add("user_name", { name: "item_name", quantity: number });
+await inventory.add(username, { name: "item_name", quantity: number });
 ```
 
 <h5>inventory.remove();</h5>
 <p style="font-size:0.75em;">Remove an item from player inventory</p>
 
 ```ts
-await inventory.remove("user_name", { name: "item_name", quantity: number });
+await inventory.remove(username, { name: "item_name", quantity: number });
 ```
 
 <h5>inventory.find();</h5>
 <p style="font-size:0.75em;">Find an item from player inventory</p>
 
 ```ts
-await inventory.find("user_name", { name: "item_name" });
+await inventory.find(username, { name: "item_name" });
 ```
 
 <h5>inventory.delete();</h5>
 <p style="font-size:0.75em;">Delete an item from player inventory</p>
 
 ```ts
-await inventory.delete("user_name", { name: "item_name" });
+await inventory.delete(username, { name: "item_name" });
+```
+
+<h5>inventory.get();</h5>
+<p style="font-size:0.75em;">Fetches a player's inventory</p>
+
+```ts
+await inventory.get(username);
 ```
 
 <hr>
@@ -398,7 +409,7 @@ await player.getSessionId(token);
 <p style="font-size:0.75em;">Logs a player in</p>
 
 ```ts
-await player.login(username, password);
+await player.login("user_name, password);
 ```
 
 <h5>player.logout();</h5>
@@ -483,4 +494,32 @@ await player.isOnline(username);
 
 ```ts
 await player.isBanned(username);
+```
+
+<h5>player.getStats();</h5>
+<p style="font-size:0.75em;">Fetches a player's stats</p>
+
+```ts
+await player.getStats(username);
+```
+
+<h5>player.setStats();</h5>
+<p style="font-size:0.75em;">Sets a player's stats</p>
+
+```ts
+await player.setStats(session_id, stats);
+```
+
+<h5>player.getConfig();</h5>
+<p style="font-size:0.75em;">Fetches a player's client configuration</p>
+
+```ts
+await player.getConfig(username);
+```
+
+<h5>player.setConfig();</h5>
+<p style="font-size:0.75em;">Sets a player's client configuration</p>
+
+```ts
+await player.getConfig(session_id, stats);
 ```
