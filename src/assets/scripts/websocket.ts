@@ -28,9 +28,9 @@ const musicSlider = document.getElementById("music-slider") as HTMLInputElement;
 const effectsSlider = document.getElementById("effects-slider") as HTMLInputElement;
 const mutedCheckbox = document.getElementById("muted-checkbox") as HTMLInputElement;
 let loaded: boolean = false;
-var toggleInventory = false;
-var times = [] as number[];
-var lastFrameTime = 0; // Track the time of the last frame
+let toggleInventory = false;
+const times = [] as number[];
+let lastFrameTime = 0; // Track the time of the last frame
 
 function animationLoop() {
   if (!ctx || !playerContext) return;
@@ -61,7 +61,6 @@ function animationLoop() {
       times.shift();
     }
     times.push(now);
-    fps = times.length;
   }
 
   // Request the next frame
@@ -672,13 +671,13 @@ function createPlayer(data: any) {
 }
 
 function getLines(ctx: any, text: string, maxWidth: number) {
-  var words = text.split(" ");
-  var lines = [];
-  var currentLine = words[0];
+  const words = text.split(" ");
+  const lines = [];
+  let currentLine = words[0];
 
-  for (var i = 1; i < words.length; i++) {
-    var word = words[i];
-    var width = ctx.measureText(currentLine + " " + word).width;
+  for (let i = 1; i < words.length; i++) {
+    const word = words[i];
+    const width = ctx.measureText(currentLine + " " + word).width;
     if (width < maxWidth) {
       currentLine += " " + word;
     } else {
