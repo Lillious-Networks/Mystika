@@ -936,3 +936,22 @@ mutedCheckbox.addEventListener("change", () => {
     })
   );
 });
+
+
+// Capture click and get coordinates from canvas
+document.addEventListener("contextmenu", (event) => {
+  if (!loaded) return;
+  // Check where we clicked on the canvas
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+
+  const moveX = x - playerCanvas.width / 2 - 16;
+  const moveY = y - playerCanvas.height / 2 - 24;
+  socket.send(
+    JSON.stringify({
+      type: "TELEPORTXY",
+      data: { x: moveX, y: moveY },
+    })
+  );
+});

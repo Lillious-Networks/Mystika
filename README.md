@@ -118,6 +118,7 @@ const PacketTypes: PacketType = {
   17: "CHAT",
   18: "STATS",
   19: "CLIENTCONFIG",
+  20: "TELEPORTXY",
 };
 ```
 

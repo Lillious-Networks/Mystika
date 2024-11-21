@@ -283,7 +283,23 @@ export default async function packetReceiver(
           }
         }
         break;
-      }      
+      }
+      case "TELEPORTXY": {
+        const _player = cache.get(ws.data.id) as any;
+        if (!_player.isAdmin) return;
+        _player.location.position = data;
+        server.publish(
+          "MOVEXY" as Subscription["event"],
+          JSON.stringify({
+            type: "MOVEXY",
+            data: {
+              id: ws.data.id,
+              _data: _player.location.position,
+            },
+          })
+        );
+        break;
+      }
       case "CHAT": {
         if (data.toString().length > 255) return;
         server.publish(
