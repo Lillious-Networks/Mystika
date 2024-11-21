@@ -24,6 +24,12 @@ class AssetCacheService {
     list() {
         return this.cache;
     }
+    addNested(key: string, nestedKey: string, value: any) {
+        if (!this.cache[key]) {
+            this.cache[key] = {};
+        }
+        this.cache[key][nestedKey] = value;
+    }
 }
 
 const assetCache: AssetCacheService = new AssetCacheService();

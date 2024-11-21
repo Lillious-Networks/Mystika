@@ -275,7 +275,7 @@ socket.addEventListener("message", async (event) => {
             const tileHeight = tileset.tileheight;
             const tilesetWidth = tileset.imagewidth;
 
-            const batchSize = 1; // Adjust batch size for performance
+            const batchSize = 10; // Adjust batch size for performance
 
             function processRowBatch(startY: number) {
               for (
@@ -657,6 +657,37 @@ function createPlayer(data: any) {
           context.fillText(lines[i], this.position.x + 16, startingPosition);
         }
       }
+
+      // Draw a green line from center in the directions up, down, left, and right
+      context.strokeStyle = "blue";
+      context.beginPath();
+      // Direction: Up
+      context.moveTo(this.position.x + 16, this.position.y + 24);
+      context.lineTo(this.position.x + 16, this.position.y);
+      context.stroke();
+      context.strokeStyle = "yellow";
+      context.beginPath();
+      // Direction: Down
+      context.moveTo(this.position.x + 16, this.position.y + 24);
+      context.lineTo(this.position.x + 16, this.position.y + 48);
+      context.stroke();
+      context.strokeStyle = "red";
+      context.beginPath();
+      // Direction: Left
+      context.moveTo(this.position.x + 16, this.position.y + 24);
+      context.lineTo(this.position.x, this.position.y + 24);
+      context.stroke();
+      context.strokeStyle = "green";
+      context.beginPath();
+      // Direction: Right
+      context.moveTo(this.position.x + 16, this.position.y + 24);
+      context.lineTo(this.position.x + 32, this.position.y + 24);
+      context.stroke();
+      // show purple dot at center of player
+      context.fillStyle = "purple";
+      context.beginPath();
+      context.arc(this.position.x + 16, this.position.y + 24, 2, 0, 2 * Math.PI);
+      context.fill();
     },
   };
 

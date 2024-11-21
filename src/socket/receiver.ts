@@ -223,44 +223,67 @@ export default async function packetReceiver(
       }
       case "MOVEXY": {
         const speed = 1;
-        // Get the player's location from the cache
-        const player = cache.get(ws.data.id) as any;
-        // Update the player's location in the cache
-        switch (data.toString().toLowerCase()) {
-          case "up": {
-            player.location.position.y -= speed;
-            break;
+        const _player = cache.get(ws.data.id) as any;
+      
+        const movePlayer = (axis: "x" | "y", direction: number) => {
+          const tempPosition = { ..._player.location.position };
+          tempPosition[axis] += speed * direction;
+          // Player border box
+          tempPosition.x += 16;
+          tempPosition.y += 24;
+          
+          // Down
+          if (axis === "y" && direction === 1) {
+            tempPosition.y += 24;
           }
-          case "down": {
-            player.location.position.y += speed;
-            break;
+
+          // Up
+          if (axis === "y" && direction === -1) {
+            tempPosition.y -= 24;
+          }          
+
+          // Right
+          if (axis === "x" && direction === 1) {
+            tempPosition.x += 16;
           }
-          case "left": {
-            player.location.position.x -= speed;
-            break;
+
+          // Left
+          if (axis === "x" && direction === -1) {
+            tempPosition.x -= 16;
           }
-          case "right": {
-            player.location.position.x += speed;
-            break;
+      
+          if (player.checkIfWouldCollide(_player.location.map, tempPosition)) {
+            return false;
           }
-          default: {
-            break;
+      
+          _player.location.position[axis] += speed * direction;
+          return true;
+        };
+      
+        const moveDirections: Record<string, () => boolean> = {
+          up: () => movePlayer("y", -1),
+          down: () => movePlayer("y", 1),
+          left: () => movePlayer("x", -1),
+          right: () => movePlayer("x", 1),
+        };
+      
+        if (data.toString().toLowerCase() in moveDirections) {
+          const didMove = moveDirections[data.toString().toLowerCase()]();
+          if (didMove) {
+            server.publish(
+              "MOVEXY" as Subscription["event"],
+              JSON.stringify({
+                type: "MOVEXY",
+                data: {
+                  id: ws.data.id,
+                  _data: _player.location.position,
+                },
+              })
+            );
           }
         }
-
-        // Send the updated location to all clients
-        server.publish(
-          "MOVEXY" as Subscription["event"],
-          JSON.stringify({
-            type: "MOVEXY",
-            data: {
-              id: ws.data.id,
-              _data: player.location.position,
-            },
-          })
-        );
         break;
-      }
+      }      
       case "CHAT": {
         if (data.toString().length > 255) return;
         server.publish(

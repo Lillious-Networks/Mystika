@@ -1,6 +1,7 @@
 import query from "../controllers/sqldatabase";
 import { hash, randomBytes } from "../modules/hash";
 import log from "../modules/logger";
+import assetCache from "../services/assetCache";
 
 const player = {
     clear: async () => {
@@ -221,7 +222,54 @@ const player = {
         const response = await query("UPDATE clientconfig SET fps = ?, music_volume = ?, effects_volume = ?, muted = ? WHERE username = ?", [data.fps, data.music_volume, data.effects_volume, data.muted, result[0].username]);
         if (!response) return [];
         return response;
-    }
+    },
+    checkIfWouldCollide: (map: string, position: PositionData) => {
+        // Retrieve collision data for the map
+        const collisionData = assetCache.get(map.replace(".json", ""));
+        if (!collisionData) {
+            log.error(`Collision data for ${map} not found`);
+            return false;
+        }
+
+        const data = collisionData.collision || collisionData; // Use directly if collision is not a property
+        if (!data || !Array.isArray(data)) {
+            log.error(`Invalid collision data for ${map}`);
+            return false;
+        }
+
+        const width = data[0];
+        const height = data[1];
+        const collision = player.decompress(data.slice(2)) as any[];
+
+        // Tile size and grid offset
+        const tileSize = 16;
+        const gridOffset = width / 2; // Center of the grid in tile coordinates
+    
+        // Calculate the tile index based on position and tile size
+        const x = Math.floor(position.x / tileSize) + gridOffset;
+        const y = Math.floor(position.y / tileSize) + gridOffset;
+    
+        // Check if the position is within bounds
+        if (x < 0 || x >= width || y < 0 || y >= height) {
+            log.warn(`Position out of bounds: x=${x}, y=${y}`);
+            return true; // Treat out-of-bounds as a collision
+        }
+    
+        // Check for collision at the specified tile
+        const tileValue = collision[y * width + x];
+        
+        return tileValue !== 0; // Return true if the tile is collidable (non-zero)
+    },
+    decompress(data: number[]): number[] {
+        const result = [];
+        for (let i = 0; i < data.length; i += 2) {
+            const count = data[i + 1];
+            for (let j = 0; j < count; j++) {
+                result.push(data[i]);
+            }
+        }
+        return result;
+    } 
 };
 
 export default player;

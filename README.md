@@ -166,6 +166,10 @@ import assetCache from '../services/assetCache'; // Asset caching
 <h5>assetCache.add(key: string, value: any);</h5>
 <p style="font-size:0.75em;">Adds an item to the cache</p>
 
+<h5>cache.addNested(key: string, nestedKey: string, value: any);</h5>
+<h5>assetCache.addNested(key: string, nestedKey: string, value: any);</h5>
+<p style="font-size:0.75em;">Adds a nested item to the cache</p>
+
 <h5>cache.get(key: string)</h5>
 <h5>assetCache.get(key: string)</h5>
 <p style="font-size:0.75em;">Fetches an item from the cache</p>
