@@ -318,6 +318,33 @@ export default async function packetReceiver(
         await player.setConfig(ws.data.id, data);
         break;
       }
+      case "SELECTPLAYER": {
+        const location = data as unknown as LocationData;
+        const playerCache = cache.list();
+        // Get current player data from cache
+        const player = cache.get(ws.data.id) as any;
+        // only get players that are in the same map
+        const players = Object.values(playerCache).filter(
+          (p) => p.location.map === player.location.map
+        );
+        // Find the first player that is closest to the selected location within a 25px radius
+        const selectedPlayer = players.find(
+          (p) =>
+            Math.abs(p.location.position.x - Math.floor(Number(location.x))) < 25 &&
+            Math.abs(p.location.position.y - Math.floor(Number(location.y))) < 25
+        );
+        if (!selectedPlayer) return;
+        ws.send(
+          JSON.stringify({
+            type: "SELECTPLAYER",
+            data: {
+              username: selectedPlayer.username,
+              isAdmin: selectedPlayer.isAdmin,
+            },
+          })
+        );
+        break;
+      }
       // Unknown packet type
       default: {
         break;

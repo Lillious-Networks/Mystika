@@ -118,7 +118,9 @@ const PacketTypes: PacketType = {
   17: "CHAT",
   18: "STATS",
   19: "CLIENTCONFIG",
-  20: "TELEPORTXY",
+  20: "REGISTER",
+  21: "TELEPORTXY",
+  22: "SELECTPLAYER"
 };
 ```
 

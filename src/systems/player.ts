@@ -273,7 +273,7 @@ const player = {
             }
         }
         return result;
-    } 
+    }
 };
 
 export default player;

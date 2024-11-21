@@ -396,6 +396,11 @@ socket.addEventListener("message", async (event) => {
       document.getElementById("muted-checkbox")!.innerText = `Muted: ${mutedCheckbox.checked}`;
       break;
     }
+    case "SELECTPLAYER": {
+      const data = JSON.parse(event.data)["data"];
+      console.log(data);
+      break;
+    }
     default:
       break;
   }
@@ -951,6 +956,24 @@ document.addEventListener("contextmenu", (event) => {
   socket.send(
     JSON.stringify({
       type: "TELEPORTXY",
+      data: { x: moveX, y: moveY },
+    })
+  );
+});
+
+document.addEventListener("click", (event) => {
+  // Check if we clicked on a player
+  if (!loaded) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+
+  const moveX = x - playerCanvas.width / 2 - 16;
+  const moveY = y - playerCanvas.height / 2 - 24;
+
+  socket.send(
+    JSON.stringify({
+      type: "SELECTPLAYER",
       data: { x: moveX, y: moveY },
     })
   );
