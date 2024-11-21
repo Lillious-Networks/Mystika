@@ -40,7 +40,6 @@ export function loadMaps() {
     map.data.layers.forEach((layer: any) => {
       if (layer.properties[0].name === "collision" && layer.properties[0].value === true) {
         collisions.push(layer.data);
-        //assetCache.addNested(map.name.replace(".json", ""), layer.id, layer);
       }
     });
 
@@ -76,11 +75,9 @@ export function loadMaps() {
       }
     }
     compressedCollisionMap.push(current, count);
-    //fs.writeFileSync(path.join(mapDir, map.name.replace(".json", ".collision")), JSON.stringify(compressedCollisionMap));
     assetCache.addNested(map.name.replace(".json", ""), "collision", compressedCollisionMap);
   });
 
-  console.log(assetCache.get("main"));
   assetCache.add("maps", maps);  
 };
 
