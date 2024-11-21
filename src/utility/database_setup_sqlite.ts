@@ -139,7 +139,8 @@ const createClientConfig = async () => {
         fps INTEGER NOT NULL DEFAULT 240,
         music_volume INTEGER NOT NULL DEFAULT 100,
         effects_volume INTEGER NOT NULL DEFAULT 100,
-        muted INTEGER NOT NULL DEFAULT 0
+        muted INTEGER NOT NULL DEFAULT 0,
+        language TEXT NOT NULL DEFAULT 'en'
     );
   `;
   await query(sql);
