@@ -75,6 +75,9 @@ export function loadMaps() {
       }
     }
     compressedCollisionMap.push(current, count);
+    const collisionBytes = new Uint8Array(collisionMap[0]).length;
+    const compressedBytes = new Uint8Array(compressedCollisionMap).length;
+    log.info(`Generated compressed collision map for ${map.name}\n- ${collisionBytes} (bytes) -> ${compressedBytes} (bytes)\n- Compression Ratio: ${(collisionBytes / compressedBytes).toFixed(2)}% | Compression: ${(((collisionBytes - compressedBytes) / collisionBytes) * 100).toFixed(2)}%`);
     assetCache.addNested(map.name.replace(".json", ""), "collision", compressedCollisionMap);
   });
 

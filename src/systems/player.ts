@@ -45,7 +45,8 @@ const player = {
           });
           if (!response) return;
 
-        await query("INSERT INTO stats (username, health, max_health, stamina, max_stamina) VALUES (?, ?, ?, ?, ?)", [username, 100, 100, 100, 100]);
+        await query("INSERT IGNORE INTO stats (username, health, max_health, stamina, max_stamina) VALUES (?, ?, ?, ?, ?)", [username, 100, 100, 100, 100]);
+        await query("INSERT IGNORE INTO clientconfig (username, fps, music_volume, effects_volume, muted) VALUES (?, ?, ?, ?, ?)", [username, 60, 100, 100, 0]);
         return username;
     },
     findByUsername: async (username: string) => {
@@ -227,38 +228,41 @@ const player = {
         // Retrieve collision data for the map
         const collisionData = assetCache.get(map.replace(".json", ""));
         if (!collisionData) {
-            log.error(`Collision data for ${map} not found`);
             return false;
         }
 
         const data = collisionData.collision || collisionData; // Use directly if collision is not a property
         if (!data || !Array.isArray(data)) {
-            log.error(`Invalid collision data for ${map}`);
             return false;
         }
 
-        const width = data[0];
-        const height = data[1];
-        const collision = player.decompress(data.slice(2)) as any[];
-
-        // Tile size and grid offset
         const tileSize = 16;
-        const gridOffset = width / 2; // Center of the grid in tile coordinates
+        const gridWidth = data[0];
+        const gridOffset = data[0] / 2;
+        const collision = data.slice(2) as any[];
     
         // Calculate the tile index based on position and tile size
         const x = Math.floor(position.x / tileSize) + gridOffset;
         const y = Math.floor(position.y / tileSize) + gridOffset;
-    
-        // Check if the position is within bounds
-        if (x < 0 || x >= width || y < 0 || y >= height) {
-            log.warn(`Position out of bounds: x=${x}, y=${y}`);
-            return true; // Treat out-of-bounds as a collision
+        const targetIndex = y * gridWidth + x;
+        
+        let currentIndex = 0;
+        let index = -1;
+        for (let i = 0; i < collision.length; i += 2) {
+            const value = collision[i];
+            const count = collision[i + 1];
+            if (currentIndex + count > targetIndex) {
+                index = value;
+                break;
+            }
+            currentIndex += count;
         }
     
-        // Check for collision at the specified tile
-        const tileValue = collision[y * width + x];
-        
-        return tileValue !== 0; // Return true if the tile is collidable (non-zero)
+        if (index !== -1) {
+            return index === 1;
+        } else {
+            return false;
+        }
     },
     decompress(data: number[]): number[] {
         const result = [];

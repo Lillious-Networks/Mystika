@@ -275,7 +275,7 @@ socket.addEventListener("message", async (event) => {
             const tileHeight = tileset.tileheight;
             const tilesetWidth = tileset.imagewidth;
 
-            const batchSize = 10; // Adjust batch size for performance
+            const batchSize = 1; // Adjust batch size for performance
 
             function processRowBatch(startY: number) {
               for (

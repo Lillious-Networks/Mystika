@@ -7,6 +7,29 @@ input:-webkit-autofill:active{
     transition: background-color 5000s ease-in-out 0s;
     box-shadow: inset 0 0 20px 20px #23232329;
     caret-color: #b17767;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+p {
+  color: #b17767;
+  font-weight: 600;
+}
+
+#register-link {
+  position: absolute;
+  bottom: 10px;
+}
+
+#register-text {
+  position: absolute;
+  bottom: 15px;
+}
+
+a {
+  color: #b17767;
+  font-weight: 600;
+  text-decoration: underline;
 }
 
 ::-ms-reveal {
@@ -17,6 +40,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Roboto", sans-serif;
+  overflow: hidden;
 }
 
 #container {
@@ -43,8 +67,7 @@ body {
   animation: move_logo 2s infinite ease-in-out;
 }
 
-#login {
-  content: url("/img/login.png");
+#login, #register {
   width: 500px;
   height: auto;
   /* Position at top center */
@@ -57,20 +80,35 @@ body {
   animation: move_login 2s infinite ease-in-out;
 }
 
-#login-container {
+#login {
+  content: url("/img/login.png");
+}
+
+#register {
+  content: url("../img/registration.png");
+}
+
+#login-container, #register-container {
   width: 315px;
   height: 205px;
   align-items: center;
   align-content: center;
   position: absolute;
-  top: 525px;
   left: 0;
   right: 0;
   margin: auto;
   transform: translateY(-50%);
   padding: 20px;
   z-index: 10000;
-  /* Move up and down smoothly */
+}
+
+#login-container {
+    top: 525px;
+    animation: move_login_container 2s infinite ease-in-out;
+}
+
+#register-container {
+  top: 525px;
   animation: move_login_container 2s infinite ease-in-out;
 }
 
@@ -98,9 +136,51 @@ input {
   background-color: transparent;
 }
 
+#confirm-password {
+  margin-top: 55px;
+  margin-left: 10px;
+  background-color: transparent;
+}
+
 #login-button {
   position: absolute;
   margin-top: 70px;
+  background-color: transparent;
+  /* Center the button */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 175px;
+  height: 70px;
+  color: transparent;
+  cursor: pointer;
+}
+
+#register-email, #register-username, #register-password, #register-confirm-password {
+  position: absolute;
+  background-color: transparent;
+  left: 32px;
+  right: 32px;
+  width: unset;
+}
+
+#register-email{
+  top: 12px;
+}
+#register-username {
+  top: 87px;
+}
+
+#register-password {
+  top: 158px;
+}
+
+#register-confirm-password {
+  top: 200px;
+}
+
+#register-button {
+  position: absolute;
+  margin-top: 143px;
   background-color: transparent;
   /* Center the button */
   left: 50%;
