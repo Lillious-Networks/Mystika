@@ -1,9 +1,13 @@
 import log from "../modules/logger";
-
+const API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY;
 
 const language = {
     translate: async (text: string, lang: string) => {
         if (!text || text.trim() === "") return text;
+        if (!API_KEY) {
+            log.warn("Google Translate API Key not found");
+            return text;
+        }
         log.info(`Translating text: ${text} to ${lang}`);
         const response = await language.post({ text, lang }) as any;
         if (!response) return;
@@ -12,7 +16,7 @@ const language = {
     detect: async (text: string) => {
         const url = new URL("https://translation.googleapis.com/language/translate/v2/detect");
         // API Key
-        url.searchParams.append('key', process.env.GOOGLE_TRANSLATE_API_KEY as string);
+        url.searchParams.append('key', API_KEY as string);
         // Text to detect
         url.searchParams.append('q', text);
         const response = await fetch(url, {
@@ -36,7 +40,7 @@ const language = {
         if (detectedLanguage === data.lang) return data.text;
         const url = new URL("https://translation.googleapis.com/language/translate/v2");
         // API Key
-        url.searchParams.append('key', process.env.GOOGLE_TRANSLATE_API_KEY as string);
+        url.searchParams.append('key', API_KEY as string);
         // Text to translate
         url.searchParams.append('q', data.text);
         
