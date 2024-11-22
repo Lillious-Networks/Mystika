@@ -4,6 +4,7 @@ import player from "../systems/player";
 import inventory from "../systems/inventory";
 import cache from "../services/cache";
 import assetCache from "../services/assetCache";
+import language from "../systems/language";
 
 const maps = assetCache.get("maps");
 
@@ -103,7 +104,7 @@ export default async function packetReceiver(
           })
         );
         // Get client configuration
-        const clientConfig = await player.getConfig(username);
+        const clientConfig = await player.getConfig(username) as any[];
         ws.send(
           JSON.stringify({
             type: "CLIENTCONFIG",
@@ -150,6 +151,7 @@ export default async function packetReceiver(
             map: spawnLocation.map.replace(".json", ""),
             position: { x: spawnLocation.x, y: spawnLocation.y },
           },
+          language: clientConfig[0].language,
         });
         log.debug(
           `Spawn location for ${username}: ${spawnLocation.map.replace(
@@ -308,13 +310,32 @@ export default async function packetReceiver(
             type: "CHAT",
             data: {
               id: ws.data.id,
-              message: data,
+              message: data.toString(),
             },
           })
         );
         break;
       }
+      case "TRANSLATE": {
+        const _player = cache.get(ws.data.id) as any;
+        const _data = data as any;
+        const translation = await language.translate(_data.text, _player.language);
+        ws.send(
+          JSON.stringify({
+            type: "TRANSLATE",
+            data: {
+              id: _data.id,
+              translation,
+              message: _data.text,
+            }
+          })
+        );
+        break;
+      }
       case "CLIENTCONFIG": {
+        const _player = cache.get(ws.data.id) as any;
+        const _data = data as any;
+        _player.language = _data.language;
         await player.setConfig(ws.data.id, data);
         break;
       }

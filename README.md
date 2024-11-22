@@ -120,7 +120,8 @@ const PacketTypes: PacketType = {
   19: "CLIENTCONFIG",
   20: "REGISTER",
   21: "TELEPORTXY",
-  22: "SELECTPLAYER"
+  22: "SELECTPLAYER",
+  23: "TRANSLATE",
 };
 ```
 

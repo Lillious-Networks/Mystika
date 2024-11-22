@@ -27,6 +27,7 @@ const fpsSlider = document.getElementById("fps-slider") as HTMLInputElement;
 const musicSlider = document.getElementById("music-slider") as HTMLInputElement;
 const effectsSlider = document.getElementById("effects-slider") as HTMLInputElement;
 const mutedCheckbox = document.getElementById("muted-checkbox") as HTMLInputElement;
+const languageSelect = document.getElementById("language") as HTMLSelectElement;
 let loaded: boolean = false;
 let toggleInventory = false;
 const times = [] as number[];
@@ -372,7 +373,27 @@ socket.addEventListener("message", async (event) => {
     case "CHAT": {
       players.forEach((player) => {
         if (player.id === data.id) {
-          player.chat = data.message;
+          socket.send(
+            JSON.stringify({
+              type: "TRANSLATE",
+              data: {
+                id: data.id,
+                text: data.message,
+              },
+            })
+          );
+        }
+      });
+      break;
+    }
+    case "TRANSLATE": {
+      players.forEach((player) => {
+        if (player.id === data.id) {
+          if (player.id === sessionStorage.getItem("connectionId")) {
+            player.chat = data.message;
+          } else {
+            player.chat = data.translation;
+          }
         }
       });
       break;
@@ -394,6 +415,8 @@ socket.addEventListener("message", async (event) => {
       document.getElementById("effects-volume-label")!.innerText = `Effects: (${effectsSlider.value})`;
       mutedCheckbox.checked = data.muted;
       document.getElementById("muted-checkbox")!.innerText = `Muted: ${mutedCheckbox.checked}`;
+      // Update selected language option
+      languageSelect.value = data.language;
       break;
     }
     case "SELECTPLAYER": {
@@ -484,6 +507,7 @@ window.addEventListener("keydown", (e) => {
     chatInput.focus();
   } else if (e.key === "Enter" && chatInput == document.activeElement) {
     if (pauseMenu.style.display == "block") return;
+    if (!chatInput?.value) return;
     if (chatInput.value.trim() === "") return;
     socket.send(
       JSON.stringify({
@@ -653,13 +677,15 @@ function createPlayer(data: any) {
       context.fillStyle = "white";
       context.font = "12px Arial";
       context.textAlign = "center";
-      if (this.chat.trim() !== "") {
-        const lines = getLines(context, this.chat, 500).reverse();
-        let startingPosition = this.position.y;
-
-        for (let i = 0; i < lines.length; i++) {
-          startingPosition -= 15;
-          context.fillText(lines[i], this.position.x + 16, startingPosition);
+      if (this.chat) {
+        if (this.chat.trim() !== "") {
+          const lines = getLines(context, this.chat, 500).reverse();
+          let startingPosition = this.position.y;
+  
+          for (let i = 0; i < lines.length; i++) {
+            startingPosition -= 15;
+            context.fillText(lines[i], this.position.x + 16, startingPosition);
+          }
         }
       }
 
@@ -895,6 +921,7 @@ fpsSlider.addEventListener("change", () => {
         music_volume: parseInt(musicSlider.value),
         effects_volume: parseInt(effectsSlider.value),
         muted: mutedCheckbox.checked,
+        language: languageSelect.value,
       } as ConfigData,
     })
   );
@@ -909,6 +936,7 @@ musicSlider.addEventListener("change", () => {
         music_volume: parseInt(musicSlider.value),
         effects_volume: parseInt(effectsSlider.value),
         muted: mutedCheckbox.checked,
+        language: languageSelect.value,
       } as ConfigData,
     })
   );
@@ -923,6 +951,7 @@ effectsSlider.addEventListener("change", () => {
         music_volume: parseInt(musicSlider.value),
         effects_volume: parseInt(effectsSlider.value),
         muted: mutedCheckbox.checked,
+        language: languageSelect.value,
       } as ConfigData,
     })
   );
@@ -937,11 +966,26 @@ mutedCheckbox.addEventListener("change", () => {
         music_volume: parseInt(musicSlider.value),
         effects_volume: parseInt(effectsSlider.value),
         muted: mutedCheckbox.checked,
+        language: languageSelect.value,
       } as ConfigData,
     })
   );
 });
 
+languageSelect.addEventListener("change", () => {
+  socket.send(
+    JSON.stringify({
+      type: "CLIENTCONFIG",
+      data: {
+        fps: parseInt(fpsSlider.value),
+        music_volume: parseInt(musicSlider.value),
+        effects_volume: parseInt(effectsSlider.value),
+        muted: mutedCheckbox.checked,
+        language: languageSelect.value,
+      } as ConfigData,
+    })
+  );
+});
 
 // Capture click and get coordinates from canvas
 document.addEventListener("contextmenu", (event) => {
