@@ -1,7 +1,7 @@
 <h1 align="center">Mystika - Game Engine</h1>
 
 <p align="center">
-  <img src="../../blob/main/src/webserver/www/public/img/logo.png?raw=true">
+  <img src="../../blob/main/src/webserver/www/public/img/logo.gif?raw=true">
 </p>
 
 > [!NOTE]
