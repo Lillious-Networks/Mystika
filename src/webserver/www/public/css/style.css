@@ -54,17 +54,16 @@ body {
 }
 
 #logo {
-  content: url("/img/logo.png");
+  content: url("/img/logo.gif");
   width: auto;
   height: auto;
   /* Position at top center */
   position: absolute;
-  top: 165px;
-  left: 0;
   right: 0;
+  left: 0;
+  top: 75px;
   margin: auto;
-  /* Move up and down smoothly */
-  animation: move_logo 2s infinite ease-in-out;
+  /* animation: move_logo 2s infinite ease-in-out; */
 }
 
 #login, #register {
