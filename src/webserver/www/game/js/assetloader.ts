@@ -1,6 +1,6 @@
 (async function () {
   // Load websocket script
-  const websocket = await fetch("/function?name=websocket");
+  const websocket = await fetch("/function?name=websocket") as any;
   if (!websocket.ok) {
     throw new Error(`HTTP error! status: ${websocket.status}`);
   }

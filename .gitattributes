@@ -1,6 +1,6 @@
 services/email.ts linguist-vendored
 webserver/www/** linguist-vendored
 assets/** linguist-vendored
-eslintconfig.mjs linguist-vendored
+eslint.config.mjs linguist-vendored
 babel.config.ts linguist-vendored
 jest.config.ts linguist-vendored
