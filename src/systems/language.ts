@@ -10,7 +10,7 @@ const language = {
         }
         log.info(`Translating text: ${text} to ${lang}`);
         const response = await language.post({ text, lang }) as any;
-        if (!response) return;
+        if (!response) return text;
         return response;
     },
     detect: async (text: string) => {
