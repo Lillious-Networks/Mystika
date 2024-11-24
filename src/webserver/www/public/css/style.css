@@ -262,3 +262,7 @@ input[type="range"] {
   color: #000;
   font-weight: 600;
 }
+
+#benchmark #result p {
+  text-align: center;
+}

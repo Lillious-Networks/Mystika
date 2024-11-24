@@ -37,7 +37,7 @@ export const Server = Bun.serve<Packet>({
   },
   websocket: {
     perMessageDeflate: true, // Enable per-message deflate compression
-    maxPayloadLength: (1024 * 1024) / 2, // 0.5 MB
+    maxPayloadLength: (1024 * 1024), // 1 MiB
     idleTimeout: 1, // 1 second
     async open(ws) {
       // Add the client to the set of connected clients

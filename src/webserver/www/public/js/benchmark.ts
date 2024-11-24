@@ -81,17 +81,18 @@ start.addEventListener('click', async () => {
 
     websocket.onmessage = () => {
         count++;
+        result.innerText = `Sent ${count} messages`;
         if (count === iterationsValue) {
             const endTime = Date.now();
             const totalTime = endTime - startTime;
             const averageTimePerMessage = totalTime / iterationsValue;
 
             result.innerHTML = `
-                <p>Total data sent: ${formatDataSize(totalDataBytes)}</p>
-                <p>Iterations: ${iterationsValue}</p>
-                <p>Data per message: ${formatDataSize(dataArrayBytes)}</p>
-                <p>Total time: ${totalTime} ms</p>
-                <p>Average time per message: ${averageTimePerMessage.toFixed(2)} ms</p>
+                    <p>Total data sent: ${formatDataSize(totalDataBytes)}</p>
+                    <p>Iterations: ${iterationsValue}</p>
+                    <p>Data per message: ${formatDataSize(dataArrayBytes)}</p>
+                    <p>Total time: ${totalTime} ms</p>
+                    <p>Average time per message: ${averageTimePerMessage.toFixed(2)} ms</p>
             `;
             console.log(`Sent ${iterationsValue} messages in ${totalTime}ms`);
             websocket.close();

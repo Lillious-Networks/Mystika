@@ -17,7 +17,7 @@ export default async function packetReceiver(
     // Check if the message is empty
     if (!message) return ws.close(1008, "Empty message");
     // Check if the message is too large
-    if (message.length > 512) return ws.close(1009, "Message too large");
+    if (message.length > 1024 * 1024) return ws.close(1009, "Message too large");
     const parsedMessage: Packet = tryParsePacket(message) as Packet;
     // Check if the packet is malformed
     if (!parsedMessage) return ws.close(1007, "Malformed message");
