@@ -27,6 +27,7 @@ function transpileDirectory(sourceDir: string) {
 const directories = [
     path.join(import.meta.dir, "..", "assets", "scripts"),
     path.join(import.meta.dir, "..", "webserver", "www", "game", "js"),
+    path.join(import.meta.dir, "..", "webserver", "www", "public", "js"),
 ];
 
 // Transpile each directory

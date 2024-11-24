@@ -41,7 +41,7 @@ export const Server = Bun.serve<Packet>({
     idleTimeout: 1, // 1 second
     async open(ws) {
       // Add the client to the set of connected clients
-      if (!ws.data.id || !ws.data.useragent) return;
+      if (!ws.data?.id || !ws.data?.useragent) return;
       connections.add({ id: ws.data.id, useragent: ws.data.useragent });
       // Emit the onConnection event
       listener.emit("onConnection", ws.data.id);
@@ -147,7 +147,7 @@ export const Server = Bun.serve<Packet>({
     async message(ws, message: string | Buffer) {
       try {
         // Check if the request has an identity
-        if (!ws.data.id) return;
+        if (!ws.data?.id || !message) return;
         for (const client of ClientRateLimit) {
           // Return if the client is rate limited
           if (client.rateLimited) return;

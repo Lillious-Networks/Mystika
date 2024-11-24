@@ -111,7 +111,7 @@ body {
   animation: move_login_container 2s infinite ease-in-out;
 }
 
-input {
+input[type="text"], input[type="password"] {
   display: block;
   outline: none;
   border: none;
@@ -120,6 +120,18 @@ input {
   height: 30px;
   width: 92%;
   color: #b17767;
+  font-weight: 600;
+}
+
+input[type="range"] {
+  display: block;
+  outline: none;
+  border: none;
+  z-index: 10000;
+  font-size: 16px;
+  height: 30px;
+  width: 200px;
+  color: #000;
   font-weight: 600;
 }
 
@@ -227,4 +239,26 @@ input {
   100% {
     top: 525px;
   }
+}
+
+input[type="range"] {
+  display: block;
+}
+
+#benchmark {
+  /* Position at top center */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  right: 0;
+  left: 0;
+  top: 50px;
+  margin: auto;
+  flex-direction: column;
+}
+
+#benchmark input[type="range"], #benchmark label, #benchmark h1, #benchmark p {
+  color: #000;
+  font-weight: 600;
 }

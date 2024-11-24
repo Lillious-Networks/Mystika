@@ -35,6 +35,10 @@ export default async function packetReceiver(
 
     // Handle the packet
     switch (type) {
+      case "BENCHMARK": {
+        ws.send(JSON.stringify({ type: "BENCHMARK", data: data }));
+        break;
+      }
       case "PING": {
         ws.send(JSON.stringify({ type: "PONG", data: data }));
         ws.send(
@@ -381,7 +385,6 @@ function tryParsePacket(data: any) {
   try {
     return JSON.parse(data.toString());
   } catch (e: any) {
-    log.error(e);
-    return null;
+    return undefined;
   }
 }

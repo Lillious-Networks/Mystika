@@ -17,4 +17,5 @@ src/logs/
 .env.production
 src/assets/scripts/*.js
 src/webserver/www/game/js/*.js
+src/webserver/www/public/js/*.js
 *.sqlite
