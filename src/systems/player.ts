@@ -182,6 +182,16 @@ const player = {
         const response = await query("SELECT role FROM accounts WHERE username = ?", [username]) as any;
         return response[0]?.role === 1;
     },
+    isStealth: async (username: string) => {
+        if (!username) return;
+        const response = await query("SELECT stealth FROM accounts WHERE username = ?", [username]) as any;
+        return response[0]?.stealth === 1;
+    },
+    toggleStealth: async (username: string) => {
+        if (!username) return;
+        await query("UPDATE accounts SET stealth = !stealth WHERE username = ?", [username]) as any;
+        return await player.isStealth(username);
+    },
     getSession: async (username: string) => {
         if (!username) return;
         const response = await query("SELECT session_id FROM accounts WHERE username = ?", [username]) as any;
@@ -229,11 +239,13 @@ const player = {
         // Retrieve collision data for the map
         const collisionData = assetCache.get(map.replace(".json", ""));
         if (!collisionData) {
+            log.error(`Collision data for map ${map} not found`);
             return false;
         }
 
         const data = collisionData.collision || collisionData; // Use directly if collision is not a property
         if (!data || !Array.isArray(data)) {
+            log.error(`Collision data for map ${map} is invalid`);
             return false;
         }
 
@@ -260,7 +272,7 @@ const player = {
         }
     
         if (index !== -1) {
-            return index === 1;
+            return index != 0;
         } else {
             return false;
         }

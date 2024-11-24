@@ -38,8 +38,10 @@ export function loadMaps() {
   maps.forEach((map) => {
     const collisions = [] as any[];
     map.data.layers.forEach((layer: any) => {
-      if (layer.properties[0].name === "collision" && layer.properties[0].value === true) {
-        collisions.push(layer.data);
+      if (layer.properties) {
+        if (layer.properties[0]?.name.toLowerCase() === "collision" && layer.properties[0]?.value === true) {
+          collisions.push(layer.data);
+        }
       }
     });
 

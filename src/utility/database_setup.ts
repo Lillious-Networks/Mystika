@@ -24,7 +24,6 @@ const createAccountsTable = async () => {
         last_login DATETIME DEFAULT NULL,
         online INT DEFAULT 0 NOT NULL,
         role INT DEFAULT 0 NOT NULL,
-        access_level INT DEFAULT 0 NOT NULL,
         banned INT DEFAULT 0 NOT NULL,
         ip_address VARCHAR(255) DEFAULT NULL,
         geo_location VARCHAR(255) DEFAULT NULL,
@@ -32,7 +31,8 @@ const createAccountsTable = async () => {
         needs_password_reset INT DEFAULT 0 NOT NULL,
         map VARCHAR(255) DEFAULT NULL,
         position VARCHAR(255) DEFAULT NULL,
-        session_id VARCHAR(255) UNIQUE DEFAULT NULL
+        session_id VARCHAR(255) UNIQUE DEFAULT NULL,
+        stealth INT DEFAULT 0 NOT NULL
       );
   `;
   await query(sql);

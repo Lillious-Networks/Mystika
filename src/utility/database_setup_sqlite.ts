@@ -14,7 +14,6 @@ const createAccountsTable = async () => {
         last_login DATETIME DEFAULT NULL,
         online INTEGER DEFAULT 0 NOT NULL,
         role INTEGER DEFAULT 0 NOT NULL,
-        access_level INTEGER DEFAULT 0 NOT NULL,
         banned INTEGER DEFAULT 0 NOT NULL,
         ip_address TEXT DEFAULT NULL,
         geo_location TEXT DEFAULT NULL,
@@ -22,7 +21,8 @@ const createAccountsTable = async () => {
         needs_password_reset INTEGER DEFAULT 0 NOT NULL,
         map TEXT DEFAULT NULL,
         position TEXT DEFAULT NULL,
-        session_id TEXT UNIQUE DEFAULT NULL
+        session_id TEXT UNIQUE DEFAULT NULL,
+        stealth INTEGER DEFAULT 0 NOT NULL
       );
   `;
   await query(sql);
@@ -68,18 +68,18 @@ const insertDemoAccount = async () => {
       password_hash,
       online,
       role,
-      access_level,
       banned,
-      needs_password_reset
+      needs_password_reset,
+      stealth
     ) VALUES (
       'demo@example.com',
       'demo_user',
       'L3add0fc9fb8bda0c566ca0b2088063861499a4471363a57120de1015cbb77f0fc1b31df7e34b8d9cdac1c06d1d2a5754f84a03ddcb68ce1ec95d4207dfb22054A9c46e8c72e11d543a5a683b6d7ce59e00678ab28fa4551ab41de73b6b2869461Pd0f61e6392f33d449cb26b6be93acface2156409cbd05af94b88e8179992b99fc775e5e71b02b5147981437f64c90cd68ecbd5a49efbac973487af8186d95d2eY48013846846c765d82ffdd7e0afc1c0240285a031c7ddfc451bdd1d807e1b0c4X',
       0,
       0,
-      9001,
       0,
-      1
+      1,
+      0
     );
     `;
   await query(sql);

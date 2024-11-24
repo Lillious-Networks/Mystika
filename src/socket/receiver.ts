@@ -119,6 +119,7 @@ export default async function packetReceiver(
           username: username,
         })) as LocationData | null;
         const isAdmin = await player.isAdmin(username);
+        const isStealth = await player.isStealth(username); 
         const position = location?.position as unknown as PositionData;
         let spawnLocation;
         if (
@@ -150,12 +151,14 @@ export default async function packetReceiver(
         cache.add(ws.data.id, {
           username: username,
           isAdmin: isAdmin,
+          isStealth: isStealth,
           id: ws.data.id,
           location: {
             map: spawnLocation.map.replace(".json", ""),
             position: { x: spawnLocation.x, y: spawnLocation.y },
           },
           language: clientConfig[0].language,
+          ws: ws,
         });
         log.debug(
           `Spawn location for ${username}: ${spawnLocation.map.replace(
@@ -188,6 +191,7 @@ export default async function packetReceiver(
               },
               username,
               isAdmin,
+              isStealth,
             },
           })
         );
@@ -208,6 +212,7 @@ export default async function packetReceiver(
             },
             username: player.username,
             isAdmin: player.isAdmin,
+            isStealth: player.isStealth,
           };
           playerData.push(data);
         });
@@ -276,16 +281,37 @@ export default async function packetReceiver(
         if (data.toString().toLowerCase() in moveDirections) {
           const didMove = moveDirections[data.toString().toLowerCase()]();
           if (didMove) {
-            server.publish(
-              "MOVEXY" as Subscription["event"],
-              JSON.stringify({
-                type: "MOVEXY",
-                data: {
-                  id: ws.data.id,
-                  _data: _player.location.position,
-                },
-              })
-            );
+            // Send the player's new position to only admins if the player is in stealth mode
+            if (_player.isStealth) {
+              // Get all admin players
+              const playerCache = cache.list();
+              const players = Object.values(playerCache).filter(
+                (p) => p.isAdmin
+              );
+              players.forEach((player) => {
+                player.ws.send(
+                  JSON.stringify({
+                    type: "MOVEXY",
+                    data: {
+                      id: ws.data.id,
+                      _data: _player.location.position
+                    },
+                  })
+                );
+              });
+            } else {
+              // Send the player's new position to all players
+              server.publish(
+                "MOVEXY" as Subscription["event"],
+                JSON.stringify({
+                  type: "MOVEXY",
+                  data: {
+                    id: ws.data.id,
+                    _data: _player.location.position,
+                  },
+                })
+              );
+            }
           }
         }
         break;
@@ -294,30 +320,68 @@ export default async function packetReceiver(
         const _player = cache.get(ws.data.id) as any;
         if (!_player.isAdmin) return;
         _player.location.position = data;
-        server.publish(
-          "MOVEXY" as Subscription["event"],
-          JSON.stringify({
-            type: "MOVEXY",
-            data: {
-              id: ws.data.id,
-              _data: _player.location.position,
-            },
-          })
-        );
+        if (_player.isStealth) {
+          const playerCache = cache.list();
+          const players = Object.values(playerCache).filter(
+            (p) => p.isAdmin
+          );
+          players.forEach((player) => {
+            player.ws.send(
+              JSON.stringify({
+                type: "MOVEXY",
+                data: {
+                  id: ws.data.id,
+                  _data: _player.location.position
+                },
+              })
+            );
+          });
+        } else {
+          server.publish(
+            "MOVEXY" as Subscription["event"],
+            JSON.stringify({
+              type: "MOVEXY",
+              data: {
+                id: ws.data.id,
+                _data: _player.location.position,
+              },
+            })
+          );
+        }
         break;
       }
       case "CHAT": {
         if (data.toString().length > 255) return;
-        server.publish(
-          "CHAT" as Subscription["event"],
-          JSON.stringify({
-            type: "CHAT",
-            data: {
-              id: ws.data.id,
-              message: data.toString(),
-            },
-          })
-        );
+        const _player = cache.get(ws.data.id) as any;
+        if (!_player) return;
+        if (_player.isStealth) {
+          const playerCache = cache.list();
+          const players = Object.values(playerCache).filter(
+            (p) => p.isAdmin
+          );
+          players.forEach((player) => {
+            player.ws.send(
+              JSON.stringify({
+                type: "CHAT",
+                data: {
+                  id: ws.data.id,
+                  message: data.toString(),
+                },
+              })
+            );
+          });
+        } else {
+          server.publish(
+            "CHAT" as Subscription["event"],
+            JSON.stringify({
+              type: "CHAT",
+              data: {
+                id: ws.data.id,
+                message: data.toString(),
+              },
+            })
+          );
+        }
         break;
       }
       case "TRANSLATE": {
@@ -368,6 +432,36 @@ export default async function packetReceiver(
             },
           })
         );
+        break;
+      }
+      case "STEALTH": {
+        const _player = cache.get(ws.data.id);
+        if (!_player || !_player.isAdmin) return;
+        const isStealth = await player.toggleStealth(_player.username);
+        _player.isStealth = isStealth;
+        server.publish(
+          "STEALTH" as Subscription["event"],
+          JSON.stringify({
+            type: "STEALTH",
+            data: {
+              id: ws.data.id,
+              isStealth: isStealth,
+            },
+          })
+        );
+        // Send the player's new position to all players when they toggle stealth mode off
+        if (!isStealth) {
+          server.publish(
+            "MOVEXY" as Subscription["event"],
+            JSON.stringify({
+              type: "MOVEXY",
+              data: {
+                id: ws.data.id,
+                _data: _player.location.position
+              },
+            })
+          );
+        }
         break;
       }
       // Unknown packet type

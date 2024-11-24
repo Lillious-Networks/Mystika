@@ -24,4 +24,5 @@ export const packetTypes: PacketType = {
   22: "SELECTPLAYER",
   23: "TRANSLATE",
   24: "BENCHMARK",
+  25: "STEALTH",
 };

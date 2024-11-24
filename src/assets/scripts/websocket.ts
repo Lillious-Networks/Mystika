@@ -1,4 +1,4 @@
-const socket = new WebSocket(`ws://localhost:3000/`);
+const socket = new WebSocket(`ws://mystika.lillious.com:3000/`);
 const players = [] as any[];
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d");
@@ -50,10 +50,21 @@ function animationLoop() {
     // Clear the canvas
     playerContext.clearRect(0, 0, playerCanvas.width, playerCanvas.height);
 
-    // Render all players but ensure the current player is rendered last    
+    const currentPlayer = players.find(
+      (player) => player.id === sessionStorage.getItem("connectionId")
+    );
+    // All players except the current player
     players.forEach((player) => {
       if (player.id !== sessionStorage.getItem("connectionId")) {
-        player.show(playerContext);
+        if(player.isStealth) {
+          if (currentPlayer) {
+            if (currentPlayer.isAdmin) {
+              player.show(playerContext);
+            }
+          }
+        } else {
+          player.show(playerContext);
+        }
       }
     });
 
@@ -424,6 +435,15 @@ socket.addEventListener("message", async (event) => {
       console.log(data);
       break;
     }
+    case "STEALTH": {
+      const data = JSON.parse(event.data)["data"];
+      players.forEach((player) => {
+        if (player.id === data.id) {
+          player.isStealth = data.isStealth;
+        }
+      });
+      break;
+    }
     default:
       break;
   }
@@ -502,6 +522,13 @@ window.addEventListener("keydown", (e) => {
     }
   }
 
+  if (e.key === "x") {
+    if (!loaded) return;
+    if (chatInput === document.activeElement) return;
+    if (pauseMenu.style.display == "block") return;
+    socket.send(JSON.stringify({ type: "STEALTH", data: null }));
+  }
+
   if (e.key === "Enter" && chatInput !== document.activeElement) {
     if (pauseMenu.style.display == "block") return;
     chatInput.focus();
@@ -532,7 +559,7 @@ window.addEventListener("keydown", (e) => {
           }
         }
       });
-    }, 5000 + chatInput.value.length * 35);
+    }, 7000 + chatInput.value.length * 35);
     chatInput.value = "";
     chatInput.blur();
   }
@@ -625,8 +652,17 @@ function createPlayer(data: any) {
       y: playerCanvas.height / 2 + data.location.y,
     },
     chat: "",
+    isStealth: data.isStealth,
+    isAdmin: data.isAdmin,
     show: function (context: CanvasRenderingContext2D) {
       context.fillStyle = "white";
+      // Opacity for stealth mode
+      if (this.isStealth) {
+        context.globalAlpha = 0.5;
+      } else {
+        context.globalAlpha = 1;
+      }
+
       context.fillRect(this.position.x, this.position.y, 32, 48);
 
       // Draw the player's username
@@ -675,7 +711,7 @@ function createPlayer(data: any) {
       // Draw the player's chat message
       context.fillStyle = "black";
       context.fillStyle = "white";
-      context.font = "12px Arial";
+      context.font = "14px Arial";
       context.textAlign = "center";
       if (this.chat) {
         if (this.chat.trim() !== "") {
