@@ -1,4 +1,4 @@
-const socket = new WebSocket(`ws://mystika.lillious.com:3000/`);
+const socket = new WebSocket(`ws://__VAR.WEBSOCKETURL__:3000`);
 const players = [] as any[];
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d");

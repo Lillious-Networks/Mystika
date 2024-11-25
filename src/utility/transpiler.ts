@@ -16,7 +16,7 @@ function transpileDirectory(sourceDir: string) {
         if (result) {
             const outputFile = path.join(sourceDir, script.replace(".ts", ".js"));
             console.log(`Transpiled ${script} > ${path.basename(outputFile)}`);
-            fs.writeFileSync(outputFile, result);
+            fs.writeFileSync(outputFile, result.replaceAll("__VAR.WEBSOCKETURL__", process.env.WEB_SOCKET_URL as string || "localhost"));
         } else {
             console.error(`Failed to transpile ${script}`);
         }
