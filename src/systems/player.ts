@@ -278,9 +278,9 @@ const player = {
         player.logout(username);
         ws.close();
     },
-    ban: async (username: string) => {
+    ban: async (username: string, ws: WebSocket) => {
         if (!username) return;
-        player.kick(username);
+        player.kick(username, ws);
         const response = await query("UPDATE accounts SET banned = 1 WHERE username = ?", [username]);
         return response;
     },

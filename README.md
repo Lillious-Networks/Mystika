@@ -549,12 +549,12 @@ await player.checkIfWouldCollide(map, position);
 <p style="font-size:0.75em;">Kicks a player from the server</p>
 
 ```ts
-await player.kick(username);
+await player.kick(username, websocket);
 ```
 
 <h5>player.ban();</h5>
 <p style="font-size:0.75em;">Bans a player from the server</p>
 
 ```ts
-await player.ban(username);
+await player.ban(username, websocket);
 ```
