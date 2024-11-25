@@ -5,13 +5,17 @@ const scripts = assetCache.get("scripts");
 
 router.get("/function", (req, res) => {
     Object.keys(scripts).forEach((key) => {
-        res.json({ script: scripts[key].data, hash: scripts[key].hash });
+        if (scripts[key].name.replaceAll(".js", "") === req.query.name) {
+            res.json({ script: scripts[key].data, hash: scripts[key].hash });
+        }
     });
 })
 
 router.get("/function/hash", (req, res) => {
     Object.keys(scripts).forEach((key) => {
-        res.json({ hash: scripts[key].hash });
+        if (scripts[key].name.replaceAll(".js", "") === req.query.name) {
+            res.json({ hash: scripts[key].hash });
+        }
     });
 })
 
