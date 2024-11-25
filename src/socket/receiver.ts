@@ -204,6 +204,27 @@ export default async function packetReceiver(
 
         const playerData = [] as any[];
 
+        players.forEach((player) => {
+          player.ws.send(
+            JSON.stringify({
+              type: "SPAWN_PLAYER",
+              data: {
+                id: ws.data.id,
+                location: {
+                  map: spawnLocation.map,
+                  x: position.x,
+                  y: position.y,
+                  direction: position.direction,
+                },
+                username,
+                isAdmin,
+                isStealth,
+                stats,
+              },
+            })
+          );
+        });
+
         // Spawn all players in the current map
         // players.forEach((player) => {
         //   player.ws.send(
@@ -226,25 +247,25 @@ export default async function packetReceiver(
         //   );
         // });
 
-        server.publish(
-          "SPAWN_PLAYER" as Subscription["event"],
-          JSON.stringify({
-            type: "SPAWN_PLAYER",
-            data: {
-              id: ws.data.id,
-              location: {
-                map: spawnLocation.map,
-                x: position.x,
-                y: position.y,
-                direction: position.direction,
-              },
-              username,
-              isAdmin,
-              isStealth,
-              stats,
-            },
-          })
-        );
+        // server.publish(
+        //   "SPAWN_PLAYER" as Subscription["event"],
+        //   JSON.stringify({
+        //     type: "SPAWN_PLAYER",
+        //     data: {
+        //       id: ws.data.id,
+        //       location: {
+        //         map: spawnLocation.map,
+        //         x: position.x,
+        //         y: position.y,
+        //         direction: position.direction,
+        //       },
+        //       username,
+        //       isAdmin,
+        //       isStealth,
+        //       stats,
+        //     },
+        //   })
+        // );
 
         players.forEach((player) => {
           const location = player.location;

@@ -6,7 +6,9 @@ const maps = assetCache.get("maps");
 // Get map hash
 router.get("/map/hash", (req, res) => {
   Object.keys(maps).forEach((key) => {
-    res.json({ hash: maps[key].hash });
+    if (maps[key].name === req.query.name) {
+      res.json({ hash: maps[key].hash });
+    }
   });
 });
 

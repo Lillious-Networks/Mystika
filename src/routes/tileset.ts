@@ -6,14 +6,18 @@ const tilesets = assetCache.get("tilesets");
 // Get tileset hash
 router.get("/tileset/hash", (req, res) => {
   Object.keys(tilesets).forEach((key) => {
-    res.json({ hash: tilesets[key].hash });
+    if (tilesets[key].name === req.query.name) {
+      res.json({ hash: tilesets[key].hash });
+    }
   });
 });
 
 // Get tileset as base64 encoded image
 router.get("/tileset", (req, res) => {
   Object.keys(tilesets).forEach((key) => {
-    res.json({ tileset: tilesets[key] });
+    if (tilesets[key].name === req.query.name) {
+      res.json({ tileset: tilesets[key] });
+    }
   });
 });
 
