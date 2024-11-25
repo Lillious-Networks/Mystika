@@ -224,7 +224,6 @@ const player = {
         return response || [];
     },
     setConfig: async (session_id: string, data: any) => {
-        console.log(data);
         if (!data.fps || !data.music_volume || !data.effects_volume || typeof data.muted != 'boolean' || !data.language) return [];
         const result = await query("SELECT username FROM accounts WHERE session_id = ?", [session_id]) as any;
         if (!result[0].username) return [];
@@ -274,16 +273,17 @@ const player = {
             return false;
         }
     },
-    decompress(data: number[]): number[] {
-        const result = [];
-        for (let i = 0; i < data.length; i += 2) {
-            const count = data[i + 1];
-            for (let j = 0; j < count; j++) {
-                result.push(data[i]);
-            }
-        }
-        return result;
-    }
+    kick: async (username: string, ws: WebSocket) => {
+        if (!username) return;
+        player.logout(username);
+        ws.close();
+    },
+    ban: async (username: string) => {
+        if (!username) return;
+        player.kick(username);
+        const response = await query("UPDATE accounts SET banned = 1 WHERE username = ?", [username]);
+        return response;
+    },
 };
 
 export default player;

@@ -521,7 +521,7 @@ await player.getStats(username);
 <p style="font-size:0.75em;">Sets a player's stats</p>
 
 ```ts
-await player.setStats(session_id, stats);
+await player.setStats(username, stats);
 ```
 
 <h5>player.getConfig();</h5>
@@ -536,4 +536,25 @@ await player.getConfig(username);
 
 ```ts
 await player.getConfig(session_id, stats);
+```
+
+<h5>player.checkIfWouldCollide();</h5>
+<p style="font-size:0.75em;">Checks if a player would collide with a future position</p>
+
+```ts
+await player.checkIfWouldCollide(map, position);
+```
+
+<h5>player.kick();</h5>
+<p style="font-size:0.75em;">Kicks a player from the server</p>
+
+```ts
+await player.kick(username);
+```
+
+<h5>player.ban();</h5>
+<p style="font-size:0.75em;">Bans a player from the server</p>
+
+```ts
+await player.ban(username);
 ```
