@@ -107,12 +107,12 @@ export const Server = Bun.serve<Packet>({
       }
       // Check if we found the client object
       if (clientToDelete) {
-        cache.remove(ws.data.id);
+
         const deleted = connections.delete(clientToDelete);
         if (deleted) {
           // Emit the onDisconnect event
-          listener.emit("onDisconnect", ws.data.id);
-          player.clearSessionId(ws.data.id);
+          listener.emit("onDisconnect", { id: ws.data.id });
+          
           // Publish the new connection count and unsubscribe from the event
           const packet = {
             type: "CONNECTION_COUNT",
@@ -227,9 +227,13 @@ listener.on("onConnection", (data) => {
 });
 
 // On disconnect
-listener.on("onDisconnect", (data) => {
+listener.on("onDisconnect", async (data) => {
   if (!data) return;
-  log.debug(`Disconnected: ${data}`);
+  const playerData = cache.get(data.id);
+  await player.setLocation(data.id, playerData.location.map, playerData.location.position);
+  cache.remove(data.id);
+  player.clearSessionId(data.id);
+  log.debug(`Disconnected: ${playerData.id}`);
 });
 
 // Save loop
