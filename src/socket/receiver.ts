@@ -17,7 +17,8 @@ export default async function packetReceiver(
     // Check if the message is empty
     if (!message) return ws.close(1008, "Empty message");
     // Check if the message is too large
-    if (message.length > 1024 * 1024) return ws.close(1009, "Message too large");
+    if (message.length > 1024 * 1024)
+      return ws.close(1009, "Message too large");
     const parsedMessage: Packet = tryParsePacket(message) as Packet;
     // Check if the packet is malformed
     if (!parsedMessage) return ws.close(1007, "Malformed message");
@@ -88,7 +89,7 @@ export default async function packetReceiver(
         )) as any[];
         const username = getUsername[0]?.username as string;
         // Retrieve the player's inventory
-        const items = await inventory.get(username) || [];
+        const items = (await inventory.get(username)) || [];
         if (items.length > 30) {
           items.length = 30;
         }
@@ -108,7 +109,7 @@ export default async function packetReceiver(
           })
         );
         // Get client configuration
-        const clientConfig = await player.getConfig(username) as any[];
+        const clientConfig = (await player.getConfig(username)) as any[];
         ws.send(
           JSON.stringify({
             type: "CLIENTCONFIG",
@@ -125,7 +126,7 @@ export default async function packetReceiver(
           await player.toggleStealth(username);
           isStealth = false;
         }
-        
+
         const position = location?.position as unknown as PositionData;
         let spawnLocation;
         if (
@@ -155,6 +156,7 @@ export default async function packetReceiver(
           spawnLocation.map.replace(".json", ""),
           { x: spawnLocation.x, y: spawnLocation.y, direction: "down" }
         );
+
         cache.add(ws.data.id, {
           username,
           isAdmin,
@@ -162,12 +164,17 @@ export default async function packetReceiver(
           id: ws.data.id,
           location: {
             map: spawnLocation.map.replace(".json", ""),
-            position: { x: spawnLocation.x, y: spawnLocation.y, direction: "down" },
+            position: {
+              x: spawnLocation.x,
+              y: spawnLocation.y,
+              direction: "down",
+            },
           },
           language: clientConfig[0].language,
           ws,
           stats,
           attackDelay: 0,
+          lastMovementPacket: null,
         });
         log.debug(
           `Spawn location for ${username}: ${spawnLocation.map.replace(
@@ -188,6 +195,37 @@ export default async function packetReceiver(
             ],
           })
         );
+
+        const playerCache = cache.list();
+        // Load players for the current map only
+        const players = Object.values(playerCache).filter(
+          (p) => p.location.map.replaceAll(".json", "") === spawnLocation.map.replaceAll(".json", "")
+        );
+
+        const playerData = [] as any[];
+
+        // Spawn all players in the current map
+        // players.forEach((player) => {
+        //   player.ws.send(
+        //     JSON.stringify({
+        //       type: "SPAWN_PLAYER",
+        //       data: {
+        //         id: ws.data.id,
+        //         location: {
+        //           map: spawnLocation.map,
+        //           x: position.x,
+        //           y: position.y,
+        //           direction: position.direction,
+        //         },
+        //         username,
+        //         isAdmin,
+        //         isStealth,
+        //         stats,
+        //       },
+        //     })
+        //   );
+        // });
+
         server.publish(
           "SPAWN_PLAYER" as Subscription["event"],
           JSON.stringify({
@@ -195,7 +233,7 @@ export default async function packetReceiver(
             data: {
               id: ws.data.id,
               location: {
-                map: spawnLocation?.map,
+                map: spawnLocation.map,
                 x: position.x,
                 y: position.y,
                 direction: position.direction,
@@ -207,11 +245,6 @@ export default async function packetReceiver(
             },
           })
         );
-
-        const playerCache = cache.list();
-        const players = Object.values(playerCache);
-
-        const playerData = [] as any[];
 
         players.forEach((player) => {
           const location = player.location;
@@ -247,16 +280,28 @@ export default async function packetReceiver(
         break;
       }
       case "MOVEXY": {
-        const speed = 1;
+        const speed = 2;
         const _player = cache.get(ws.data.id) as any;
-      
+        if (!_player.lastMovementPacket) {
+          _player.lastMovementPacket = Date.now();
+        }
+
+        /*
+          Check if the player is moving too fast and ignore the packet.
+          
+          Due to the packet being dropped, the player will move at the normally
+          enforced speed without the need to kick them.
+        */
+        if (Date.now() - _player.lastMovementPacket < 10) return;
+        _player.lastMovementPacket = Date.now();
+
         const movePlayer = (axis: "x" | "y", direction: number) => {
           const tempPosition = { ..._player.location.position };
           tempPosition[axis] += speed * direction;
           // Player border box
           tempPosition.x += 16;
           tempPosition.y += 24;
-          
+
           // Down
           if (axis === "y" && direction === 1) {
             tempPosition.y += 24;
@@ -267,7 +312,7 @@ export default async function packetReceiver(
           if (axis === "y" && direction === -1) {
             tempPosition.y -= 24;
             _player.location.position.direction = "up";
-          }          
+          }
 
           // Right
           if (axis === "x" && direction === 1) {
@@ -280,31 +325,34 @@ export default async function packetReceiver(
             tempPosition.x -= 16;
             _player.location.position.direction = "left";
           }
-      
+
           if (player.checkIfWouldCollide(_player.location.map, tempPosition)) {
             return false;
           }
-      
-          _player.location.position[axis] += speed * direction;
+
+          _player.location.position[axis] += Math.floor(speed * direction);
           return true;
         };
-      
+
         const moveDirections: Record<string, () => boolean> = {
           up: () => movePlayer("y", -1),
           down: () => movePlayer("y", 1),
           left: () => movePlayer("x", -1),
           right: () => movePlayer("x", 1),
+          upleft: () => movePlayer("y", -1) && movePlayer("x", -1),
+          upright: () => movePlayer("y", -1) && movePlayer("x", 1),
+          downleft: () => movePlayer("y", 1) && movePlayer("x", -1),
+          downright: () => movePlayer("y", 1) && movePlayer("x", 1),
         };
-      
+
         if (data.toString().toLowerCase() in moveDirections) {
           const didMove = moveDirections[data.toString().toLowerCase()]();
           if (didMove) {
             // Send the player's new position to only admins if the player is in stealth mode
             if (_player.isStealth) {
-              // Get all admin players
               const playerCache = cache.list();
               const players = Object.values(playerCache).filter(
-                (p) => p.isAdmin
+                (p) => p.isAdmin && p.location.map.replaceAll(".json", "") === _player.location.map.replaceAll(".json", "")
               );
               players.forEach((player) => {
                 player.ws.send(
@@ -312,23 +360,27 @@ export default async function packetReceiver(
                     type: "MOVEXY",
                     data: {
                       id: ws.data.id,
-                      _data: _player.location.position
+                      _data: _player.location.position,
                     },
                   })
                 );
               });
             } else {
-              // Send the player's new position to all players
-              server.publish(
-                "MOVEXY" as Subscription["event"],
-                JSON.stringify({
-                  type: "MOVEXY",
-                  data: {
-                    id: ws.data.id,
-                    _data: _player.location.position,
-                  },
-                })
+              const playerCache = cache.list();
+              const players = Object.values(playerCache).filter(
+                (p) => p.location.map.replaceAll(".json", "") === _player.location.map.replaceAll(".json", "")
               );
+              players.forEach((player) => {
+                player.ws.send(
+                  JSON.stringify({
+                    type: "MOVEXY",
+                    data: {
+                      id: ws.data.id,
+                      _data: _player.location.position,
+                    },
+                  })
+                );
+              });
             }
           }
         }
@@ -341,16 +393,14 @@ export default async function packetReceiver(
         _player.location.position.direction = "down";
         if (_player.isStealth) {
           const playerCache = cache.list();
-          const players = Object.values(playerCache).filter(
-            (p) => p.isAdmin
-          );
+          const players = Object.values(playerCache).filter((p) => p.isAdmin);
           players.forEach((player) => {
             player.ws.send(
               JSON.stringify({
                 type: "MOVEXY",
                 data: {
                   id: ws.data.id,
-                  _data: _player.location.position
+                  _data: _player.location.position,
                 },
               })
             );
@@ -375,9 +425,7 @@ export default async function packetReceiver(
         if (!_player) return;
         if (_player.isStealth) {
           const playerCache = cache.list();
-          const players = Object.values(playerCache).filter(
-            (p) => p.isAdmin
-          );
+          const players = Object.values(playerCache).filter((p) => p.isAdmin);
           players.forEach((player) => {
             player.ws.send(
               JSON.stringify({
@@ -406,7 +454,10 @@ export default async function packetReceiver(
       case "TRANSLATE": {
         const _player = cache.get(ws.data.id) as any;
         const _data = data as any;
-        const translation = await language.translate(_data.text, _player.language);
+        const translation = await language.translate(
+          _data.text,
+          _player.language
+        );
         ws.send(
           JSON.stringify({
             type: "TRANSLATE",
@@ -414,7 +465,7 @@ export default async function packetReceiver(
               id: _data.id,
               translation,
               message: _data.text,
-            }
+            },
           })
         );
         break;
@@ -438,10 +489,11 @@ export default async function packetReceiver(
         // Find the first player that is closest to the selected location within a 25px radius
         const selectedPlayer = players.find(
           (p) =>
-            Math.abs(p.location.position.x - Math.floor(Number(location.x))) < 25 &&
-            Math.abs(p.location.position.y - Math.floor(Number(location.y))) < 25
+            Math.abs(p.location.position.x - Math.floor(Number(location.x))) <
+              25 &&
+            Math.abs(p.location.position.y - Math.floor(Number(location.y))) <
+              25
         );
-
 
         if (!selectedPlayer) {
           ws.send(
@@ -497,7 +549,7 @@ export default async function packetReceiver(
               type: "MOVEXY",
               data: {
                 id: ws.data.id,
-                _data: _player.location.position
+                _data: _player.location.position,
               },
             })
           );
@@ -509,6 +561,7 @@ export default async function packetReceiver(
         if (_player.attackDelay > Date.now()) return;
         const _data = data as any;
         const target = cache.get(_data.id);
+        if (!target) return;
         const _playerPos = _player.location.position;
         const targetPos = target.location.position;
         if (_player.location.map !== target.location.map) return;
@@ -519,35 +572,53 @@ export default async function packetReceiver(
           distance = Math.abs(targetPos.y - _playerPos.y);
         } else if (_playerPos.direction === "up") {
           distance = Math.abs(_playerPos.y - targetPos.y);
-        }
-        if (_playerPos.direction === "right") {
+        } else if (_playerPos.direction === "right") {
           distance = Math.abs(targetPos.x - _playerPos.x);
         } else if (_playerPos.direction === "left") {
           distance = Math.abs(_playerPos.x - targetPos.x);
+        } else if (_playerPos.direction === "upleft") {
+          // For upleft, the target must be both up and to the left of the player
+          const xDistance = Math.abs(_playerPos.x - targetPos.x);
+          const yDistance = Math.abs(_playerPos.y - targetPos.y);
+          distance = Math.max(xDistance, yDistance); // The distance to the target is the furthest of the two
+        } else if (_playerPos.direction === "downleft") {
+          // For downleft, the target must be both down and to the left of the player
+          const xDistance = Math.abs(_playerPos.x - targetPos.x);
+          const yDistance = Math.abs(targetPos.y - _playerPos.y);
+          distance = Math.max(xDistance, yDistance); // The distance to the target is the furthest of the two
+        } else if (_playerPos.direction === "upright") {
+          // For upright, the target must be both up and to the right of the player
+          const xDistance = Math.abs(targetPos.x - _playerPos.x);
+          const yDistance = Math.abs(_playerPos.y - targetPos.y);
+          distance = Math.max(xDistance, yDistance); // The distance to the target is the furthest of the two
+        } else if (_playerPos.direction === "downright") {
+          // For downright, the target must be both down and to the right of the player
+          const xDistance = Math.abs(targetPos.x - _playerPos.x);
+          const yDistance = Math.abs(targetPos.y - _playerPos.y);
+          distance = Math.max(xDistance, yDistance); // The distance to the target is the furthest of the two
         }
         if (distance > 60) return;
         // Check if the target is in stealth mode
-        if (target.isStealth) return
+        if (target.isStealth) return;
         // Check if the target is in the correct direction that the player is facing and not behind them
-
         const damage = 5;
         target.stats.health -= damage;
-        
+
         if (target.stats.health <= 0) {
           target.stats.health = 100;
           target.location.position = { x: 0, y: 0, direction: "down" };
           server.publish(
-            "MOVEXY" as Subscription["event"],
+            "MOVEXY",
             JSON.stringify({
               type: "MOVEXY",
               data: {
                 id: target.id,
-                _data: target.location.position
+                _data: target.location.position,
               },
             })
           );
           server.publish(
-            "REVIVE" as Subscription["event"],
+            "REVIVE",
             JSON.stringify({
               type: "REVIVE",
               data: {
@@ -559,7 +630,7 @@ export default async function packetReceiver(
           );
         } else {
           server.publish(
-            "UPDATESTATS" as Subscription["event"],
+            "UPDATESTATS",
             JSON.stringify({
               type: "UPDATESTATS",
               data: {

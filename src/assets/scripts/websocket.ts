@@ -622,6 +622,10 @@ window.addEventListener("keyup", (event) => {
 
 function handleKeyPress() {
   if (isMoving) return;
+  // const currentPlayer = players.find(
+  //   (player) => player.id === sessionStorage.getItem("connectionId")
+  // );
+
   isMoving = true;
   const interval = setInterval(() => {
     if (!isKeyPressed) {
@@ -632,39 +636,75 @@ function handleKeyPress() {
 
     // Only send directional instructions to the server for calculations
 
-    if (pressedKeys.has("w")) {
-      socket.send(
-        JSON.stringify({
-          type: "MOVEXY",
-          data: "UP",
-        })
-      );
+    // Check if more than one key is pressed
+    if (pressedKeys.size > 1) {
+      if (pressedKeys.has("w") && pressedKeys.has("a")) {
+        socket.send(
+          JSON.stringify({
+            type: "MOVEXY",
+            data: "UPLEFT",
+          })
+        );
+      }
+      else if (pressedKeys.has("w") && pressedKeys.has("d")) {
+        socket.send(
+          JSON.stringify({
+            type: "MOVEXY",
+            data: "UPRIGHT",
+          })
+        );
+      }
+      else if (pressedKeys.has("s") && pressedKeys.has("a")) {
+        socket.send(
+          JSON.stringify({
+            type: "MOVEXY",
+            data: "DOWNLEFT",
+          })
+        );
+      }
+      else if (pressedKeys.has("s") && pressedKeys.has("d")) {
+        socket.send(
+          JSON.stringify({
+            type: "MOVEXY",
+            data: "DOWNRIGHT",
+          })
+        );
+      }
+    } else {
+      if (pressedKeys.has("w")) {
+        socket.send(
+          JSON.stringify({
+            type: "MOVEXY",
+            data: "UP",
+          })
+        );
+      }
+      else if (pressedKeys.has("s")) {
+        socket.send(
+          JSON.stringify({
+            type: "MOVEXY",
+            data: "DOWN",
+          })
+        );
+      }
+      else if (pressedKeys.has("a")) {
+        socket.send(
+          JSON.stringify({
+            type: "MOVEXY",
+            data: "LEFT",
+          })
+        );
+      }
+      else if (pressedKeys.has("d")) {
+        socket.send(
+          JSON.stringify({
+            type: "MOVEXY",
+            data: "RIGHT",
+          })
+        );
+      }
     }
-    if (pressedKeys.has("s")) {
-      socket.send(
-        JSON.stringify({
-          type: "MOVEXY",
-          data: "DOWN",
-        })
-      );
-    }
-    if (pressedKeys.has("a")) {
-      socket.send(
-        JSON.stringify({
-          type: "MOVEXY",
-          data: "LEFT",
-        })
-      );
-    }
-    if (pressedKeys.has("d")) {
-      socket.send(
-        JSON.stringify({
-          type: "MOVEXY",
-          data: "RIGHT",
-        })
-      );
-    }
-  }, 0);
+  }, 10);
 }
 
 async function isLoaded() {
@@ -1122,3 +1162,30 @@ document.addEventListener("click", (event) => {
     })
   );
 });
+
+// function updateLocalPosition(player: any, direction: string) {
+//   const speed = 5; // Define movement speed
+//   switch (direction) {
+//     case "UP":
+//       player.position.y -= speed;
+//       player.position.direction = "up";
+//       break;
+//     case "DOWN":
+//       player.position.y += speed;
+//       player.position.direction = "down";
+//       break;
+//     case "LEFT":
+//       player.position.x -= speed;
+//       player.position.direction = "left";
+//       break;
+//     case "RIGHT":
+//       player.position.x += speed;
+//       player.position.direction = "right";
+//       break;
+//   }
+
+//   window.scrollTo(
+//     player.position.x - window.innerWidth / 2 + 32,
+//     player.position.y - window.innerHeight / 2 + 48
+//   );
+// }
