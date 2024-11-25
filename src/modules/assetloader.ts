@@ -97,7 +97,6 @@ export function loadMaps() {
         ).toFixed(2)}%`
       );
       throw new Error("Failed to compress collision map");
-      return;
     }
     log.info(
       `Generated compressed collision map for ${
