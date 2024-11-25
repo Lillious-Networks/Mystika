@@ -258,7 +258,7 @@ Listener.on("onFixedUpdate", (data) => {
 ```
 
 <h5>onSave</h5>
-<p style="font-size:0.75em;">Runs every 5 minutes</p>
+<p style="font-size:0.75em;">Runs every 1 minute</p>
 
 ```ts
 Listener.on("onSave", (data) => {

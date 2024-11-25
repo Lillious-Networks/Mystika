@@ -237,7 +237,6 @@ listener.on("onSave", async () => {
   const playerCache = cache.list();
   for (const p in playerCache) {
     await player.setLocation(p, playerCache[p].location.map, playerCache[p].location.position);
-    // console.log(`Saved location for ${p}`);
   }
 });
 
