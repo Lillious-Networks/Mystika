@@ -83,6 +83,8 @@ export const Server = Bun.serve<Packet>({
       ws.subscribe("DISCONNECT_PLAYER" as Subscription["event"]);
       ws.subscribe("CHAT" as Subscription["event"]);
       ws.subscribe("STEALTH" as Subscription["event"]);
+      ws.subscribe("UPDATESTATS" as Subscription["event"]);
+      ws.subscribe("REVIVE" as Subscription["event"]);
       const packet = {
         type: "CONNECTION_COUNT",
         data: connections.size,
@@ -129,6 +131,8 @@ export const Server = Bun.serve<Packet>({
           ws.unsubscribe("DISCONNECT_PLAYER" as Subscription["event"]);
           ws.unsubscribe("CHAT" as Subscription["event"]);
           ws.unsubscribe("STEALTH" as Subscription["event"]);
+          ws.unsubscribe("UPDATESTATS" as Subscription["event"]);
+          ws.unsubscribe("REVIVE" as Subscription["event"]);
           // Remove the client from clientRequests
           for (let i = 0; i < ClientRateLimit.length; i++) {
             if (ClientRateLimit[i].id === ws.data.id) {
@@ -233,7 +237,7 @@ listener.on("onSave", async () => {
   const playerCache = cache.list();
   for (const p in playerCache) {
     await player.setLocation(p, playerCache[p].location.map, playerCache[p].location.position);
-    console.log(`Saved location for ${p}`);
+    // console.log(`Saved location for ${p}`);
   }
 });
 

@@ -32,7 +32,8 @@ const createAccountsTable = async () => {
         map VARCHAR(255) DEFAULT NULL,
         position VARCHAR(255) DEFAULT NULL,
         session_id VARCHAR(255) UNIQUE DEFAULT NULL,
-        stealth INT DEFAULT 0 NOT NULL
+        stealth INT DEFAULT 0 NOT NULL,
+        direction VARCHAR(5) DEFAULT NULL
       );
   `;
   await query(sql);

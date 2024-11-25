@@ -432,7 +432,20 @@ socket.addEventListener("message", async (event) => {
     }
     case "SELECTPLAYER": {
       const data = JSON.parse(event.data)["data"];
-      console.log(data);
+      if (!data) {
+        players.forEach((player) => {
+          player.targeted = false;
+        });
+        break;
+      } else {
+        players.forEach((player) => {
+          if (player.id === data.id) {
+            player.targeted = true;
+          } else {
+            player.targeted = false;
+          }
+        });
+      }
       break;
     }
     case "STEALTH": {
@@ -442,6 +455,26 @@ socket.addEventListener("message", async (event) => {
           player.isStealth = data.isStealth;
         }
       });
+      break;
+    }
+    case "UPDATESTATS": {
+      const data = JSON.parse(event.data)["data"];
+      const target = players.find((player) => player.id === data.target);
+      if (!target) return;
+      target.stats = data.stats;
+      if (target.id === sessionStorage.getItem("connectionId")) {
+        updateStats(target.stats.health, target.stats.stamina);
+      }
+      break;
+    }
+    case "REVIVE": {
+      const data = JSON.parse(event.data)["data"];
+      const target = players.find((player) => player.id === data.target);
+      if (!target) return;
+      target.stats = data.stats;
+      if (target.id === sessionStorage.getItem("connectionId")) {
+        updateStats(target.stats.health, target.stats.stamina);
+      }
       break;
     }
     default:
@@ -487,7 +520,7 @@ window.addEventListener("keydown", (e) => {
   }
 
   // Open pause menu
-  if (e.key === "Escape") {
+  if (e.key.toLowerCase() === "escape") {
     if (!loaded) return;
     chatInput.blur();
     if (document.getElementById("pause-menu-container")?.style.display != "block") {
@@ -507,7 +540,7 @@ window.addEventListener("keydown", (e) => {
   }
 
   // Open inventory UI
-  if (e.key === "b") {
+  if (e.key.toLowerCase() === "b") {
     if (!loaded) return;
     if (chatInput === document.activeElement) return;
     if (pauseMenu.style.display == "block") return;
@@ -522,17 +555,17 @@ window.addEventListener("keydown", (e) => {
     }
   }
 
-  if (e.key === "x") {
+  if (e.key.toLowerCase() === "x") {
     if (!loaded) return;
     if (chatInput === document.activeElement) return;
     if (pauseMenu.style.display == "block") return;
     socket.send(JSON.stringify({ type: "STEALTH", data: null }));
   }
 
-  if (e.key === "Enter" && chatInput !== document.activeElement) {
+  if (e.key.toLowerCase() === "enter" && chatInput !== document.activeElement) {
     if (pauseMenu.style.display == "block") return;
     chatInput.focus();
-  } else if (e.key === "Enter" && chatInput == document.activeElement) {
+  } else if (e.key.toLowerCase() === "enter" && chatInput == document.activeElement) {
     if (pauseMenu.style.display == "block") return;
     if (!chatInput?.value) return;
     if (chatInput.value.trim() === "") return;
@@ -562,6 +595,17 @@ window.addEventListener("keydown", (e) => {
     }, 7000 + chatInput.value.length * 35);
     chatInput.value = "";
     chatInput.blur();
+  }
+
+  if (e.key.toLowerCase() === " ") {
+    const target = players.find((player) => player.targeted);
+    if (!target) return;
+    socket.send(
+      JSON.stringify({
+        type: "ATTACK",
+        data: target,
+      })
+    );
   }
 });
 
@@ -654,6 +698,8 @@ function createPlayer(data: any) {
     chat: "",
     isStealth: data.isStealth,
     isAdmin: data.isAdmin,
+    targeted: false,
+    stats: data.stats,
     show: function (context: CanvasRenderingContext2D) {
       context.fillStyle = "white";
       // Opacity for stealth mode
@@ -673,7 +719,11 @@ function createPlayer(data: any) {
       if (data.id === sessionStorage.getItem("connectionId")) {
         context.fillStyle = "#ffe561";
       } else {
-        context.fillStyle = "#ffffff";
+        if (this.targeted) {
+          context.fillStyle = "#ff0000";
+        } else {
+          context.fillStyle = "#ffffff";
+        }
       }
 
       context.shadowColor = "black";
@@ -755,6 +805,17 @@ function createPlayer(data: any) {
       context.beginPath();
       context.arc(this.position.x + 16, this.position.y + 24, 2, 0, 2 * Math.PI);
       context.fill();
+
+      // Draw the player's health bar below the player's name with a width of 100px, centered below the player name
+      context.fillStyle = "black";
+      context.fillRect(this.position.x - 34, this.position.y + 70, 100, 10);
+      context.fillStyle = "green";
+      context.fillRect(
+        this.position.x - 34,
+        this.position.y + 70,
+        (this.stats.health / this.stats.max_health) * 100,
+        10
+      );
     },
   };
 
@@ -1044,6 +1105,9 @@ document.addEventListener("contextmenu", (event) => {
 document.addEventListener("click", (event) => {
   // Check if we clicked on a player
   if (!loaded) return;
+  if ((event.target as HTMLElement)?.classList.contains("ui")) return;
+  if ((event.target as HTMLElement)?.id != "players") return;
+
   const rect = canvas.getBoundingClientRect();
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;

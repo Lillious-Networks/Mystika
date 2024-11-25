@@ -119,7 +119,13 @@ export default async function packetReceiver(
           username: username,
         })) as LocationData | null;
         const isAdmin = await player.isAdmin(username);
-        const isStealth = await player.isStealth(username); 
+        let isStealth = await player.isStealth(username);
+        // Turn off stealth mode if the player is not an admin and is in stealth mode
+        if (!isAdmin && isStealth) {
+          await player.toggleStealth(username);
+          isStealth = false;
+        }
+        
         const position = location?.position as unknown as PositionData;
         let spawnLocation;
         if (
@@ -133,6 +139,7 @@ export default async function packetReceiver(
             map: `${location.map}.json`,
             x: position.x,
             y: position.y,
+            direction: position.direction,
           };
         }
         const map =
@@ -146,19 +153,21 @@ export default async function packetReceiver(
         await player.setLocation(
           ws.data.id,
           spawnLocation.map.replace(".json", ""),
-          { x: spawnLocation.x, y: spawnLocation.y }
+          { x: spawnLocation.x, y: spawnLocation.y, direction: "down" }
         );
         cache.add(ws.data.id, {
-          username: username,
-          isAdmin: isAdmin,
-          isStealth: isStealth,
+          username,
+          isAdmin,
+          isStealth,
           id: ws.data.id,
           location: {
             map: spawnLocation.map.replace(".json", ""),
-            position: { x: spawnLocation.x, y: spawnLocation.y },
+            position: { x: spawnLocation.x, y: spawnLocation.y, direction: "down" },
           },
           language: clientConfig[0].language,
-          ws: ws,
+          ws,
+          stats,
+          attackDelay: 0,
         });
         log.debug(
           `Spawn location for ${username}: ${spawnLocation.map.replace(
@@ -175,6 +184,7 @@ export default async function packetReceiver(
               spawnLocation?.map,
               position.x,
               position.y,
+              position.direction,
             ],
           })
         );
@@ -188,10 +198,12 @@ export default async function packetReceiver(
                 map: spawnLocation?.map,
                 x: position.x,
                 y: position.y,
+                direction: position.direction,
               },
               username,
               isAdmin,
               isStealth,
+              stats,
             },
           })
         );
@@ -209,10 +221,12 @@ export default async function packetReceiver(
               map: location.map,
               x: location.position.x,
               y: location.position.y,
+              direction: location.position.direction,
             },
             username: player.username,
             isAdmin: player.isAdmin,
             isStealth: player.isStealth,
+            stats: player.stats,
           };
           playerData.push(data);
         });
@@ -246,21 +260,25 @@ export default async function packetReceiver(
           // Down
           if (axis === "y" && direction === 1) {
             tempPosition.y += 24;
+            _player.location.position.direction = "down";
           }
 
           // Up
           if (axis === "y" && direction === -1) {
             tempPosition.y -= 24;
+            _player.location.position.direction = "up";
           }          
 
           // Right
           if (axis === "x" && direction === 1) {
             tempPosition.x += 16;
+            _player.location.position.direction = "right";
           }
 
           // Left
           if (axis === "x" && direction === -1) {
             tempPosition.x -= 16;
+            _player.location.position.direction = "left";
           }
       
           if (player.checkIfWouldCollide(_player.location.map, tempPosition)) {
@@ -320,6 +338,7 @@ export default async function packetReceiver(
         const _player = cache.get(ws.data.id) as any;
         if (!_player.isAdmin) return;
         _player.location.position = data;
+        _player.location.position.direction = "down";
         if (_player.isStealth) {
           const playerCache = cache.list();
           const players = Object.values(playerCache).filter(
@@ -422,16 +441,37 @@ export default async function packetReceiver(
             Math.abs(p.location.position.x - Math.floor(Number(location.x))) < 25 &&
             Math.abs(p.location.position.y - Math.floor(Number(location.y))) < 25
         );
-        if (!selectedPlayer) return;
-        ws.send(
-          JSON.stringify({
-            type: "SELECTPLAYER",
-            data: {
-              username: selectedPlayer.username,
-              isAdmin: selectedPlayer.isAdmin,
-            },
-          })
-        );
+
+
+        if (!selectedPlayer) {
+          ws.send(
+            JSON.stringify({
+              type: "SELECTPLAYER",
+              data: null,
+            })
+          );
+          break;
+        } else {
+          if (selectedPlayer.isStealth && !player.isAdmin) {
+            ws.send(
+              JSON.stringify({
+                type: "SELECTPLAYER",
+                data: null,
+              })
+            );
+            break;
+          }
+          ws.send(
+            JSON.stringify({
+              type: "SELECTPLAYER",
+              data: {
+                id: selectedPlayer.id,
+                username: selectedPlayer.username,
+                isAdmin: selectedPlayer.isAdmin,
+              },
+            })
+          );
+        }
         break;
       }
       case "STEALTH": {
@@ -462,6 +502,81 @@ export default async function packetReceiver(
             })
           );
         }
+        break;
+      }
+      case "ATTACK": {
+        const _player = cache.get(ws.data.id);
+        if (_player.attackDelay > Date.now()) return;
+        const _data = data as any;
+        const target = cache.get(_data.id);
+        const _playerPos = _player.location.position;
+        const targetPos = target.location.position;
+        if (_player.location.map !== target.location.map) return;
+
+        // Check if the target is in the correct direction that the player is facing and not behind them
+        let distance = 0;
+        if (_playerPos.direction === "down") {
+          distance = Math.abs(targetPos.y - _playerPos.y);
+        } else if (_playerPos.direction === "up") {
+          distance = Math.abs(_playerPos.y - targetPos.y);
+        }
+        if (_playerPos.direction === "right") {
+          distance = Math.abs(targetPos.x - _playerPos.x);
+        } else if (_playerPos.direction === "left") {
+          distance = Math.abs(_playerPos.x - targetPos.x);
+        }
+        if (distance > 60) return;
+        // Check if the target is in stealth mode
+        if (target.isStealth) return
+        // Check if the target is in the correct direction that the player is facing and not behind them
+
+        const damage = 5;
+        target.stats.health -= damage;
+        
+        if (target.stats.health <= 0) {
+          target.stats.health = 100;
+          target.location.position = { x: 0, y: 0, direction: "down" };
+          server.publish(
+            "MOVEXY" as Subscription["event"],
+            JSON.stringify({
+              type: "MOVEXY",
+              data: {
+                id: target.id,
+                _data: target.location.position
+              },
+            })
+          );
+          server.publish(
+            "REVIVE" as Subscription["event"],
+            JSON.stringify({
+              type: "REVIVE",
+              data: {
+                id: ws.data.id,
+                target: target.id,
+                stats: target.stats,
+              },
+            })
+          );
+        } else {
+          server.publish(
+            "UPDATESTATS" as Subscription["event"],
+            JSON.stringify({
+              type: "UPDATESTATS",
+              data: {
+                id: ws.data.id,
+                target: target.id,
+                stats: target.stats,
+              },
+            })
+          );
+        }
+
+        player.setStats(target.username, target.stats);
+        _player.attackDelay = Date.now() + 100;
+        setTimeout(() => {
+          _player.attackDelay = 0;
+        }, 100);
+
         break;
       }
       // Unknown packet type

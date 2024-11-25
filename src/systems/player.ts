@@ -61,11 +61,12 @@ const player = {
     },
     getLocation: async (player: Player) => {
         const username = player.username || player.id;
-        const response = await query("SELECT map, position FROM accounts WHERE username = ? OR session_id = ?", [username, username]) as LocationData[];
+        const response = await query("SELECT map, position, direction FROM accounts WHERE username = ? OR session_id = ?", [username, username]) as LocationData[];
         const map = response[0]?.map as string;
         const position = {
             x: Number(response[0]?.position?.split(",")[0]),
             y: Number(response[0]?.position?.split(",")[1]),
+            direction: response[0]?.direction || "down"
         } as PositionData;
 
         if (!map || (!position.x && position.x.toString() != '0') || (!position.y && position.y.toString() != '0')) {
@@ -76,7 +77,7 @@ const player = {
     },
     setLocation: async (session_id: string, map: string, position: PositionData) => {
         if (!session_id || !map || !position) return;
-        const response = await query("UPDATE accounts SET map = ?, position = ? WHERE session_id = ?", [map, `${position.x},${position.y}`, session_id]);
+        const response = await query("UPDATE accounts SET map = ?, position = ?, direction = ? WHERE session_id = ?", [map, `${position.x},${position.y}`, position.direction, session_id]);
         return response;
     },
     setSessionId: async (token: string, sessionId: string) => {
@@ -210,14 +211,10 @@ const player = {
             max_stamina: response[0].max_stamina
         };
     },
-    setStats: async (session_id: string, stats: StatsData) => {
-        // If the stats don't exist, fuck off
+    setStats: async (username: string, stats: StatsData) => {
         if (!stats.health || !stats.max_health || !stats.stamina || !stats.max_stamina) return;
-        // Retrieve the username from the session id
-        const result = await query("SELECT username FROM accounts WHERE session_id = ?", [session_id]) as any;
-         if(!result[0].username) return [];
         // Tell the database to update the stats
-        const response = await query("UPDATE stats SET health = ?, max_health = ?, stamina = ?, max_stamina = ? WHERE username = ?", [stats.health, stats.max_health, stats.stamina, stats.max_stamina, result[0].username]);
+        const response = await query("UPDATE stats SET health = ?, max_health = ?, stamina = ?, max_stamina = ? WHERE username = ?", [stats.health, stats.max_health, stats.stamina, stats.max_stamina, username]);
         // Do the thing
         if (!response) return [];
         return response ;

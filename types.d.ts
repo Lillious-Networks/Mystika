@@ -94,6 +94,7 @@ declare interface LocationData {
 declare interface PositionData {
   x: number;
   y: number;
+  direction: string;
 }
 
 // Define stats data

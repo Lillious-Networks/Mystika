@@ -124,6 +124,10 @@ const PacketTypes: PacketType = {
   22: "SELECTPLAYER",
   23: "TRANSLATE",
   24: "STEALTH",
+  26: "ATTACK",
+  27: "PROJECTILEXY",
+  28: "REVIVE",
+  29: "UPDATESTATS",
 };
 ```
 

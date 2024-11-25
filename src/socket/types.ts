@@ -25,4 +25,8 @@ export const packetTypes: PacketType = {
   23: "TRANSLATE",
   24: "BENCHMARK",
   25: "STEALTH",
+  26: "ATTACK",
+  27: "PROJECTILEXY",
+  28: "REVIVE",
+  29: "UPDATESTATS",
 };
