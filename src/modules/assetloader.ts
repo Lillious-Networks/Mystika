@@ -16,7 +16,7 @@ export function loadMaps() {
     if (!file.endsWith(".json")) return;
     const f = path.join(mapDir, file);
     const result = tryParse(fs.readFileSync(f, "utf-8")) || failedMaps.push(f);
-    
+
     if (result) {
       const mapHash = crypto
         .createHash("sha256")
@@ -25,7 +25,7 @@ export function loadMaps() {
       maps.push({ name: file, data: result, hash: mapHash });
     }
     log.debug(`Loaded map: ${file}`);
-  })
+  });
 
   if (failedMaps.length > 0) {
     for (const map of failedMaps) {
@@ -34,32 +34,38 @@ export function loadMaps() {
   }
 
   // Store collision layers in asset cache
-  
+
   maps.forEach((map) => {
     const collisions = [] as any[];
     map.data.layers.forEach((layer: any) => {
       if (layer.properties) {
-        if (layer.properties[0]?.name.toLowerCase() === "collision" && layer.properties[0]?.value === true) {
+        if (
+          layer.properties[0]?.name.toLowerCase() === "collision" &&
+          layer.properties[0]?.value === true
+        ) {
           collisions.push(layer.data);
         }
       }
     });
 
-    // Combine indexs of collision layers into a single array for each map 
+    // Combine indexs of collision layers into a single array for each map
     // 0's represent no collision, 1's represent collision
     // Any index that is not 0 is considered a collision and can be marked as a 1
-    const collisionMap = [] as any[];
-    collisions.forEach((collision) => {
-      if (!collisionMap.length) {
-        collisionMap.push(collision);
-      } else {
-        collision.forEach((index: number, i: number) => {
-          if (index !== 0) {
-            collisionMap[0][i] = 1;
-          }
-        });
+    const collisionMap: number[][] = []; // Explicitly define type
+
+    collisions.forEach((collision: number[]) => {
+      if (collisionMap.length === 0) {
+        // Initialize collisionMap[0] as an array of zeros or the same as the first collision array
+        collisionMap.push([...collision.map(() => 0)]); // Start with all zeros
       }
+
+      collision.forEach((index: number, i: number) => {
+        if (index !== 0) {
+          collisionMap[0][i] = 1; // Set the value to 1 for non-zero indices
+        }
+      });
     });
+
     collisionMap.push(map.data.layers[0].width, map.data.layers[0].height);
     // Compress the collision data by turning repeating 0's and 1's into a single number followed by the count
     // This will reduce the size of the collision data
@@ -79,12 +85,39 @@ export function loadMaps() {
     compressedCollisionMap.push(current, count);
     const collisionBytes = new Uint8Array(collisionMap[0]).length;
     const compressedBytes = new Uint8Array(compressedCollisionMap).length;
-    log.info(`Generated compressed collision map for ${map.name}\n- ${collisionBytes} (bytes) -> ${compressedBytes} (bytes)\n- Compression Ratio: ${(collisionBytes / compressedBytes).toFixed(2)}% | Compression: ${(((collisionBytes - compressedBytes) / collisionBytes) * 100).toFixed(2)}%`);
-    assetCache.addNested(map.name.replace(".json", ""), "collision", compressedCollisionMap);
+    if (compressedBytes >= collisionBytes) {
+      log.error(
+        `Failed to compress collision map for ${
+          map.name
+        }\n- ${collisionBytes} (bytes) -> ${compressedBytes} (bytes)\n- Compression Ratio: ${(
+          collisionBytes / compressedBytes
+        ).toFixed(2)}% | Compression: ${(
+          ((collisionBytes - compressedBytes) / collisionBytes) *
+          100
+        ).toFixed(2)}%`
+      );
+      throw new Error("Failed to compress collision map");
+      return;
+    }
+    log.info(
+      `Generated compressed collision map for ${
+        map.name
+      }\n- ${collisionBytes} (bytes) -> ${compressedBytes} (bytes)\n- Compression Ratio: ${(
+        collisionBytes / compressedBytes
+      ).toFixed(2)}% | Compression: ${(
+        ((collisionBytes - compressedBytes) / collisionBytes) *
+        100
+      ).toFixed(2)}%`
+    );
+    assetCache.addNested(
+      map.name.replace(".json", ""),
+      "collision",
+      compressedCollisionMap
+    );
   });
 
-  assetCache.add("maps", maps);  
-};
+  assetCache.add("maps", maps);
+}
 
 loadMaps();
 
@@ -115,7 +148,9 @@ export function loadScripts() {
   const scriptDir = path.join(import.meta.dir, "..", "assets", "scripts");
   if (!fs.existsSync(scriptDir)) return scripts;
 
-  const scriptFiles = fs.readdirSync(scriptDir).filter((file) => file.endsWith(".js"));
+  const scriptFiles = fs
+    .readdirSync(scriptDir)
+    .filter((file) => file.endsWith(".js"));
   scriptFiles.forEach((file) => {
     const scriptData = fs.readFileSync(path.join(scriptDir, file), "utf-8");
     log.debug(`Loaded script: ${file}`);
