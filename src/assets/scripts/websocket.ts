@@ -1,5 +1,4 @@
-// const socket = new WebSocket(`ws://mystika.lillious.com:3000/`);
-const socket = new WebSocket(`https://wild-hex-wg96rqv7q6395vp-3000.app.github.dev/`);
+const socket = new WebSocket(`ws://mystika.lillious.com:3000/`);
 const players = [] as any[];
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d");
