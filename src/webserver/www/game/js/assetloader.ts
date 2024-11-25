@@ -35,7 +35,7 @@ function validateHash(hashA: string, hashB: string) {
 }
 
 async function loadScripts(scripts: string[]) {
-  let unloadedScripts = scripts.map(async x => {
+  const unloadedScripts = scripts.map(async x => {
     const script = await getScriptFunction(x)
     const hash = await getScriptFunctionHash(x)
     if (validateHash(script.hash, hash)) {
@@ -46,7 +46,7 @@ async function loadScripts(scripts: string[]) {
   (await Promise.all(unloadedScripts)).forEach(script => {
     // Load the script
     console.debug(`Loading script "${script.name}"...`);
-    const loadedScript = new Function(script.script)();
+    new Function(script.script)();
   })
 }
 
