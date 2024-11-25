@@ -138,8 +138,8 @@ export default async function packetReceiver(
         } else {
           spawnLocation = {
             map: `${location.map}.json`,
-            x: position.x,
-            y: position.y,
+            x: position.x || 0,
+            y: position.y || 0,
             direction: position.direction,
           };
         }
@@ -165,8 +165,8 @@ export default async function packetReceiver(
           location: {
             map: spawnLocation.map.replace(".json", ""),
             position: {
-              x: spawnLocation.x,
-              y: spawnLocation.y,
+              x: spawnLocation.x || 0,
+              y: spawnLocation.y || 0,
               direction: "down",
             },
           },
@@ -189,8 +189,8 @@ export default async function packetReceiver(
               map?.data,
               map?.hash,
               spawnLocation?.map,
-              position.x,
-              position.y,
+              position.x || 0,
+              position.y || 0,
               position.direction,
             ],
           })
@@ -212,8 +212,8 @@ export default async function packetReceiver(
                 id: ws.data.id,
                 location: {
                   map: spawnLocation.map,
-                  x: position.x,
-                  y: position.y,
+                  x: position.x || 0,
+                  y: position.y || 0,
                   direction: position.direction,
                 },
                 username,
@@ -225,56 +225,14 @@ export default async function packetReceiver(
           );
         });
 
-        // Spawn all players in the current map
-        // players.forEach((player) => {
-        //   player.ws.send(
-        //     JSON.stringify({
-        //       type: "SPAWN_PLAYER",
-        //       data: {
-        //         id: ws.data.id,
-        //         location: {
-        //           map: spawnLocation.map,
-        //           x: position.x,
-        //           y: position.y,
-        //           direction: position.direction,
-        //         },
-        //         username,
-        //         isAdmin,
-        //         isStealth,
-        //         stats,
-        //       },
-        //     })
-        //   );
-        // });
-
-        // server.publish(
-        //   "SPAWN_PLAYER" as Subscription["event"],
-        //   JSON.stringify({
-        //     type: "SPAWN_PLAYER",
-        //     data: {
-        //       id: ws.data.id,
-        //       location: {
-        //         map: spawnLocation.map,
-        //         x: position.x,
-        //         y: position.y,
-        //         direction: position.direction,
-        //       },
-        //       username,
-        //       isAdmin,
-        //       isStealth,
-        //       stats,
-        //     },
-        //   })
-        // );
-
         players.forEach((player) => {
           const location = player.location;
           const data = {
             id: player.id,
             location: {
               map: location.map,
-              x: location.position.x,
-              y: location.position.y,
+              x: location.position.x || 0,
+              y: location.position.y || 0,
               direction: location.position.direction,
             },
             username: player.username,
