@@ -35,18 +35,18 @@ function validateHash(hashA: string, hashB: string) {
 }
 
 async function loadScripts(scripts: string[]) {
-  const unloadedScripts = scripts.map(async x => {
-    const script = await getScriptFunction(x)
-    const hash = await getScriptFunctionHash(x)
+  const unloadedScripts = scripts.map(async (s) => {
+    const script = await getScriptFunction(s);
+    const hash = await getScriptFunctionHash(s);
     if (validateHash(script.hash, hash)) {
       return script;
     }
   });
 
-  (await Promise.all(unloadedScripts)).forEach(script => {
-    // Load the script
-    console.debug(`Loading script "${script.name}"...`);
-    new Function(script.script)();
+  // Load the script
+  (await Promise.all(unloadedScripts)).forEach((ls) => {
+    console.debug(`Loading script "${ls.name}"...`);
+    new Function(ls.script)();
   })
 }
 

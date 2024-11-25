@@ -36,12 +36,15 @@ const query = (sql: string, values?: any[]) => {
   log.trace(`Executing query: ${sql}`);
   return new Promise((resolve, reject) => {
     if (_databaseEngine === "sqlite" && _sqlitedb) {
-      const _db = _sqlitedb;//new sqlite.Database("database.sqlite");
-      const _query = _db.query(sql);
-      const _rows = _query.all(values as any);
-      log.trace(`[SQLite.Query] Query: ${JSON.stringify(_query)}`);
-      log.trace(`[SQLite.Query] Rows Returned: ${JSON.stringify(_rows)}`);
-      resolve(_rows);
+      try {
+        const _query = _sqlitedb.query(sql); // Prepare Statenent (with query-cache)
+        const _rows = _query.all(values as any); // Execute query with params
+        log.trace(`[SQLite.Query] Query: ${JSON.stringify(_query)}`);
+        log.trace(`[SQLite.Query] Rows Returned: ${JSON.stringify(_rows)}`);
+        resolve(_rows);
+      } catch (err) {
+        reject(err);
+      }
     }
     else {
       pool.getConnection((err, connection) => {
