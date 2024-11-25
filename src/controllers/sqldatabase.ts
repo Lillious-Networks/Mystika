@@ -27,11 +27,16 @@ const pool = mysql.createPool({
   ssl: getSqlCert(),
 } as mysql.PoolOptions);
 
+let _sqlitedb: sqlite.Database;
+if (_databaseEngine === "sqlite") {
+  _sqlitedb = new sqlite.Database("database.sqlite");
+}
+
 const query = (sql: string, values?: any[]) => {
   log.trace(`Executing query: ${sql}`);
   return new Promise((resolve, reject) => {
-    if (_databaseEngine === "sqlite") {
-      const _db = new sqlite.Database("database.sqlite");
+    if (_databaseEngine === "sqlite" && _sqlitedb) {
+      const _db = _sqlitedb;//new sqlite.Database("database.sqlite");
       const _query = _db.query(sql);
       const _rows = _query.all(values as any);
       log.trace(`[SQLite.Query] Query: ${JSON.stringify(_query)}`);
