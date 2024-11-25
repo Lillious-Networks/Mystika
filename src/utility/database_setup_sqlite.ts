@@ -71,7 +71,8 @@ const insertDemoAccount = async () => {
       role,
       banned,
       needs_password_reset,
-      stealth
+      stealth,
+      direction
     ) VALUES (
       'demo@example.com',
       'demo_user',
@@ -80,11 +81,52 @@ const insertDemoAccount = async () => {
       0,
       0,
       1,
-      0
+      0,
+      'down
     );
     `;
   await query(sql);
 };
+
+const insertDemoStats = async () => {
+  const sql = `
+    INSERT OR IGNORE INTO stats (
+      username,
+      health,
+      max_health,
+      stamina,
+      max_stamina
+    ) VALUES (
+      'demo_user',
+      100,
+      100,
+      100,
+      100
+    );
+    `;
+  await query(sql);
+}
+
+const insertDemoClientConfig = async () => {
+  const sql = `
+    INSERT OR IGNORE INTO clientconfig (
+      username,
+      fps,
+      music_volume,
+      effects_volume,
+      muted,
+      language
+    ) VALUES (
+      'demo_user',
+      60,
+      100,
+      100,
+      0,
+      'en'
+    );
+    `;
+  await query(sql);
+}
 
 const getAllowedIPs = async () => {
   const sql = `
@@ -165,6 +207,8 @@ try {
   const ips = await getAllowedIPs();
   log.trace(`Created allowed ips: ${JSON.stringify(ips)}`);
   await insertDemoAccount();
+  await insertDemoStats();
+  await insertDemoClientConfig();
   log.success("Database setup complete!");
   process.exit(0);
 } catch (error) {

@@ -33,7 +33,7 @@ const createAccountsTable = async () => {
         position VARCHAR(255) DEFAULT NULL,
         session_id VARCHAR(255) UNIQUE DEFAULT NULL,
         stealth INT DEFAULT 0 NOT NULL,
-        direction VARCHAR(5) DEFAULT NULL
+        direction VARCHAR(10) DEFAULT NULL
       );
   `;
   await query(sql);
@@ -134,7 +134,7 @@ const createClientConfig = async () => {
       CREATE TABLE IF NOT EXISTS clientconfig (
         id INT AUTO_INCREMENT PRIMARY KEY UNIQUE NOT NULL,
         username VARCHAR(255) NOT NULL UNIQUE,
-        fps INT NOT NULL DEFAULT 240,
+        fps INT NOT NULL DEFAULT 60,
         music_volume INT NOT NULL DEFAULT 100,
         effects_volume INT NOT NULL DEFAULT 100,
         muted INT NOT NULL DEFAULT 0,
