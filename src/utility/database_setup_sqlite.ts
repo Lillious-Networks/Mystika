@@ -82,7 +82,7 @@ const insertDemoAccount = async () => {
       0,
       1,
       0,
-      'down
+      'down'
     );
     `;
   await query(sql);
