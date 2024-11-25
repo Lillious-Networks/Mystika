@@ -663,7 +663,8 @@ export default async function packetReceiver(
 function tryParsePacket(data: any) {
   try {
     return JSON.parse(data.toString());
-  } catch (e: any) {
+  } catch (e) {
+    log.error(e as string);
     return undefined;
   }
 }
