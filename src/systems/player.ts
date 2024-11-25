@@ -45,8 +45,8 @@ const player = {
           });
           if (!response) return;
 
-        await query("INSERT IGNORE INTO stats (username, health, max_health, stamina, max_stamina) VALUES (?, ?, ?, ?, ?)", [username, 100, 100, 100, 100]);
-        await query("INSERT IGNORE INTO clientconfig (username, fps, music_volume, effects_volume, muted) VALUES (?, ?, ?, ?, ?)", [username, 60, 100, 100, 0]);
+        await query("INSERT OR IGNORE INTO stats (username, health, max_health, stamina, max_stamina) VALUES (?, ?, ?, ?, ?)", [username, 100, 100, 100, 100]);
+        await query("INSERT OR IGNORE INTO clientconfig (username, fps, music_volume, effects_volume, muted) VALUES (?, ?, ?, ?, ?)", [username, 60, 100, 100, 0]);
         return username;
     },
     findByUsername: async (username: string) => {
