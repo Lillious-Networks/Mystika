@@ -8,9 +8,17 @@ const language = {
             log.warn("Google Translate API Key not found");
             return text;
         }
-        log.info(`Translating text: ${text} to ${lang}`);
-        const response = await language.post({ text, lang }) as any;
+        let response = await language.post({ text, lang }) as any;
         if (!response) return text;
+        // Replace any HTML entities
+        response = response.replace(/&amp;/g, "&");
+        response = response.replace(/&lt;/g, "<");
+        response = response.replace(/&gt;/g, ">");
+        response = response.replace(/&quot;/g, "\"");
+        response = response.replace(/&#39;/g, "'");
+        response = response.replace(/&#96;/g, "`");
+        
+        log.debug(`Translated text: ${response}`);
         return response;
     },
     detect: async (text: string) => {
@@ -31,6 +39,9 @@ const language = {
             log.error(`Error detecting language: ${response.error.message}`);
             return;
         }
+
+        log.debug(`Detected language: ${response.data.detections[0][0].language}`);
+        log.debug(`Detected language confidence: ${response.data.detections[0][0].confidence}`);
 
         return response.data.detections[0][0].language;
     },
