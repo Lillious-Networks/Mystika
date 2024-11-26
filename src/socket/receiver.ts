@@ -400,55 +400,51 @@ export default async function packetReceiver(
       }
       case "CHAT": {
         if (data.toString().length > 255) return;
+      
         const _player = cache.get(ws.data.id) as any;
         if (!_player) return;
-        if (_player.isStealth) {
-          const playerCache = cache.list();
-          const players = Object.values(playerCache).filter((p) => p.isAdmin);
-          players.forEach((player) => {
-            player.ws.send(
-              JSON.stringify({
-                type: "CHAT",
-                data: {
-                  id: ws.data.id,
-                  message: data.toString(),
-                },
-              })
-            );
-          });
-        } else {
-          server.publish(
-            "CHAT" as Subscription["event"],
+      
+        // Send message to the sender
+        const sendMessageToPlayer = (playerWs: any, message: string) => {
+          playerWs.send(
             JSON.stringify({
               type: "CHAT",
               data: {
                 id: ws.data.id,
-                message: data.toString(),
+                message,
               },
             })
           );
+        };
+      
+        sendMessageToPlayer(ws, data.toString());
+      
+        const playerCache = cache.list();
+        let playersInMap = Object.values(playerCache).filter(
+          (p) => p.location.map === _player.location.map && p.id !== ws.data.id
+        );
+      
+        if (_player.isStealth) {
+          // Filter only admins in the same map
+          playersInMap = playersInMap.filter((p) => p.isAdmin);
         }
+      
+        const translations: Record<string, string> = {};
+      
+        playersInMap.forEach(async (player) => {
+          if (!translations[player.language]) {
+            translations[player.language] = await language.translate(
+              data.toString(),
+              player.language
+            );
+          }
+      
+          sendMessageToPlayer(player.ws, translations[player.language]);
+        });
+      
         break;
       }
-      case "TRANSLATE": {
-        const _player = cache.get(ws.data.id) as any;
-        const _data = data as any;
-        const translation = await language.translate(
-          _data.text,
-          _player.language
-        );
-        ws.send(
-          JSON.stringify({
-            type: "TRANSLATE",
-            data: {
-              id: _data.id,
-              translation,
-              message: _data.text,
-            },
-          })
-        );
-        break;
-      }
+      
       case "CLIENTCONFIG": {
         const _player = cache.get(ws.data.id) as any;
         const _data = data as any;

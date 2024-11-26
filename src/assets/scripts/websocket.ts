@@ -384,27 +384,7 @@ socket.addEventListener("message", async (event) => {
     case "CHAT": {
       players.forEach((player) => {
         if (player.id === data.id) {
-          socket.send(
-            JSON.stringify({
-              type: "TRANSLATE",
-              data: {
-                id: data.id,
-                text: data.message,
-              },
-            })
-          );
-        }
-      });
-      break;
-    }
-    case "TRANSLATE": {
-      players.forEach((player) => {
-        if (player.id === data.id) {
-          if (player.id === sessionStorage.getItem("connectionId")) {
-            player.chat = data.message;
-          } else {
-            player.chat = data.translation;
-          }
+          player.chat = data.message;
         }
       });
       break;

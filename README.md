@@ -123,12 +123,12 @@ const PacketTypes: PacketType = {
   20: "REGISTER",
   21: "TELEPORTXY",
   22: "SELECTPLAYER",
-  23: "TRANSLATE",
+  23: "BENCHMARK",
   24: "STEALTH",
-  26: "ATTACK",
-  27: "PROJECTILEXY",
-  28: "REVIVE",
-  29: "UPDATESTATS",
+  25: "ATTACK",
+  26: "PROJECTILEXY",
+  27: "REVIVE",
+  28: "UPDATESTATS",
 };
 ```
 

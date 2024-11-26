@@ -21,34 +21,7 @@ const language = {
         log.debug(`Translated text: ${response}`);
         return response;
     },
-    detect: async (text: string) => {
-        const url = new URL("https://translation.googleapis.com/language/translate/v2/detect");
-        // API Key
-        url.searchParams.append('key', API_KEY as string);
-        // Text to detect
-        url.searchParams.append('q', text);
-        const response = await fetch(url, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
-        }).then((res) => res.json());
-
-        // Get any errors
-        if (response.error) {
-            log.error(`Error detecting language: ${response.error.message}`);
-            return;
-        }
-
-        log.debug(`Detected language: ${response.data.detections[0][0].language}`);
-        log.debug(`Detected language confidence: ${response.data.detections[0][0].confidence}`);
-
-        return response.data.detections[0][0].language;
-    },
     post: async (data: any) => {
-        // Source language
-        const detectedLanguage = await language.detect(data.text);
-        if (detectedLanguage === data.lang) return data.text;
         const url = new URL("https://translation.googleapis.com/language/translate/v2");
         // API Key
         url.searchParams.append('key', API_KEY as string);
@@ -57,6 +30,7 @@ const language = {
         
         // Target language
         url.searchParams.append('target', data.lang);
+
         const response = await fetch(url, {
             method: "POST",
             body: JSON.stringify(data),
