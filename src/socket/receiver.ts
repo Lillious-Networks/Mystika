@@ -541,6 +541,8 @@ export default async function packetReceiver(
         const _data = data as any;
         const target = cache.get(_data.id);
         if (!target) return;
+        // Prevent the player from attacking themselves
+        if (_player.id === target.id) return;
         const _playerPos = _player.location.position;
         const targetPos = target.location.position;
         if (_player.location.map !== target.location.map) return;
