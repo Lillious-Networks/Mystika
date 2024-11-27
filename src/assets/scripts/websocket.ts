@@ -481,16 +481,16 @@ function getCookie(cname: string) {
 let isKeyPressed = false;
 let isMoving = false;
 const pressedKeys = new Set();
-const movementKeys = new Set(["w", "a", "s", "d"]);
+const movementKeys = new Set(["KeyW", "KeyA", "KeyS", "KeyD"]);
 
 window.addEventListener("keydown", (e) => {
   if (!loaded) return;
   if (
-    movementKeys.has(e.key.toLowerCase()) &&
+    movementKeys.has(e.code) &&
     chatInput !== document.activeElement
   ) {
     if (pauseMenu.style.display == "block") return;
-    pressedKeys.add(e.key.toLowerCase());
+    pressedKeys.add(e.code);
     if (!isKeyPressed) {
       isKeyPressed = true;
       if (!isMoving) {
@@ -500,7 +500,7 @@ window.addEventListener("keydown", (e) => {
   }
 
   // Open pause menu
-  if (e.key.toLowerCase() === "escape") {
+  if (e.code === "Escape") {
     if (!loaded) return;
     chatInput.blur();
     if (document.getElementById("pause-menu-container")?.style.display != "block") {
@@ -520,7 +520,7 @@ window.addEventListener("keydown", (e) => {
   }
 
   // Open inventory UI
-  if (e.key.toLowerCase() === "b") {
+  if (e.code === "KeyB") {
     if (!loaded) return;
     if (chatInput === document.activeElement) return;
     if (pauseMenu.style.display == "block") return;
@@ -535,17 +535,17 @@ window.addEventListener("keydown", (e) => {
     }
   }
 
-  if (e.key.toLowerCase() === "x") {
+  if (e.code === "KeyX") {
     if (!loaded) return;
     if (chatInput === document.activeElement) return;
     if (pauseMenu.style.display == "block") return;
     socket.send(JSON.stringify({ type: "STEALTH", data: null }));
   }
 
-  if (e.key.toLowerCase() === "enter" && chatInput !== document.activeElement) {
+  if (e.code === "Enter" && chatInput !== document.activeElement) {
     if (pauseMenu.style.display == "block") return;
     chatInput.focus();
-  } else if (e.key.toLowerCase() === "enter" && chatInput == document.activeElement) {
+  } else if (e.code === "Enter" && chatInput == document.activeElement) {
     if (pauseMenu.style.display == "block") return;
     if (!chatInput?.value) return;
     if (chatInput.value.trim() === "") return;
@@ -577,7 +577,7 @@ window.addEventListener("keydown", (e) => {
     chatInput.blur();
   }
 
-  if (e.key.toLowerCase() === " ") {
+  if (e.code === "Space") {
     const target = players.find((player) => player.targeted);
     if (!target) return;
     socket.send(
@@ -590,10 +590,10 @@ window.addEventListener("keydown", (e) => {
 });
 
 // Listen for keyup events to stop movement
-window.addEventListener("keyup", (event) => {
+window.addEventListener("keyup", (e) => {
   if (chatInput === document.activeElement) return;
-  if (movementKeys.has(event.key.toLowerCase())) {
-    pressedKeys.delete(event.key.toLowerCase());
+  if (movementKeys.has(e.code)) {
+    pressedKeys.delete(e.code);
     if (pressedKeys.size === 0) {
       isKeyPressed = false;
     }
@@ -618,7 +618,7 @@ function handleKeyPress() {
 
     // Check if more than one key is pressed
     if (pressedKeys.size > 1) {
-      if (pressedKeys.has("w") && pressedKeys.has("a")) {
+      if (pressedKeys.has("KeyW") && pressedKeys.has("KeyA")) {
         socket.send(
           JSON.stringify({
             type: "MOVEXY",
@@ -626,7 +626,7 @@ function handleKeyPress() {
           })
         );
       }
-      else if (pressedKeys.has("w") && pressedKeys.has("d")) {
+      else if (pressedKeys.has("KeyW") && pressedKeys.has("KeyD")) {
         socket.send(
           JSON.stringify({
             type: "MOVEXY",
@@ -634,7 +634,7 @@ function handleKeyPress() {
           })
         );
       }
-      else if (pressedKeys.has("s") && pressedKeys.has("a")) {
+      else if (pressedKeys.has("KeyS") && pressedKeys.has("KeyA")) {
         socket.send(
           JSON.stringify({
             type: "MOVEXY",
@@ -642,7 +642,7 @@ function handleKeyPress() {
           })
         );
       }
-      else if (pressedKeys.has("s") && pressedKeys.has("d")) {
+      else if (pressedKeys.has("KeyS") && pressedKeys.has("KeyD")) {
         socket.send(
           JSON.stringify({
             type: "MOVEXY",
@@ -651,7 +651,7 @@ function handleKeyPress() {
         );
       }
     } else {
-      if (pressedKeys.has("w")) {
+      if (pressedKeys.has("KeyW")) {
         socket.send(
           JSON.stringify({
             type: "MOVEXY",
@@ -659,7 +659,7 @@ function handleKeyPress() {
           })
         );
       }
-      else if (pressedKeys.has("s")) {
+      else if (pressedKeys.has("KeyS")) {
         socket.send(
           JSON.stringify({
             type: "MOVEXY",
@@ -667,7 +667,7 @@ function handleKeyPress() {
           })
         );
       }
-      else if (pressedKeys.has("a")) {
+      else if (pressedKeys.has("KeyA")) {
         socket.send(
           JSON.stringify({
             type: "MOVEXY",
@@ -675,7 +675,7 @@ function handleKeyPress() {
           })
         );
       }
-      else if (pressedKeys.has("d")) {
+      else if (pressedKeys.has("KeyD")) {
         socket.send(
           JSON.stringify({
             type: "MOVEXY",
