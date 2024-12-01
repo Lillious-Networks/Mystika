@@ -620,8 +620,8 @@ export default async function packetReceiver(
         }
 
         player.setStats(target.username, target.stats);
-        _player.attackDelay = Date.now() + 100;
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        _player.attackDelay = Date.now() + 1000;
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         _player.attackDelay = 0;
 
         break;
