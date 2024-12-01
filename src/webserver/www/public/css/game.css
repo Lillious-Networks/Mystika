@@ -317,7 +317,6 @@ input::placeholder {
 
 #position {
   color: #fff;
-  /*BLACK OUTLINE*/
   -webkit-text-stroke-width: 0.2px;
   -webkit-text-stroke-color: #ffffff;
   text-shadow: 0 0 5px #000000;

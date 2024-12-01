@@ -63,11 +63,11 @@ const player = {
         const username = player.username || player.id;
         const response = await query("SELECT map, position, direction FROM accounts WHERE username = ? OR session_id = ?", [username, username]) as LocationData[];
         const map = response[0]?.map as string;
-        const position = {
+        const position: PositionData = {
             x: Number(response[0]?.position?.split(",")[0]),
             y: Number(response[0]?.position?.split(",")[1]),
             direction: response[0]?.direction || "down"
-        } as PositionData;
+        };
 
         if (!map || (!position.x && position.x.toString() != '0') || (!position.y && position.y.toString() != '0')) {
             return null;
@@ -283,6 +283,68 @@ const player = {
         player.kick(username, ws);
         const response = await query("UPDATE accounts SET banned = 1 WHERE username = ?", [username]);
         return response;
+    },
+    canAttack: async (self: Player, target: Player, range: number): Promise<boolean> => {
+        // No self or target or no range
+        if (!self || !target || !range) return false;
+
+        // Prevent attacks on self
+        if (self.id === target.id) return false;
+
+        // Ensure self is not dead
+        if (!self.stats || self.stats.health <= 0) return false;
+
+        // Check if the target is in the same map
+        if (!self.location || !target.location || target.location.map !== self.location.map) return false;
+
+        // Stealth check
+        const selfStealth = self.username ? await player.isStealth(self.username) : false;
+        const targetStealth = target.username ? await player.isStealth(target.username) : false;
+
+        if (selfStealth || targetStealth) return false;
+
+        // Get direction and position data
+        const targetPosition = target.location.position as unknown as PositionData;
+        const selfPosition = self.location.position as unknown as PositionData;
+        const direction = selfPosition.direction;
+
+        if (direction === "up" && (selfPosition.y - targetPosition.y <= range
+            && selfPosition.y - targetPosition.y >= 0)
+            && (Math.abs(selfPosition.x - targetPosition.x) <= range)) return true;
+
+        if (direction === "down" && (targetPosition.y - selfPosition.y <= range
+            && targetPosition.y - selfPosition.y >= 0)
+            && (Math.abs(selfPosition.x - targetPosition.x) <= range)) return true;
+
+        if (direction === "left" && (selfPosition.x - targetPosition.x <= range
+            && selfPosition.x - targetPosition.x >= 0)
+            && (Math.abs(selfPosition.y - targetPosition.y) <= range)) return true;
+
+        if (direction === "right" && (targetPosition.x - selfPosition.x <= range
+            && targetPosition.x - selfPosition.x >= 0)
+            && (Math.abs(selfPosition.y - targetPosition.y) <= range)) return true;
+        
+        if (direction === "up-left" && (selfPosition.y - targetPosition.y <= range
+            && selfPosition.y - targetPosition.y >= 0)
+            && (selfPosition.x - targetPosition.x <= range
+            && selfPosition.x - targetPosition.x >= 0)) return true;
+
+        if (direction === "up-right" && (selfPosition.y - targetPosition.y <= range
+            && selfPosition.y - targetPosition.y >= 0)
+            && (targetPosition.x - selfPosition.x <= range
+            && targetPosition.x - selfPosition.x >= 0)) return true;
+
+        if (direction === "down-left" && (targetPosition.y - selfPosition.y <= range
+            && targetPosition.y - selfPosition.y >= 0)
+            && (selfPosition.x - targetPosition.x <= range
+            && selfPosition.x - targetPosition.x >= 0)) return true;
+
+        if (direction === "down-right" && (targetPosition.y - selfPosition.y <= range
+            && targetPosition.y - selfPosition.y >= 0)
+            && (targetPosition.x - selfPosition.x <= range
+            && targetPosition.x - selfPosition.x >= 0)) return true;
+
+        return false;
     },
 };
 

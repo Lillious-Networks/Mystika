@@ -537,47 +537,9 @@ export default async function packetReceiver(
         const _data = data as any;
         const target = cache.get(_data.id);
         if (!target) return;
-        // Prevent the player from attacking themselves
-        if (_player.id === target.id) return;
-        const _playerPos = _player.location.position;
-        const targetPos = target.location.position;
-        if (_player.location.map !== target.location.map) return;
+        // Check if the player can attack
+        if (!await player.canAttack(_player, target, 60)) return;
 
-        // Check if the target is in the correct direction that the player is facing and not behind them
-        let distance = 0;
-        if (_playerPos.direction === "down") {
-          distance = Math.abs(targetPos.y - _playerPos.y);
-        } else if (_playerPos.direction === "up") {
-          distance = Math.abs(_playerPos.y - targetPos.y);
-        } else if (_playerPos.direction === "right") {
-          distance = Math.abs(targetPos.x - _playerPos.x);
-        } else if (_playerPos.direction === "left") {
-          distance = Math.abs(_playerPos.x - targetPos.x);
-        } else if (_playerPos.direction === "upleft") {
-          // For upleft, the target must be both up and to the left of the player
-          const xDistance = Math.abs(_playerPos.x - targetPos.x);
-          const yDistance = Math.abs(_playerPos.y - targetPos.y);
-          distance = Math.max(xDistance, yDistance); // The distance to the target is the furthest of the two
-        } else if (_playerPos.direction === "downleft") {
-          // For downleft, the target must be both down and to the left of the player
-          const xDistance = Math.abs(_playerPos.x - targetPos.x);
-          const yDistance = Math.abs(targetPos.y - _playerPos.y);
-          distance = Math.max(xDistance, yDistance); // The distance to the target is the furthest of the two
-        } else if (_playerPos.direction === "upright") {
-          // For upright, the target must be both up and to the right of the player
-          const xDistance = Math.abs(targetPos.x - _playerPos.x);
-          const yDistance = Math.abs(_playerPos.y - targetPos.y);
-          distance = Math.max(xDistance, yDistance); // The distance to the target is the furthest of the two
-        } else if (_playerPos.direction === "downright") {
-          // For downright, the target must be both down and to the right of the player
-          const xDistance = Math.abs(targetPos.x - _playerPos.x);
-          const yDistance = Math.abs(targetPos.y - _playerPos.y);
-          distance = Math.max(xDistance, yDistance); // The distance to the target is the furthest of the two
-        }
-        if (distance > 60) return;
-        // Check if the target is in stealth mode
-        if (target.isStealth) return;
-        // Check if the target is in the correct direction that the player is facing and not behind them
         const damage = 5;
         target.stats.health -= damage;
 

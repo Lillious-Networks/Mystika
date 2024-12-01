@@ -69,7 +69,9 @@ declare interface Player {
   id?: string;
   username?: string;
   position?: PositionData;
+  location?: LocationData;
   map?: string;
+  stats?: StatsData;
 }
 
 // Define inventory item

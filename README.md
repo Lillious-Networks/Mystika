@@ -559,3 +559,10 @@ await player.kick(username, websocket);
 ```ts
 await player.ban(username, websocket);
 ```
+
+<h5>player.canAttack();</h5>
+<p style="font-size:0.75em;">Returns true if a self can attack another player</p>
+
+```ts
+await player.canAttack(self, target, range);
+```
