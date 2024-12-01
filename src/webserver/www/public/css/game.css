@@ -315,6 +315,21 @@ input::placeholder {
   user-select: none;
 }
 
+#position {
+  color: #fff;
+  /*BLACK OUTLINE*/
+  -webkit-text-stroke-width: 0.2px;
+  -webkit-text-stroke-color: #ffffff;
+  text-shadow: 0 0 5px #000000;
+  font-weight: lighter;
+  position: absolute;
+  position: fixed;
+  top: 260;
+  right: 25;
+  user-select: none;
+  z-index: 101;
+}
+
 #map-border {
   position: absolute;
   z-index: 100;

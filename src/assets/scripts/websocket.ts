@@ -16,6 +16,7 @@ const staminaBar = document.getElementById(
   "stamina-progress-bar"
 ) as HTMLDivElement;
 const map = document.getElementById("map") as HTMLDivElement;
+const mapPosition = document.getElementById("position") as HTMLDivElement;
 const pauseMenu = document.getElementById(
   "pause-menu-container"
 ) as HTMLDivElement;
@@ -910,7 +911,7 @@ function updateStats(health: number, stamina: number) {
   }
 }
 
-async function updateMiniMap() {
+async function updateMiniMap() { 
   // Check if there is already a minimap image
   const image = map.querySelector("img");
 
@@ -932,6 +933,9 @@ async function updateMiniMap() {
   );
 
   if (!currentPlayer) return;
+
+  // Update position display
+  mapPosition.innerHTML = `X: ${currentPlayer.position.x}, Y: ${currentPlayer.position.y}`;
 
   const canvasWidth = canvas.width;
   const canvasHeight = canvas.height;
