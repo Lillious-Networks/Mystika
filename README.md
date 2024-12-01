@@ -567,3 +567,10 @@ await player.ban(username, websocket);
 ```ts
 await player.canAttack(self, target, range);
 ```
+
+<h5>player.findClosestPlayer();</h5>
+<p style="font-size:0.75em;">Returns the closest player or null</p>
+
+```ts
+await player.findClosestPlayer(self, players, range)
+```
