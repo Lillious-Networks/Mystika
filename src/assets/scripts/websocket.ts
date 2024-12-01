@@ -15,6 +15,9 @@ const healthBar = document.getElementById(
 const staminaBar = document.getElementById(
   "stamina-progress-bar"
 ) as HTMLDivElement;
+const targetStats = document.getElementById("target-stats-container") as HTMLDivElement;
+const targetHealthBar = document.getElementById("target-health-progress-bar") as HTMLDivElement;
+const targetStaminaBar = document.getElementById("target-stamina-progress-bar") as HTMLDivElement;
 const map = document.getElementById("map") as HTMLDivElement;
 const mapPosition = document.getElementById("position") as HTMLDivElement;
 const pauseMenu = document.getElementById(
@@ -417,11 +420,15 @@ socket.addEventListener("message", async (event) => {
         players.forEach((player) => {
           player.targeted = false;
         });
+        targetStats.style.display = "none";
+        updateTargetStats(0, 0);
         break;
       } else {
         players.forEach((player) => {
           if (player.id === data.id) {
             player.targeted = true;
+            targetStats.style.display = "block";
+            updateTargetStats(player.stats.health, player.stats.stamina);
           } else {
             player.targeted = false;
           }
@@ -446,6 +453,9 @@ socket.addEventListener("message", async (event) => {
       if (target.id === sessionStorage.getItem("connectionId")) {
         updateStats(target.stats.health, target.stats.stamina);
       }
+      else {
+        updateTargetStats(target.stats.health, target.stats.stamina);
+      }
       break;
     }
     case "REVIVE": {
@@ -455,6 +465,8 @@ socket.addEventListener("message", async (event) => {
       target.stats = data.stats;
       if (target.id === sessionStorage.getItem("connectionId")) {
         updateStats(target.stats.health, target.stats.stamina);
+      } else {
+        updateTargetStats(target.stats.health, target.stats.stamina);
       }
       break;
     }
@@ -924,6 +936,28 @@ function updateStats(health: number, stamina: number) {
   }
 }
 
+function updateTargetStats(health: number, stamina: number) {
+  targetHealthBar.removeAttribute("class");
+  targetHealthBar.style.width = `${health}%`;
+  targetStaminaBar.style.width = `${stamina}%`;
+  if (health >= 80) {
+    targetHealthBar.classList.add("green");
+    return;
+  }
+  if (health >= 50 && health < 80) {
+    targetHealthBar.classList.add("yellow");
+    return;
+  }
+  if (health >= 30 && health < 50) {
+    targetHealthBar.classList.add("orange");
+    return;
+  }
+  if (health < 30) {
+    targetHealthBar.classList.add("red");
+    return;
+  }
+}
+
 async function updateMiniMap() { 
   // Check if there is already a minimap image
   const image = map.querySelector("img");
@@ -1159,30 +1193,3 @@ document.addEventListener("click", (event) => {
     })
   );
 });
-
-// function updateLocalPosition(player: any, direction: string) {
-//   const speed = 5; // Define movement speed
-//   switch (direction) {
-//     case "UP":
-//       player.position.y -= speed;
-//       player.position.direction = "up";
-//       break;
-//     case "DOWN":
-//       player.position.y += speed;
-//       player.position.direction = "down";
-//       break;
-//     case "LEFT":
-//       player.position.x -= speed;
-//       player.position.direction = "left";
-//       break;
-//     case "RIGHT":
-//       player.position.x += speed;
-//       player.position.direction = "right";
-//       break;
-//   }
-
-//   window.scrollTo(
-//     player.position.x - window.innerWidth / 2 + 32,
-//     player.position.y - window.innerHeight / 2 + 48
-//   );
-// }

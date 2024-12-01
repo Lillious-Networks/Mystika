@@ -234,16 +234,25 @@ input::placeholder {
   100% {background-position: 250% 0, 250% 0}
 }
 
-#stats-container {
+#stats-container, #target-stats-container {
   position: fixed;
-  top: 27;
-  left: 120;
   z-index: 100;
   background: url("/img/ui/ui-stats-container.png");
   background-repeat: no-repeat;
   background-size: 100% 100%;
   width: 330px;
   height: 110px;
+}
+
+#stats-container {
+  top: 27;
+  left: 120;
+}
+
+#target-stats-container {
+  top: 27;
+  left: 500;
+  display: none;
 }
 
 #player-image-container {
@@ -258,7 +267,7 @@ input::placeholder {
   background-size: 100% 100%;
 }
 
-#health-bar-container {
+#health-bar-container, #target-health-bar-container {
   position: absolute;
   top: 18;
   z-index: 101;
@@ -267,7 +276,7 @@ input::placeholder {
   height: 44px;
 }
 
-#health-progress-bar {
+#health-progress-bar, #target-health-progress-bar {
   width: 100%;
   height: 100%;
 }
@@ -290,7 +299,7 @@ input::placeholder {
   background: url("/img/ui/ui-health-red.png");
 }
 
-#stamina-bar-container {
+#stamina-bar-container, #target-stamina-bar-container {
   position: absolute;
   top: 77;
   z-index: 101;
@@ -299,7 +308,7 @@ input::placeholder {
   height: 8px;
 }
 
-#stamina-progress-bar {
+#stamina-progress-bar, #target-stamina-progress-bar {
   height: 100%;
   width: 100%;
   background: url("/img/ui/ui-stamina.png");

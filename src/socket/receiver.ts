@@ -494,6 +494,7 @@ export default async function packetReceiver(
               data: {
                 id: selectedPlayer.id,
                 username: selectedPlayer.username,
+                stats: selectedPlayer.stats,
               },
             })
           );
@@ -514,6 +515,7 @@ export default async function packetReceiver(
             data: {
               id: closestPlayer?.id || null,
               username: closestPlayer?.username || null,
+              stats: closestPlayer?.stats || null,
             },
           })
         );
