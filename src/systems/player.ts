@@ -297,11 +297,7 @@ const player = {
         // Check if the target is in the same map
         if (!self.location || !target.location || target.location.map !== self.location.map) return false;
 
-        // Stealth check
-        const selfStealth = self.username ? await player.isStealth(self.username) : false;
-        const targetStealth = target.username ? await player.isStealth(target.username) : false;
-
-        if (selfStealth || targetStealth) return false;
+        if (self.isStealth  || target.isStealth) return false;
 
         // Get direction and position data
         const targetPosition = target.location.position as unknown as PositionData;
@@ -346,6 +342,26 @@ const player = {
 
         return false;
     },
+    findClosestPlayer: async (self: Player, players: Player[], range: number): Promise<NullablePlayer> => {
+        if (!players) return null;
+        if (!self.location?.position) return null;
+
+        let closestPlayer = null;
+        let closestDistance = range;
+        const selfPosition = self.location.position as unknown as PositionData;
+        for (const player of players) {
+            if (player.location) {
+                const position = player.location.position as unknown as PositionData;
+                const distance = Math.sqrt(Math.pow(selfPosition.x - position.x, 2) + Math.pow(selfPosition.y - position.y, 2));
+                if (player.isStealth) continue;
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestPlayer = player;
+                }                
+            }
+        }
+        return closestPlayer;
+    }
 };
 
 export default player;

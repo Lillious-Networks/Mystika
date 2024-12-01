@@ -1,9 +1,11 @@
+type Nullable<T> = T | null;
+
 // Define the packet structure
 declare interface Packet {
   type: PacketType;
   data: PacketData;
-  id: string | null;
-  useragent: string | null;
+  id: Nullable<string>;
+  useragent: Nullable<string>;
 }
 
 // Define the packet type
@@ -32,7 +34,7 @@ declare interface ClientRateLimit {
   id: string;
   requests: number;
   rateLimited: boolean;
-  time: number | null;
+  time: Nullable<number>;
   windowTime: number;
 }
 
@@ -72,7 +74,10 @@ declare interface Player {
   location?: LocationData;
   map?: string;
   stats?: StatsData;
+  isStealth?: boolean;
 }
+
+type NullablePlayer = Player | null;
 
 // Define inventory item
 declare interface InventoryItem {

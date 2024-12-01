@@ -413,7 +413,7 @@ socket.addEventListener("message", async (event) => {
     }
     case "SELECTPLAYER": {
       const data = JSON.parse(event.data)["data"];
-      if (!data) {
+      if (!data || !data.id || !data.username) {
         players.forEach((player) => {
           player.targeted = false;
         });
@@ -534,6 +534,19 @@ window.addEventListener("keydown", (e) => {
       inventoryUI.style.right = "10";
       toggleInventory = true;
     }
+  }
+
+  if (e.code === "Tab") {
+    e.preventDefault();
+    if (!loaded) return;
+    if (chatInput === document.activeElement) return;
+    if (pauseMenu.style.display == "block") return;
+    socket.send(
+      JSON.stringify({
+        type: "TARGETCLOSEST",
+        data: null,
+      })
+    );
   }
 
   if (e.code === "KeyX") {

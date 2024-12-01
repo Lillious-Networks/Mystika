@@ -494,11 +494,29 @@ export default async function packetReceiver(
               data: {
                 id: selectedPlayer.id,
                 username: selectedPlayer.username,
-                isAdmin: selectedPlayer.isAdmin,
               },
             })
           );
         }
+        break;
+      }
+      case "TARGETCLOSEST": {
+        const playerCache = cache.list();
+        const _player = cache.get(ws.data.id) as any;
+        const players = Object.values(playerCache).filter(
+          (p) => p.location.map === _player.location.map && p.id !== ws.data.id
+        );
+        const closestPlayer = await player.findClosestPlayer(_player, players, 500);
+
+        ws.send(
+          JSON.stringify({
+            type: "SELECTPLAYER",
+            data: {
+              id: closestPlayer?.id || null,
+              username: closestPlayer?.username || null,
+            },
+          })
+        );
         break;
       }
       case "STEALTH": {

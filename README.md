@@ -129,6 +129,7 @@ const PacketTypes: PacketType = {
   26: "PROJECTILEXY",
   27: "REVIVE",
   28: "UPDATESTATS",
+  29: "TARGETCLOSEST",
 };
 ```
 
