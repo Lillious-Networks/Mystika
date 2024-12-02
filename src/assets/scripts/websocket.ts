@@ -150,7 +150,7 @@ socket.addEventListener("message", async (event) => {
       break;
 
     case "TIME_SYNC": {
-      setTimeout(() => {
+      setTimeout(async () => {
         socket.send(
           packet.encode(
             JSON.stringify({
@@ -332,7 +332,7 @@ socket.addEventListener("message", async (event) => {
 
             const batchSize = 5; // Adjust batch size for performance
 
-            function processRowBatch(startY: number) {
+            async function processRowBatch(startY: number) {
               for (
                 let y = startY;
                 y < startY + batchSize && y < mapData.height;
@@ -365,7 +365,7 @@ socket.addEventListener("message", async (event) => {
               }
 
               if (startY + batchSize < mapData.height) {
-                setTimeout(() => processRowBatch(startY + batchSize), 0);
+                await new Promise(() => setTimeout(() => { processRowBatch(startY + batchSize); }, 0))
               } else {
                 currentLayer++;
                 processLayer();
@@ -635,22 +635,22 @@ window.addEventListener("keydown", (e) => {
     const previousMessage = chatInput.value.trim();
     if (previousMessage === "") return;
 
-    setTimeout(() => {
+    setTimeout(async () => {
       // Check if the chat is still the same value
-      players.forEach((player) => {
-        if (player.id === sessionStorage.getItem("connectionId")) {
-          if (player.chat === previousMessage) {
-            socket.send(
-              packet.encode(
-                JSON.stringify({
-                  type: "CHAT",
-                  data: " ",
-                })
-              )
-            );
-          }
+      for (const player of players) {
+      if (player.id === sessionStorage.getItem("connectionId")) {
+        if (player.chat === previousMessage) {
+        socket.send(
+          packet.encode(
+          JSON.stringify({
+            type: "CHAT",
+            data: " ",
+          })
+          )
+        );
         }
-      });
+      }
+      }
     }, 7000 + chatInput.value.length * 35);
     chatInput.value = "";
     chatInput.blur();
@@ -1030,6 +1030,7 @@ function updateTargetStats(health: number, stamina: number) {
 }
 
 async function updateMiniMap() {
+  if (!loaded) return;
   // Check if there is already a minimap image
   const image = map.querySelector("img");
 
@@ -1104,12 +1105,12 @@ async function updateMiniMap() {
 // Update minimap less frequently to avoid freezing
 const updateInterval = 150; // Update every 150ms
 
-setTimeout(() => {
-  const updateLoop = () => {
-    updateMiniMap();
-    setTimeout(updateLoop, updateInterval);
+setTimeout(async () => {
+  const updateLoop = async () => {
+    await updateMiniMap();
+    setTimeout(async () => await updateLoop(), updateInterval);
   };
-  updateLoop();
+  await updateLoop();
 }, 1000);
 
 document

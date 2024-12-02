@@ -3,8 +3,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Mystika - Overworld</title>
-    <script type="text/javascript" src="../game/js/libs/pako.js"></script>
-    <script defer src="../game/js/assetloader.js" type="text/javascript"></script>
+    <script async type="text/javascript" src="../game/js/libs/pako.js"></script>
+    <script async defer src="../game/js/assetloader.js" type="text/javascript"></script>
     <link rel="stylesheet" href="../css/game.css" />
   </head>
   <body oncontextmenu="return false;">
@@ -48,7 +48,7 @@
       </div>
       <div id="position"></div>
       <div id="map-container">
-        <div id="map-border"></div>
+        <img id="map-border" src="../img/ui/ui-map.png" fetchpriority="high"></img>
         <div id="map"></div>
       </div>
       <div id="chat-container">

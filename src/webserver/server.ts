@@ -1,4 +1,5 @@
 import express from "express";
+import compression from "compression";
 import { rateLimit } from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import cookieSession from "cookie-session";
@@ -9,6 +10,7 @@ import fs from "fs";
 const port = process.env.WEBSRV_PORT || 80;
 const sslport = process.env.WEBSRV_PORTSSL || 443;
 const app = express();
+app.use(compression());
 import log from "../modules/logger";
 import "../services/security";
 
