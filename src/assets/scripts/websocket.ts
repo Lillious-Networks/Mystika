@@ -155,7 +155,7 @@ socket.addEventListener("message", async (event) => {
           packet.encode(
             JSON.stringify({
               type: "TIME_SYNC",
-              data: JSON.parse(event.data)["data"],
+              data: data,
             })
           )
         );
