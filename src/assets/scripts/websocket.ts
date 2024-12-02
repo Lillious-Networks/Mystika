@@ -668,6 +668,11 @@ window.addEventListener("keydown", (e) => {
       )
     );
   }
+
+  const blacklistedKeys = ['AltLeft', 'AltRight', 'ControlLeft', 'ControlRight', 'ShiftLeft', 'ShiftRight'];
+  if (blacklistedKeys.includes(e.code)) {
+    e.preventDefault();
+  }
 });
 
 // Listen for keyup events to stop movement
