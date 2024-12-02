@@ -116,3 +116,14 @@ declare interface StatsData {
 declare interface ConfigData {
   [key: string]: number | string | boolean;
 }
+
+// Define weapon data
+declare interface WeaponData {
+  name: string;
+  damage: number;
+  mana: number;
+  range: number;
+  quality: string;
+  type: string;
+  description: string;
+}

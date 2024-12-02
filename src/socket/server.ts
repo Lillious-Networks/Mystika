@@ -151,6 +151,7 @@ export const Server = Bun.serve<Packet>({
       }
     },
     async message(ws, message: string | Buffer) {
+      console.log(message);
       try {
         // Check if the request has an identity
         if (!ws.data?.id || !message) return;

@@ -1,4 +1,5 @@
 const socket = new WebSocket(`__VAR.WEBSOCKETURL__`);
+socket.binaryType = "arraybuffer";
 const players = [] as any[];
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d");

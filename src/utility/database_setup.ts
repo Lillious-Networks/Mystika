@@ -124,7 +124,7 @@ const createStatsTable = async () => {
     )
   `;
   await query(sql);
-}
+};
 
 const createClientConfig = async () => {
   const useDatabaseSql = `USE ${database};`;
@@ -142,7 +142,26 @@ const createClientConfig = async () => {
     )
   `;
   await query(sql);
-}
+};
+
+const createWeaponsTable = async () => {
+  const useDatabaseSql = `USE ${database};`;
+  await query(useDatabaseSql);
+
+  const sql = `
+    CREATE TABLE IF NOT EXISTS weapons (
+      id INT NOT NULL AUTO_INCREMENT PRIMARY KEY UNIQUE,
+      name VARCHAR(255) NOT NULL,
+      damage INT NULL DEFAULT 0,
+      mana INT NULL DEFAULT 0,
+      \`range\` INT NULL DEFAULT 0,
+      type VARCHAR(255) NULL DEFAULT 'melee',
+      description VARCHAR(255) NULL,
+      quality VARCHAR(255) NULL DEFAULT 'common'
+    )
+  `;
+  await query(sql);
+};
 
 // Run the database setup
 const setupDatabase = async () => {
@@ -155,6 +174,7 @@ const setupDatabase = async () => {
   await createItemsTable();
   await createStatsTable();
   await createClientConfig();
+  await createWeaponsTable();
 };
 
 try {

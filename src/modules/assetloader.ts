@@ -2,7 +2,19 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import log from "./logger";
+import weapon from "../systems/weapon";
+import item from "../systems/items";
 import assetCache from "../services/assetCache";
+
+// Load weapon data
+assetCache.add("weapons", await weapon.list());
+const weapons = assetCache.get("weapons") as WeaponData[];
+log.debug(`Loaded ${weapons.length} weapon(s) from the database`);
+
+// Load item data
+assetCache.add("items", await item.list());
+const items = assetCache.get("items") as Item[];
+log.debug(`Loaded ${items.length} item(s) from the database`);
 
 // Load maps
 export function loadMaps() {
@@ -98,7 +110,7 @@ export function loadMaps() {
       );
       throw new Error("Failed to compress collision map");
     }
-    log.info(
+    log.debug(
       `Generated compressed collision map for ${
         map.name
       }\n- ${collisionBytes} (bytes) -> ${compressedBytes} (bytes)\n- Compression Ratio: ${(

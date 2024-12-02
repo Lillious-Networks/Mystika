@@ -198,6 +198,14 @@ import assetCache from '../services/assetCache'; // Asset caching
 <h5>assetCache.list();</h5>
 <p style="font-size:0.75em;">Fetches all items from the cache</p>
 
+<h5>cache.set();</h5>
+<h5>assetCache.set();</h5>
+<p style="font-size:0.75em;">Updates an item in cache</p>
+
+<h5>cache.setNested();</h5>
+<h5>assetCache.setNested();</h5>
+<p style="font-size:0.75em;">Updates a nested item in cache</p>
+
 <hr>
 <h3>Events</h3>
 
@@ -338,6 +346,62 @@ await inventory.get(username);
 ```
 
 <hr>
+<h3>Weapon Management</h3>
+
+```ts
+import weapons from "../systems/weapon";
+```
+
+<h5>Structure</h5>
+
+```ts
+declare interface WeaponData {
+  name: string;
+  damage: number;
+  mana: number;
+  range: number;
+  quality: string;
+  type: string;
+  description: string;
+}
+```
+
+<h5>weapons.add();</h5>
+<p style="font-size:0.75em;">Adds a weapon to the weapon database</p>
+
+```ts
+await weapons.add(weapon);
+```
+
+<h5>weapons.remove();</h5>
+<p style="font-size:0.75em;">Removes a weapon to the weapon database</p>
+
+```ts
+await weapons.remove(weapon);
+```
+
+<h5>weapons.find();</h5>
+<p style="font-size:0.75em;">Fetches a weapon from the weapon database</p>
+
+```ts
+await weapons.find(weapon);
+```
+
+<h5>weapons.update();</h5>
+<p style="font-size:0.75em;">Updates a weapon in the weapon database</p>
+
+```ts
+await weapons.update(weapon);
+```
+
+<h5>weapons.list();</h5>
+<p style="font-size:0.75em;">Lists all weapons in the weapon database</p>
+
+```ts
+await weapons.list();
+```
+
+<hr>
 <h3>Item Management</h3>
 
 ```ts
@@ -380,6 +444,13 @@ await items.list();
 
 ```ts
 await items.find({ name: "item_name" });
+```
+
+<h5>items.update();</h5>
+<p style="font-size:0.75em;">Updates an item in the database</p>
+
+```ts
+await items.update(item);
 ```
 
 <hr>
