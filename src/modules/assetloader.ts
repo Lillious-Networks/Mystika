@@ -5,6 +5,7 @@ import log from "./logger";
 import weapon from "../systems/weapon";
 import item from "../systems/items";
 import assetCache from "../services/assetCache";
+import zlib from "zlib";
 
 // Load weapon data
 assetCache.add("weapons", await weapon.list());
@@ -28,15 +29,19 @@ export function loadMaps() {
     if (!file.endsWith(".json")) return;
     const f = path.join(mapDir, file);
     const result = tryParse(fs.readFileSync(f, "utf-8")) || failedMaps.push(f);
+    // Compress the map data
+    const compressedData = zlib.gzipSync(JSON.stringify(result));
 
     if (result) {
       const mapHash = crypto
         .createHash("sha256")
         .update(JSON.stringify(result))
         .digest("hex");
-      maps.push({ name: file, data: result, hash: mapHash });
+      maps.push({ name: file, data: result, hash: mapHash, compressed: compressedData });
     }
     log.debug(`Loaded map: ${file}`);
+    // Same stats output as collision map compression
+    log.debug(`Compressed map: ${file}\n- ${JSON.stringify(result).length} (bytes) -> ${compressedData.length} (bytes)\n- Compression Ratio: ${(JSON.stringify(result).length / compressedData.length).toFixed(2)}% | Compression: ${(((JSON.stringify(result).length - compressedData.length) / JSON.stringify(result).length) * 100).toFixed(2)}%`);
   });
 
   if (failedMaps.length > 0) {

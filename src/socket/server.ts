@@ -5,7 +5,8 @@ import { event } from "../systems/events";
 import eventEmitter from "node:events";
 import log from "../modules/logger";
 import player from "../systems/player";
-import cache from '../services/cache.ts';
+import cache from "../services/cache.ts";
+import packet from "../modules/packet";
 
 const RateLimitOptions: RateLimitOptions = {
   // Maximum amount of requests
@@ -37,7 +38,7 @@ export const Server = Bun.serve<Packet>({
   },
   websocket: {
     perMessageDeflate: true, // Enable per-message deflate compression
-    maxPayloadLength: (1024 * 1024), // 1 MiB
+    maxPayloadLength: 1024 * 1024, // 1 MiB
     idleTimeout: 1, // 1 second
     async open(ws) {
       // Add the client to the set of connected clients
@@ -85,13 +86,13 @@ export const Server = Bun.serve<Packet>({
       ws.subscribe("STEALTH" as Subscription["event"]);
       ws.subscribe("UPDATESTATS" as Subscription["event"]);
       ws.subscribe("REVIVE" as Subscription["event"]);
-      const packet = {
+      const _packet = {
         type: "CONNECTION_COUNT",
         data: connections.size,
       } as unknown as Packet;
       Server.publish(
         "CONNECTION_COUNT" as Subscription["event"],
-        JSON.stringify(packet)
+        packet.encode(JSON.stringify(_packet))
       );
     },
     async close(ws) {
@@ -107,20 +108,19 @@ export const Server = Bun.serve<Packet>({
       }
       // Check if we found the client object
       if (clientToDelete) {
-
         const deleted = connections.delete(clientToDelete);
         if (deleted) {
           // Emit the onDisconnect event
           listener.emit("onDisconnect", { id: ws.data.id });
-          
+
           // Publish the new connection count and unsubscribe from the event
-          const packet = {
+          const _packet = {
             type: "CONNECTION_COUNT",
             data: connections.size,
           } as unknown as Packet;
           Server.publish(
             "CONNECTION_COUNT" as Subscription["event"],
-            JSON.stringify(packet)
+            packet.encode(JSON.stringify(_packet))
           );
           ws.unsubscribe("CONNECTION_COUNT" as Subscription["event"]);
           // Unsubscribe from the BROADCAST event
@@ -143,18 +143,22 @@ export const Server = Bun.serve<Packet>({
         }
         ws.publish(
           "DISCONNECT_PLAYER" as Subscription["event"],
-          JSON.stringify({
-            type: "DISCONNECT_PLAYER",
-            data: ws.data.id,
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "DISCONNECT_PLAYER",
+              data: ws.data.id,
+            })
+          )
         );
       }
     },
-    async message(ws, message: string | Buffer) {
-      console.log(message);
+    // Use any because we aren't allowed to use ArrayBuffer
+    async message(ws, message: any) {
       try {
-        // Check if the request has an identity
+        // Check if the request has an identity and a message and if the message is an ArrayBuffer
         if (!ws.data?.id || !message) return;
+        // Decode the message
+        message = packet.decode(message);
         for (const client of ClientRateLimit) {
           // Return if the client is rate limited
           if (client.rateLimited) return;
@@ -173,7 +177,9 @@ export const Server = Bun.serve<Packet>({
                 ).toString()
               );
               ws.send(
-                JSON.stringify({ type: "RATE_LIMITED", data: "Rate limited" })
+                packet.encode(
+                  JSON.stringify({ type: "RATE_LIMITED", data: "Rate limited" })
+                )
               );
               return;
             }
@@ -231,7 +237,11 @@ listener.on("onConnection", (data) => {
 listener.on("onDisconnect", async (data) => {
   if (!data) return;
   const playerData = cache.get(data.id);
-  await player.setLocation(data.id, playerData.location.map, playerData.location.position);
+  await player.setLocation(
+    data.id,
+    playerData.location.map,
+    playerData.location.position
+  );
   cache.remove(data.id);
   player.clearSessionId(data.id);
   log.debug(`Disconnected: ${playerData.id}`);
@@ -241,7 +251,11 @@ listener.on("onDisconnect", async (data) => {
 listener.on("onSave", async () => {
   const playerCache = cache.list();
   for (const p in playerCache) {
-    await player.setLocation(p, playerCache[p].location.map, playerCache[p].location.position);
+    await player.setLocation(
+      p,
+      playerCache[p].location.map,
+      playerCache[p].location.position
+    );
   }
 });
 
@@ -253,9 +267,12 @@ export const events = {
   GetOnlineData() {
     return connections;
   },
-  Broadcast(packet: string) {
-    log.debug(`Broadcasting packet: ${packet}`);
-    Server.publish("BROADCAST" as Subscription["event"], packet);
+  Broadcast(_packet: string) {
+    log.debug(`Broadcasting packet: ${_packet}`);
+    Server.publish(
+      "BROADCAST" as Subscription["event"],
+      packet.encode(JSON.stringify(_packet))
+    );
   },
   GetClientRequests() {
     return ClientRateLimit;

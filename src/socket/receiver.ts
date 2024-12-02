@@ -5,6 +5,7 @@ import inventory from "../systems/inventory";
 import cache from "../services/cache";
 import assetCache from "../services/assetCache";
 import language from "../systems/language";
+import packet from "../modules/packet";
 
 const maps = assetCache.get("maps");
 
@@ -37,25 +38,33 @@ export default async function packetReceiver(
     // Handle the packet
     switch (type) {
       case "BENCHMARK": {
-        ws.send(JSON.stringify({ type: "BENCHMARK", data: data }));
+        ws.send(
+          packet.encode(JSON.stringify({ type: "BENCHMARK", data: data }))
+        );
         break;
       }
       case "PING": {
-        ws.send(JSON.stringify({ type: "PONG", data: data }));
+        ws.send(packet.encode(JSON.stringify({ type: "PONG", data: data })));
         ws.send(
-          JSON.stringify({
-            type: "TIME_SYNC",
-            data: Date.now(),
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "TIME_SYNC",
+              data: Date.now(),
+            })
+          )
         );
         break;
       }
       case "PONG": {
-        ws.send(JSON.stringify({ type: "PING", data: data }));
+        ws.send(packet.encode(JSON.stringify({ type: "PING", data: data })));
         break;
       }
       case "LOGIN": {
-        ws.send(JSON.stringify({ type: "LOGIN_SUCCESS", data: ws.data.id }));
+        ws.send(
+          packet.encode(
+            JSON.stringify({ type: "LOGIN_SUCCESS", data: ws.data.id })
+          )
+        );
         break;
       }
       case "TIME_SYNC": {
@@ -69,10 +78,12 @@ export default async function packetReceiver(
         }
         const ServerTime = Date.now();
         ws.send(
-          JSON.stringify({
-            type: "TIME_SYNC",
-            data: ServerTime,
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "TIME_SYNC",
+              data: ServerTime,
+            })
+          )
         );
         break;
       }
@@ -80,7 +91,9 @@ export default async function packetReceiver(
         // Set the session id for the player
         const auth = await player.setSessionId(data.toString(), ws.data.id);
         if (!auth) {
-          ws.send(JSON.stringify({ type: "LOGIN_FAILED", data: null }));
+          ws.send(
+            packet.encode(JSON.stringify({ type: "LOGIN_FAILED", data: null }))
+          );
           ws.close(1008, "Already logged in");
           break;
         }
@@ -94,27 +107,33 @@ export default async function packetReceiver(
           items.length = 30;
         }
         ws.send(
-          JSON.stringify({
-            type: "INVENTORY",
-            data: items,
-            slots: 30,
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "INVENTORY",
+              data: items,
+              slots: 30,
+            })
+          )
         );
         // Get the player's stats
         const stats = await player.getStats(username);
         ws.send(
-          JSON.stringify({
-            type: "STATS",
-            data: stats,
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "STATS",
+              data: stats,
+            })
+          )
         );
         // Get client configuration
         const clientConfig = (await player.getConfig(username)) as any[];
         ws.send(
-          JSON.stringify({
-            type: "CLIENTCONFIG",
-            data: clientConfig,
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "CLIENTCONFIG",
+              data: clientConfig,
+            })
+          )
         );
         const location = (await player.getLocation({
           username: username,
@@ -183,45 +202,51 @@ export default async function packetReceiver(
           )} at ${spawnLocation.x},${spawnLocation.y}`
         );
         ws.send(
-          JSON.stringify({
-            type: "LOAD_MAP",
-            data: [
-              map?.data,
-              map?.hash,
-              spawnLocation?.map,
-              position.x || 0,
-              position.y || 0,
-              position.direction,
-            ],
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "LOAD_MAP",
+              data: [
+                map?.compressed,
+                map?.hash,
+                spawnLocation?.map,
+                position.x || 0,
+                position.y || 0,
+                position.direction,
+              ],
+            })
+          )
         );
 
         const playerCache = cache.list();
         // Load players for the current map only
         const players = Object.values(playerCache).filter(
-          (p) => p.location.map.replaceAll(".json", "") === spawnLocation.map.replaceAll(".json", "")
+          (p) =>
+            p.location.map.replaceAll(".json", "") ===
+            spawnLocation.map.replaceAll(".json", "")
         );
 
         const playerData = [] as any[];
 
         players.forEach((player) => {
           player.ws.send(
-            JSON.stringify({
-              type: "SPAWN_PLAYER",
-              data: {
-                id: ws.data.id,
-                location: {
-                  map: spawnLocation.map,
-                  x: position.x || 0,
-                  y: position.y || 0,
-                  direction: position.direction,
+            packet.encode(
+              JSON.stringify({
+                type: "SPAWN_PLAYER",
+                data: {
+                  id: ws.data.id,
+                  location: {
+                    map: spawnLocation.map,
+                    x: position.x || 0,
+                    y: position.y || 0,
+                    direction: position.direction,
+                  },
+                  username,
+                  isAdmin,
+                  isStealth,
+                  stats,
                 },
-                username,
-                isAdmin,
-                isStealth,
-                stats,
-              },
-            })
+              })
+            )
           );
         });
 
@@ -243,10 +268,12 @@ export default async function packetReceiver(
           playerData.push(data);
         });
         ws.send(
-          JSON.stringify({
-            type: "LOAD_PLAYERS",
-            data: playerData,
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "LOAD_PLAYERS",
+              data: playerData,
+            })
+          )
         );
         break;
       }
@@ -331,33 +358,42 @@ export default async function packetReceiver(
             if (_player.isStealth) {
               const playerCache = cache.list();
               const players = Object.values(playerCache).filter(
-                (p) => p.isAdmin && p.location.map.replaceAll(".json", "") === _player.location.map.replaceAll(".json", "")
+                (p) =>
+                  p.isAdmin &&
+                  p.location.map.replaceAll(".json", "") ===
+                    _player.location.map.replaceAll(".json", "")
               );
               players.forEach((player) => {
                 player.ws.send(
-                  JSON.stringify({
-                    type: "MOVEXY",
-                    data: {
-                      id: ws.data.id,
-                      _data: _player.location.position,
-                    },
-                  })
+                  packet.encode(
+                    JSON.stringify({
+                      type: "MOVEXY",
+                      data: {
+                        id: ws.data.id,
+                        _data: _player.location.position,
+                      },
+                    })
+                  )
                 );
               });
             } else {
               const playerCache = cache.list();
               const players = Object.values(playerCache).filter(
-                (p) => p.location.map.replaceAll(".json", "") === _player.location.map.replaceAll(".json", "")
+                (p) =>
+                  p.location.map.replaceAll(".json", "") ===
+                  _player.location.map.replaceAll(".json", "")
               );
               players.forEach((player) => {
                 player.ws.send(
-                  JSON.stringify({
-                    type: "MOVEXY",
-                    data: {
-                      id: ws.data.id,
-                      _data: _player.location.position,
-                    },
-                  })
+                  packet.encode(
+                    JSON.stringify({
+                      type: "MOVEXY",
+                      data: {
+                        id: ws.data.id,
+                        _data: _player.location.position,
+                      },
+                    })
+                  )
                 );
               });
             }
@@ -375,6 +411,21 @@ export default async function packetReceiver(
           const players = Object.values(playerCache).filter((p) => p.isAdmin);
           players.forEach((player) => {
             player.ws.send(
+              packet.encode(
+                JSON.stringify({
+                  type: "MOVEXY",
+                  data: {
+                    id: ws.data.id,
+                    _data: _player.location.position,
+                  },
+                })
+              )
+            );
+          });
+        } else {
+          server.publish(
+            "MOVEXY" as Subscription["event"],
+            packet.encode(
               JSON.stringify({
                 type: "MOVEXY",
                 data: {
@@ -382,55 +433,46 @@ export default async function packetReceiver(
                   _data: _player.location.position,
                 },
               })
-            );
-          });
-        } else {
-          server.publish(
-            "MOVEXY" as Subscription["event"],
-            JSON.stringify({
-              type: "MOVEXY",
-              data: {
-                id: ws.data.id,
-                _data: _player.location.position,
-              },
-            })
+            )
           );
         }
         break;
       }
       case "CHAT": {
         if (data.toString().length > 255) return;
-      
+
         const _player = cache.get(ws.data.id) as any;
         if (!_player) return;
-      
+
         // Send message to the sender
         const sendMessageToPlayer = (playerWs: any, message: string) => {
           playerWs.send(
-            JSON.stringify({
-              type: "CHAT",
-              data: {
-                id: ws.data.id,
-                message,
-              },
-            })
+            packet.encode(
+              JSON.stringify({
+                type: "CHAT",
+                data: {
+                  id: ws.data.id,
+                  message,
+                },
+              })
+            )
           );
         };
-      
+
         sendMessageToPlayer(ws, data.toString());
-      
+
         const playerCache = cache.list();
         let playersInMap = Object.values(playerCache).filter(
           (p) => p.location.map === _player.location.map && p.id !== ws.data.id
         );
-      
+
         if (_player.isStealth) {
           // Filter only admins in the same map
           playersInMap = playersInMap.filter((p) => p.isAdmin);
         }
-      
+
         const translations: Record<string, string> = {};
-      
+
         playersInMap.forEach(async (player) => {
           if (!translations[player.language]) {
             translations[player.language] = await language.translate(
@@ -438,13 +480,13 @@ export default async function packetReceiver(
               player.language
             );
           }
-      
+
           sendMessageToPlayer(player.ws, translations[player.language]);
         });
-      
+
         break;
       }
-      
+
       case "CLIENTCONFIG": {
         const _player = cache.get(ws.data.id) as any;
         const _data = data as any;
@@ -472,31 +514,37 @@ export default async function packetReceiver(
 
         if (!selectedPlayer) {
           ws.send(
-            JSON.stringify({
-              type: "SELECTPLAYER",
-              data: null,
-            })
+            packet.encode(
+              JSON.stringify({
+                type: "SELECTPLAYER",
+                data: null,
+              })
+            )
           );
           break;
         } else {
           if (selectedPlayer.isStealth && !player.isAdmin) {
             ws.send(
-              JSON.stringify({
-                type: "SELECTPLAYER",
-                data: null,
-              })
+              packet.encode(
+                JSON.stringify({
+                  type: "SELECTPLAYER",
+                  data: null,
+                })
+              )
             );
             break;
           }
           ws.send(
-            JSON.stringify({
-              type: "SELECTPLAYER",
-              data: {
-                id: selectedPlayer.id,
-                username: selectedPlayer.username,
-                stats: selectedPlayer.stats,
-              },
-            })
+            packet.encode(
+              JSON.stringify({
+                type: "SELECTPLAYER",
+                data: {
+                  id: selectedPlayer.id,
+                  username: selectedPlayer.username,
+                  stats: selectedPlayer.stats,
+                },
+              })
+            )
           );
         }
         break;
@@ -507,17 +555,23 @@ export default async function packetReceiver(
         const players = Object.values(playerCache).filter(
           (p) => p.location.map === _player.location.map && p.id !== ws.data.id
         );
-        const closestPlayer = await player.findClosestPlayer(_player, players, 500);
+        const closestPlayer = await player.findClosestPlayer(
+          _player,
+          players,
+          500
+        );
 
         ws.send(
-          JSON.stringify({
-            type: "SELECTPLAYER",
-            data: {
-              id: closestPlayer?.id || null,
-              username: closestPlayer?.username || null,
-              stats: closestPlayer?.stats || null,
-            },
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "SELECTPLAYER",
+              data: {
+                id: closestPlayer?.id || null,
+                username: closestPlayer?.username || null,
+                stats: closestPlayer?.stats || null,
+              },
+            })
+          )
         );
         break;
       }
@@ -528,25 +582,29 @@ export default async function packetReceiver(
         _player.isStealth = isStealth;
         server.publish(
           "STEALTH" as Subscription["event"],
-          JSON.stringify({
-            type: "STEALTH",
-            data: {
-              id: ws.data.id,
-              isStealth: isStealth,
-            },
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "STEALTH",
+              data: {
+                id: ws.data.id,
+                isStealth: isStealth,
+              },
+            })
+          )
         );
         // Send the player's new position to all players when they toggle stealth mode off
         if (!isStealth) {
           server.publish(
             "MOVEXY" as Subscription["event"],
-            JSON.stringify({
-              type: "MOVEXY",
-              data: {
-                id: ws.data.id,
-                _data: _player.location.position,
-              },
-            })
+            packet.encode(
+              JSON.stringify({
+                type: "MOVEXY",
+                data: {
+                  id: ws.data.id,
+                  _data: _player.location.position,
+                },
+              })
+            )
           );
         }
         break;
@@ -558,7 +616,7 @@ export default async function packetReceiver(
         const target = cache.get(_data.id);
         if (!target) return;
         // Check if the player can attack
-        if (!await player.canAttack(_player, target, 60)) return;
+        if (!(await player.canAttack(_player, target, 60))) return;
 
         const damage = 5;
         target.stats.health -= damage;
@@ -567,37 +625,43 @@ export default async function packetReceiver(
           target.stats.health = 100;
           target.location.position = { x: 0, y: 0, direction: "down" };
           server.publish(
-            "MOVEXY",
-            JSON.stringify({
-              type: "MOVEXY",
-              data: {
-                id: target.id,
-                _data: target.location.position,
-              },
-            })
+            "MOVEXY" as Subscription["event"],
+            packet.encode(
+              JSON.stringify({
+                type: "MOVEXY",
+                data: {
+                  id: target.id,
+                  _data: target.location.position,
+                },
+              })
+            )
           );
           server.publish(
-            "REVIVE",
-            JSON.stringify({
-              type: "REVIVE",
-              data: {
-                id: ws.data.id,
-                target: target.id,
-                stats: target.stats,
-              },
-            })
+            "REVIVE" as Subscription["event"],
+            packet.encode(
+              JSON.stringify({
+                type: "REVIVE",
+                data: {
+                  id: ws.data.id,
+                  target: target.id,
+                  stats: target.stats,
+                },
+              })
+            )
           );
         } else {
           server.publish(
-            "UPDATESTATS",
-            JSON.stringify({
-              type: "UPDATESTATS",
-              data: {
-                id: ws.data.id,
-                target: target.id,
-                stats: target.stats,
-              },
-            })
+            "UPDATESTATS" as Subscription["event"],
+            packet.encode(
+              JSON.stringify({
+                type: "UPDATESTATS",
+                data: {
+                  id: ws.data.id,
+                  target: target.id,
+                  stats: target.stats,
+                },
+              })
+            )
           );
         }
 

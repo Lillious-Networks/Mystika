@@ -5,7 +5,9 @@ const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d");
 const playerCanvas = document.getElementById("players") as HTMLCanvasElement;
 const playerContext = playerCanvas.getContext("2d");
-const currentPlayerCanvas = document.getElementById("current-player") as HTMLCanvasElement;
+const currentPlayerCanvas = document.getElementById(
+  "current-player"
+) as HTMLCanvasElement;
 const currentPlayerContext = currentPlayerCanvas.getContext("2d");
 const inventoryUI = document.getElementById("inventory") as HTMLDivElement;
 const inventoryGrid = document.getElementById("grid") as HTMLDivElement;
@@ -16,9 +18,15 @@ const healthBar = document.getElementById(
 const staminaBar = document.getElementById(
   "stamina-progress-bar"
 ) as HTMLDivElement;
-const targetStats = document.getElementById("target-stats-container") as HTMLDivElement;
-const targetHealthBar = document.getElementById("target-health-progress-bar") as HTMLDivElement;
-const targetStaminaBar = document.getElementById("target-stamina-progress-bar") as HTMLDivElement;
+const targetStats = document.getElementById(
+  "target-stats-container"
+) as HTMLDivElement;
+const targetHealthBar = document.getElementById(
+  "target-health-progress-bar"
+) as HTMLDivElement;
+const targetStaminaBar = document.getElementById(
+  "target-stamina-progress-bar"
+) as HTMLDivElement;
 const map = document.getElementById("map") as HTMLDivElement;
 const mapPosition = document.getElementById("position") as HTMLDivElement;
 const pauseMenu = document.getElementById(
@@ -30,13 +38,28 @@ const optionsMenu = document.getElementById(
 const menuElements = ["options-menu-container"];
 const fpsSlider = document.getElementById("fps-slider") as HTMLInputElement;
 const musicSlider = document.getElementById("music-slider") as HTMLInputElement;
-const effectsSlider = document.getElementById("effects-slider") as HTMLInputElement;
-const mutedCheckbox = document.getElementById("muted-checkbox") as HTMLInputElement;
+const effectsSlider = document.getElementById(
+  "effects-slider"
+) as HTMLInputElement;
+const mutedCheckbox = document.getElementById(
+  "muted-checkbox"
+) as HTMLInputElement;
 const languageSelect = document.getElementById("language") as HTMLSelectElement;
 let loaded: boolean = false;
 let toggleInventory = false;
 const times = [] as number[];
 let lastFrameTime = 0; // Track the time of the last frame
+
+const packet = {
+  decode(data: ArrayBuffer) {
+    const decoder = new TextDecoder();
+    return decoder.decode(data);
+  },
+  encode(data: string) {
+    const encoder = new TextEncoder();
+    return encoder.encode(data);
+  },
+};
 
 function animationLoop() {
   if (!ctx || !playerContext) return;
@@ -61,7 +84,7 @@ function animationLoop() {
     // All players except the current player
     players.forEach((player) => {
       if (player.id !== sessionStorage.getItem("connectionId")) {
-        if(player.isStealth) {
+        if (player.isStealth) {
           if (currentPlayer) {
             if (currentPlayer.isAdmin) {
               player.show(playerContext);
@@ -84,9 +107,14 @@ function animationLoop() {
   window.requestAnimationFrame(animationLoop);
 }
 
-function currentPlayerLoop () {
+function currentPlayerLoop() {
   if (!ctx || !currentPlayerContext) return;
-  currentPlayerContext.clearRect(0, 0, currentPlayerCanvas.width, currentPlayerCanvas.height);
+  currentPlayerContext.clearRect(
+    0,
+    0,
+    currentPlayerCanvas.width,
+    currentPlayerCanvas.height
+  );
   players.forEach((player) => {
     if (player.id === sessionStorage.getItem("connectionId")) {
       player.show(currentPlayerContext);
@@ -100,11 +128,11 @@ animationLoop();
 currentPlayerLoop();
 
 socket.addEventListener("open", () => {
-  const packet = {
+  const _packet = {
     type: "PING",
     data: null,
   };
-  socket.send(JSON.stringify(packet));
+  socket.send(packet.encode(JSON.stringify(_packet)));
 });
 
 socket.addEventListener("close", () => {
@@ -112,20 +140,24 @@ socket.addEventListener("close", () => {
 });
 
 socket.addEventListener("message", async (event) => {
-  const data = JSON.parse(event.data)["data"];
-  const type = JSON.parse(event.data)["type"];
+  // Blob to ArrayBuffer
+  if (!(event.data instanceof ArrayBuffer)) return;
+  const data = JSON.parse(packet.decode(event.data))["data"];
+  const type = JSON.parse(packet.decode(event.data))["type"];
   switch (type) {
     case "PONG":
-      socket.send(JSON.stringify({ type: "LOGIN", data: null }));
+      socket.send(packet.encode(JSON.stringify({ type: "LOGIN", data: null })));
       break;
 
     case "TIME_SYNC": {
       setTimeout(() => {
         socket.send(
-          JSON.stringify({
-            type: "TIME_SYNC",
-            data: JSON.parse(event.data)["data"],
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "TIME_SYNC",
+              data: JSON.parse(event.data)["data"],
+            })
+          )
         );
       }, 5000);
       break;
@@ -176,7 +208,12 @@ socket.addEventListener("message", async (event) => {
     }
     case "LOAD_MAP":
       {
-        const mapData = data[0];
+        // Uncompress zlib compressed data
+        
+        const binArray = new Uint8Array(new Uint8Array(data[0].data));
+        // @ts-expect-error - pako is not defined because it is loaded in the index.html
+        const inflated = pako.inflate(binArray, { to: "string" });
+        const mapData = inflated ? JSON.parse(inflated) : null;
         const mapHash = data[1] as string;
         const mapName = data[2];
 
@@ -345,13 +382,15 @@ socket.addEventListener("message", async (event) => {
       break;
     case "LOGIN_SUCCESS":
       {
-        const connectionId = JSON.parse(event.data)["data"];
+        const connectionId = JSON.parse(packet.decode(event.data))["data"];
         sessionStorage.setItem("connectionId", connectionId); // Store client's socket ID
         const sessionToken = getCookie("token");
         if (!sessionToken) {
           throw new Error("No session token found");
         }
-        socket.send(JSON.stringify({ type: "AUTH", data: sessionToken }));
+        socket.send(
+          packet.encode(JSON.stringify({ type: "AUTH", data: sessionToken }))
+        );
       }
       break;
     case "LOGIN_FAILED":
@@ -361,8 +400,8 @@ socket.addEventListener("message", async (event) => {
       break;
     case "INVENTORY":
       {
-        const data = JSON.parse(event.data)["data"];
-        const slots = JSON.parse(event.data)["slots"];
+        const data = JSON.parse(packet.decode(event.data))["data"];
+        const slots = JSON.parse(packet.decode(event.data))["slots"];
         if (data.length > 0) {
           // Assign each item to a slot
           for (let i = 0; i < data.length; i++) {
@@ -402,21 +441,29 @@ socket.addEventListener("message", async (event) => {
       break;
     }
     case "CLIENTCONFIG": {
-      const data = JSON.parse(event.data)["data"][0];
+      const data = JSON.parse(packet.decode(event.data))["data"][0];
       fpsSlider.value = data.fps;
-      document.getElementById("limit-fps-label")!.innerText = `FPS: (${fpsSlider.value})`;
+      document.getElementById(
+        "limit-fps-label"
+      )!.innerText = `FPS: (${fpsSlider.value})`;
       musicSlider.value = data.music_volume;
-      document.getElementById("music-volume-label")!.innerText = `Music: (${musicSlider.value})`;
+      document.getElementById(
+        "music-volume-label"
+      )!.innerText = `Music: (${musicSlider.value})`;
       effectsSlider.value = data.effects_volume;
-      document.getElementById("effects-volume-label")!.innerText = `Effects: (${effectsSlider.value})`;
+      document.getElementById(
+        "effects-volume-label"
+      )!.innerText = `Effects: (${effectsSlider.value})`;
       mutedCheckbox.checked = data.muted;
-      document.getElementById("muted-checkbox")!.innerText = `Muted: ${mutedCheckbox.checked}`;
+      document.getElementById(
+        "muted-checkbox"
+      )!.innerText = `Muted: ${mutedCheckbox.checked}`;
       // Update selected language option
       languageSelect.value = data.language;
       break;
     }
     case "SELECTPLAYER": {
-      const data = JSON.parse(event.data)["data"];
+      const data = JSON.parse(packet.decode(event.data))["data"];
       if (!data || !data.id || !data.username) {
         players.forEach((player) => {
           player.targeted = false;
@@ -438,7 +485,7 @@ socket.addEventListener("message", async (event) => {
       break;
     }
     case "STEALTH": {
-      const data = JSON.parse(event.data)["data"];
+      const data = JSON.parse(packet.decode(event.data))["data"];
       players.forEach((player) => {
         if (player.id === data.id) {
           player.isStealth = data.isStealth;
@@ -447,20 +494,19 @@ socket.addEventListener("message", async (event) => {
       break;
     }
     case "UPDATESTATS": {
-      const data = JSON.parse(event.data)["data"];
+      const data = JSON.parse(packet.decode(event.data))["data"];
       const target = players.find((player) => player.id === data.target);
       if (!target) return;
       target.stats = data.stats;
       if (target.id === sessionStorage.getItem("connectionId")) {
         updateStats(target.stats.health, target.stats.stamina);
-      }
-      else {
+      } else {
         updateTargetStats(target.stats.health, target.stats.stamina);
       }
       break;
     }
     case "REVIVE": {
-      const data = JSON.parse(event.data)["data"];
+      const data = JSON.parse(packet.decode(event.data))["data"];
       const target = players.find((player) => player.id === data.target);
       if (!target) return;
       target.stats = data.stats;
@@ -499,10 +545,7 @@ const movementKeys = new Set(["KeyW", "KeyA", "KeyS", "KeyD"]);
 
 window.addEventListener("keydown", (e) => {
   if (!loaded) return;
-  if (
-    movementKeys.has(e.code) &&
-    chatInput !== document.activeElement
-  ) {
+  if (movementKeys.has(e.code) && chatInput !== document.activeElement) {
     if (pauseMenu.style.display == "block") return;
     pressedKeys.add(e.code);
     if (!isKeyPressed) {
@@ -517,8 +560,10 @@ window.addEventListener("keydown", (e) => {
   if (e.code === "Escape") {
     if (!loaded) return;
     chatInput.blur();
-    if (document.getElementById("pause-menu-container")?.style.display != "block") {
-      pauseMenu.style.display = "block"
+    if (
+      document.getElementById("pause-menu-container")?.style.display != "block"
+    ) {
+      pauseMenu.style.display = "block";
     } else {
       pauseMenu.style.display = "none";
     }
@@ -555,10 +600,12 @@ window.addEventListener("keydown", (e) => {
     if (chatInput === document.activeElement) return;
     if (pauseMenu.style.display == "block") return;
     socket.send(
-      JSON.stringify({
-        type: "TARGETCLOSEST",
-        data: null,
-      })
+      packet.encode(
+        JSON.stringify({
+          type: "TARGETCLOSEST",
+          data: null,
+        })
+      )
     );
   }
 
@@ -566,7 +613,7 @@ window.addEventListener("keydown", (e) => {
     if (!loaded) return;
     if (chatInput === document.activeElement) return;
     if (pauseMenu.style.display == "block") return;
-    socket.send(JSON.stringify({ type: "STEALTH", data: null }));
+    socket.send(packet.encode(JSON.stringify({ type: "STEALTH", data: null })));
   }
 
   if (e.code === "Enter" && chatInput !== document.activeElement) {
@@ -577,10 +624,12 @@ window.addEventListener("keydown", (e) => {
     if (!chatInput?.value) return;
     if (chatInput.value.trim() === "") return;
     socket.send(
-      JSON.stringify({
-        type: "CHAT",
-        data: chatInput.value.trim().toString() || " ",
-      })
+      packet.encode(
+        JSON.stringify({
+          type: "CHAT",
+          data: chatInput.value.trim().toString() || " ",
+        })
+      )
     );
     const previousMessage = chatInput.value.trim();
     if (previousMessage === "") return;
@@ -591,10 +640,12 @@ window.addEventListener("keydown", (e) => {
         if (player.id === sessionStorage.getItem("connectionId")) {
           if (player.chat === previousMessage) {
             socket.send(
-              JSON.stringify({
-                type: "CHAT",
-                data: " ",
-              })
+              packet.encode(
+                JSON.stringify({
+                  type: "CHAT",
+                  data: " ",
+                })
+              )
             );
           }
         }
@@ -608,10 +659,12 @@ window.addEventListener("keydown", (e) => {
     const target = players.find((player) => player.targeted);
     if (!target) return;
     socket.send(
-      JSON.stringify({
-        type: "ATTACK",
-        data: target,
-      })
+      packet.encode(
+        JSON.stringify({
+          type: "ATTACK",
+          data: target,
+        })
+      )
     );
   }
 });
@@ -647,67 +700,77 @@ function handleKeyPress() {
     if (pressedKeys.size > 1) {
       if (pressedKeys.has("KeyW") && pressedKeys.has("KeyA")) {
         socket.send(
-          JSON.stringify({
-            type: "MOVEXY",
-            data: "UPLEFT",
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "MOVEXY",
+              data: "UPLEFT",
+            })
+          )
         );
-      }
-      else if (pressedKeys.has("KeyW") && pressedKeys.has("KeyD")) {
+      } else if (pressedKeys.has("KeyW") && pressedKeys.has("KeyD")) {
         socket.send(
-          JSON.stringify({
-            type: "MOVEXY",
-            data: "UPRIGHT",
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "MOVEXY",
+              data: "UPRIGHT",
+            })
+          )
         );
-      }
-      else if (pressedKeys.has("KeyS") && pressedKeys.has("KeyA")) {
+      } else if (pressedKeys.has("KeyS") && pressedKeys.has("KeyA")) {
         socket.send(
-          JSON.stringify({
-            type: "MOVEXY",
-            data: "DOWNLEFT",
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "MOVEXY",
+              data: "DOWNLEFT",
+            })
+          )
         );
-      }
-      else if (pressedKeys.has("KeyS") && pressedKeys.has("KeyD")) {
+      } else if (pressedKeys.has("KeyS") && pressedKeys.has("KeyD")) {
         socket.send(
-          JSON.stringify({
-            type: "MOVEXY",
-            data: "DOWNRIGHT",
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "MOVEXY",
+              data: "DOWNRIGHT",
+            })
+          )
         );
       }
     } else {
       if (pressedKeys.has("KeyW")) {
         socket.send(
-          JSON.stringify({
-            type: "MOVEXY",
-            data: "UP",
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "MOVEXY",
+              data: "UP",
+            })
+          )
         );
-      }
-      else if (pressedKeys.has("KeyS")) {
+      } else if (pressedKeys.has("KeyS")) {
         socket.send(
-          JSON.stringify({
-            type: "MOVEXY",
-            data: "DOWN",
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "MOVEXY",
+              data: "DOWN",
+            })
+          )
         );
-      }
-      else if (pressedKeys.has("KeyA")) {
+      } else if (pressedKeys.has("KeyA")) {
         socket.send(
-          JSON.stringify({
-            type: "MOVEXY",
-            data: "LEFT",
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "MOVEXY",
+              data: "LEFT",
+            })
+          )
         );
-      }
-      else if (pressedKeys.has("KeyD")) {
+      } else if (pressedKeys.has("KeyD")) {
         socket.send(
-          JSON.stringify({
-            type: "MOVEXY",
-            data: "RIGHT",
-          })
+          packet.encode(
+            JSON.stringify({
+              type: "MOVEXY",
+              data: "RIGHT",
+            })
+          )
         );
       }
     }
@@ -814,7 +877,7 @@ function createPlayer(data: any) {
         if (this.chat.trim() !== "") {
           const lines = getLines(context, this.chat, 500).reverse();
           let startingPosition = this.position.y;
-  
+
           for (let i = 0; i < lines.length; i++) {
             startingPosition -= 15;
             context.fillText(lines[i], this.position.x + 16, startingPosition);
@@ -850,7 +913,13 @@ function createPlayer(data: any) {
       // show purple dot at center of player
       context.fillStyle = "purple";
       context.beginPath();
-      context.arc(this.position.x + 16, this.position.y + 24, 2, 0, 2 * Math.PI);
+      context.arc(
+        this.position.x + 16,
+        this.position.y + 24,
+        2,
+        0,
+        2 * Math.PI
+      );
       context.fill();
 
       // Draw the player's health bar below the player's name with a width of 100px, centered below the player name
@@ -959,7 +1028,7 @@ function updateTargetStats(health: number, stamina: number) {
   }
 }
 
-async function updateMiniMap() { 
+async function updateMiniMap() {
   // Check if there is already a minimap image
   const image = map.querySelector("img");
 
@@ -1061,98 +1130,116 @@ document
   .getElementById("pause-menu-action-exit")
   ?.addEventListener("click", () => {
     socket.send(
-      JSON.stringify({
-        type: "LOGOUT",
-        data: null,
-      })
+      packet.encode(
+        JSON.stringify({
+          type: "LOGOUT",
+          data: null,
+        })
+      )
     );
     window.location.href = "/";
   });
 
 fpsSlider.addEventListener("input", () => {
-  document.getElementById("limit-fps-label")!.innerText = `FPS: (${fpsSlider.value})`;
+  document.getElementById(
+    "limit-fps-label"
+  )!.innerText = `FPS: (${fpsSlider.value})`;
 });
 
 musicSlider.addEventListener("input", () => {
-  document.getElementById("music-volume-label")!.innerText = `Music: (${musicSlider.value})`;
+  document.getElementById(
+    "music-volume-label"
+  )!.innerText = `Music: (${musicSlider.value})`;
 });
 
 effectsSlider.addEventListener("input", () => {
-  document.getElementById("effects-volume-label")!.innerText = `Effects: (${effectsSlider.value})`;
+  document.getElementById(
+    "effects-volume-label"
+  )!.innerText = `Effects: (${effectsSlider.value})`;
 });
 
 fpsSlider.addEventListener("change", () => {
   socket.send(
-    JSON.stringify({
-      type: "CLIENTCONFIG",
-      data: {
-        fps: parseInt(fpsSlider.value),
-        music_volume: parseInt(musicSlider.value),
-        effects_volume: parseInt(effectsSlider.value),
-        muted: mutedCheckbox.checked,
-        language: languageSelect.value,
-      } as ConfigData,
-    })
+    packet.encode(
+      JSON.stringify({
+        type: "CLIENTCONFIG",
+        data: {
+          fps: parseInt(fpsSlider.value),
+          music_volume: parseInt(musicSlider.value),
+          effects_volume: parseInt(effectsSlider.value),
+          muted: mutedCheckbox.checked,
+          language: languageSelect.value,
+        } as ConfigData,
+      })
+    )
   );
 });
 
 musicSlider.addEventListener("change", () => {
   socket.send(
-    JSON.stringify({
-      type: "CLIENTCONFIG",
-      data: {
-        fps: parseInt(fpsSlider.value),
-        music_volume: parseInt(musicSlider.value),
-        effects_volume: parseInt(effectsSlider.value),
-        muted: mutedCheckbox.checked,
-        language: languageSelect.value,
-      } as ConfigData,
-    })
+    packet.encode(
+      JSON.stringify({
+        type: "CLIENTCONFIG",
+        data: {
+          fps: parseInt(fpsSlider.value),
+          music_volume: parseInt(musicSlider.value),
+          effects_volume: parseInt(effectsSlider.value),
+          muted: mutedCheckbox.checked,
+          language: languageSelect.value,
+        } as ConfigData,
+      })
+    )
   );
 });
 
 effectsSlider.addEventListener("change", () => {
   socket.send(
-    JSON.stringify({
-      type: "CLIENTCONFIG",
-      data: {
-        fps: parseInt(fpsSlider.value),
-        music_volume: parseInt(musicSlider.value),
-        effects_volume: parseInt(effectsSlider.value),
-        muted: mutedCheckbox.checked,
-        language: languageSelect.value,
-      } as ConfigData,
-    })
+    packet.encode(
+      JSON.stringify({
+        type: "CLIENTCONFIG",
+        data: {
+          fps: parseInt(fpsSlider.value),
+          music_volume: parseInt(musicSlider.value),
+          effects_volume: parseInt(effectsSlider.value),
+          muted: mutedCheckbox.checked,
+          language: languageSelect.value,
+        } as ConfigData,
+      })
+    )
   );
 });
 
 mutedCheckbox.addEventListener("change", () => {
   socket.send(
-    JSON.stringify({
-      type: "CLIENTCONFIG",
-      data: {
-        fps: parseInt(fpsSlider.value),
-        music_volume: parseInt(musicSlider.value),
-        effects_volume: parseInt(effectsSlider.value),
-        muted: mutedCheckbox.checked,
-        language: languageSelect.value,
-      } as ConfigData,
-    })
+    packet.encode(
+      JSON.stringify({
+        type: "CLIENTCONFIG",
+        data: {
+          fps: parseInt(fpsSlider.value),
+          music_volume: parseInt(musicSlider.value),
+          effects_volume: parseInt(effectsSlider.value),
+          muted: mutedCheckbox.checked,
+          language: languageSelect.value,
+        } as ConfigData,
+      })
+    )
   );
 });
 
 languageSelect.addEventListener("change", () => {
   socket.send(
-    JSON.stringify({
-      type: "CLIENTCONFIG",
-      data: {
-        fps: parseInt(fpsSlider.value),
-        music_volume: parseInt(musicSlider.value),
-        effects_volume: parseInt(effectsSlider.value),
-        muted: mutedCheckbox.checked,
-        language: languageSelect.value,
-      } as ConfigData,
-    })
+    packet.encode(
+      JSON.stringify({
+        type: "CLIENTCONFIG",
+        data: {
+          fps: parseInt(fpsSlider.value),
+          music_volume: parseInt(musicSlider.value),
+          effects_volume: parseInt(effectsSlider.value),
+          muted: mutedCheckbox.checked,
+          language: languageSelect.value,
+        } as ConfigData,
+      })
+    )
   );
 });
 
@@ -1167,10 +1254,12 @@ document.addEventListener("contextmenu", (event) => {
   const moveX = x - playerCanvas.width / 2 - 16;
   const moveY = y - playerCanvas.height / 2 - 24;
   socket.send(
-    JSON.stringify({
-      type: "TELEPORTXY",
-      data: { x: moveX, y: moveY },
-    })
+    packet.encode(
+      JSON.stringify({
+        type: "TELEPORTXY",
+        data: { x: moveX, y: moveY },
+      })
+    )
   );
 });
 
@@ -1188,9 +1277,11 @@ document.addEventListener("click", (event) => {
   const moveY = y - playerCanvas.height / 2 - 24;
 
   socket.send(
-    JSON.stringify({
-      type: "SELECTPLAYER",
-      data: { x: moveX, y: moveY },
-    })
+    packet.encode(
+      JSON.stringify({
+        type: "SELECTPLAYER",
+        data: { x: moveX, y: moveY },
+      })
+    )
   );
 });

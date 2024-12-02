@@ -50,6 +50,7 @@ declare interface MapData {
   name: string;
   data: any;
   hash: string;
+  compressed: Buffer;
 }
 
 // Define tileset data
