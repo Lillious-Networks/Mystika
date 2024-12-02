@@ -1,0 +1,48 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 25px;
+    background-color: #010409;
+    color: #CAD0D6;
+}
+
+li {
+    text-decoration: none;
+    padding-bottom: 5px;
+    padding-top: 5px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+span {
+    display: inline;
+    font-size: 1.2em;
+}
+
+.function {
+    color: #4491F1;
+}
+
+.method {
+    color: #9C7DF8;
+}
+
+.params {
+    color: #f7c466;
+}
+
+.description {
+    background-color: #151B23;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+hr {
+    border: 1px solid #3D444D;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}

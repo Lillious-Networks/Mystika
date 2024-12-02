@@ -245,7 +245,7 @@ listener.on("onSave", async () => {
 });
 
 // Exported Server events
-export const Events = {
+export const events = {
   GetOnlineCount() {
     return connections.size;
   },

@@ -190,12 +190,12 @@ import assetCache from '../services/assetCache'; // Asset caching
 <h5>assetCache.remove(key: string)</h5>
 <p style="font-size:0.75em;">Removes an item from the cache</p>
 
-<h5>cache.clear()</h5>
-<h5>assetCache.clear()</h5>
+<h5>cache.clear();</h5>
+<h5>assetCache.clear();</h5>
 <p style="font-size:0.75em;">Clears the cache</p>
 
-<h5>cache.list()</h5>
-<h5>assetCache.list()</h5>
+<h5>cache.list();</h5>
+<h5>assetCache.list();</h5>
 <p style="font-size:0.75em;">Fetches all items from the cache</p>
 
 <hr>
@@ -205,19 +205,19 @@ import assetCache from '../services/assetCache'; // Asset caching
 import { Events } from "../socket/server";
 ```
 
-<h5>Events.GetOnlineCount();</h5>
+<h5>events.GetOnlineCount();</h5>
 <p style="font-size:0.75em;">Returns the amount of clients that are currently connected</p>
 
-<h5>Events.GetOnlineData();</h5>
+<h5>events.GetOnlineData();</h5>
 <p style="font-size:0.75em;">Returns a list that contains client connection data</p>
 
-<h5>Events.Broadcast(packet: string);</h5>
+<h5>events.Broadcast(packet: string);</h5>
 <p style="font-size:0.75em;">Broadcasts a message to all connected clients</p>
 
-<h5>Events.GetClientRequests();</h5>
+<h5>events.GetClientRequests();</h5>
 <p style="font-size:0.75em;">Returns a list that contains client request data
 
-<h5>Events.GetRateLimitedClients();</h5>
+<h5>events.GetRateLimitedClients();</h5>
 <p style="font-size:0.75em;">Returns a list of rate limited clients</p>
 
 <hr>

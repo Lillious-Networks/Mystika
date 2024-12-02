@@ -117,6 +117,10 @@ app.use(ReigisterRouter);
 import { router as BenchmarkRouter } from "../routes/benchmark";
 app.use(BenchmarkRouter);
 
+// Documentation Routes
+import { router as DocumentationRouter } from "../routes/documentation";
+app.use(DocumentationRouter);
+
 import { router as LoginRouter } from "../routes/login";
 app.use(LoginRouter);
 
