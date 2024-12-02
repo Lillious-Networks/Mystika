@@ -56,7 +56,7 @@ declare interface MapData {
 // Define tileset data
 declare interface TilesetData {
   name: string;
-  data: string;
+  data: Buffer;
   hash: string;
 }
 

@@ -146,12 +146,14 @@ export function loadTilesets() {
   const tilesetFiles = fs.readdirSync(tilesetDir);
   tilesetFiles.forEach((file) => {
     const tilesetData = fs.readFileSync(path.join(tilesetDir, file), "base64");
+    const compressedData = zlib.gzipSync(tilesetData);
     log.debug(`Loaded tileset: ${file}`);
+    log.debug(`Compressed tileset: ${file}\n- ${tilesetData.length} (bytes) -> ${compressedData.length} (bytes)\n- Compression Ratio: ${(tilesetData.length / compressedData.length).toFixed(2)}% | Compression: ${(((tilesetData.length - compressedData.length) / tilesetData.length) * 100).toFixed(2)}%`);
     const tilesetHash = crypto
       .createHash("sha256")
       .update(tilesetData)
       .digest("hex");
-    tilesets.push({ name: file, data: tilesetData, hash: tilesetHash });
+    tilesets.push({ name: file, data: compressedData, hash: tilesetHash });
   });
 
   assetCache.add("tilesets", tilesets);

@@ -209,10 +209,8 @@ socket.addEventListener("message", async (event) => {
     case "LOAD_MAP":
       {
         // Uncompress zlib compressed data
-        
-        const binArray = new Uint8Array(new Uint8Array(data[0].data));
         // @ts-expect-error - pako is not defined because it is loaded in the index.html
-        const inflated = pako.inflate(binArray, { to: "string" });
+        const inflated = pako.inflate(new Uint8Array(new Uint8Array(data[0].data)), { to: "string" });
         const mapData = inflated ? JSON.parse(inflated) : null;
         const mapHash = data[1] as string;
         const mapName = data[2];
@@ -273,7 +271,10 @@ socket.addEventListener("message", async (event) => {
           }
 
           const image = new Image();
-          image.src = `data:image/png;base64,${r.tileset.data}`;
+          // Uncompress zlib compressed data
+          // @ts-expect-error - pako is not defined because it is loaded in the index.html
+          const inflatedTilesetData = pako.inflate(new Uint8Array(r.tileset.data.data), { to: "string" });
+          image.src = `data:image/png;base64,${inflatedTilesetData}`;
           await new Promise((resolve) => {
             image.onload = () => resolve(true);
           });
