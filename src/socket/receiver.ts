@@ -332,6 +332,15 @@ export default async function packetReceiver(
             _player.location.position.direction = "left";
           }
 
+          // If diagonal movement, adjust the player's position because they will move faster
+          if (axis === "x" && direction === -1 && _player.location.position.y % 2 === 0) {
+            tempPosition.y -= 12;
+          }
+
+          if (axis === "x" && direction === 1 && _player.location.position.y % 2 === 0) {
+            tempPosition.y -= 12;
+          }
+
           if (player.checkIfWouldCollide(_player.location.map, tempPosition)) {
             return false;
           }
