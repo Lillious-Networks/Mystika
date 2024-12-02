@@ -795,7 +795,7 @@ async function isLoaded() {
         }
         resolve();
       }
-    }, 100);
+    }, 10);
   });
 }
 
