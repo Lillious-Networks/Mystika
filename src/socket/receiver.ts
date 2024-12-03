@@ -278,11 +278,15 @@ export default async function packetReceiver(
         break;
       }
       case "LOGOUT": {
-        await player.logout(ws.data.id);
+        const _player = cache.get(ws.data.id) as any;
+        await player.setLocation(_player.id, _player.location.map, _player.location.position);
+        await player.logout(_player.id);
         break;
       }
       case "DISCONNECT": {
-        await player.clearSessionId(ws.data.id);
+        const _player = cache.get(ws.data.id) as any;
+        await player.setLocation(_player.id, _player.location.map, _player.location.position);
+        await player.clearSessionId(_player.id);
         break;
       }
       case "MOVEXY": {

@@ -237,13 +237,9 @@ listener.on("onConnection", (data) => {
 listener.on("onDisconnect", async (data) => {
   if (!data) return;
   const playerData = cache.get(data.id);
-  await player.setLocation(
-    data.id,
-    playerData.location.map,
-    playerData.location.position
-  );
-  cache.remove(data.id);
-  player.clearSessionId(data.id);
+  await player.setLocation(playerData.id, playerData.location.map, playerData.location.position);
+  cache.remove(playerData.id);
+  await player.clearSessionId(playerData.id);
   log.debug(`Disconnected: ${playerData.id}`);
 });
 
@@ -254,7 +250,7 @@ listener.on("onSave", async () => {
     await player.setLocation(
       p,
       playerCache[p].location.map,
-      playerCache[p].location.position
+      playerCache[p].location.position,
     );
   }
 });
