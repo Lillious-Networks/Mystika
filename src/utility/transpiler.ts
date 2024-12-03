@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs";
+import log from "../modules/logger";
 
 const transpiler = new Bun.Transpiler({
     loader: "tsx",
@@ -15,7 +16,7 @@ function transpileDirectory(sourceDir: string) {
 
         if (result) {
             const outputFile = path.join(sourceDir, script.replace(".ts", ".js"));
-            console.log(`Transpiled ${script} > ${path.basename(outputFile)}`);
+            log.info(`Transpiled ${script} > ${path.basename(outputFile)}`);
 
             // Token-replace known variables in script
             const envVars = [ // TODO maybe move this to a config ts file or something to make it more visible or something

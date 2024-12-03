@@ -5,8 +5,9 @@
   "scripts": {
     "transpile-development": "bun --env-file=.env.development ./src/utility/transpiler.ts",
     "transpile-production": "bun --env-file=.env.production ./src/utility/transpiler.ts",
-    "production": "bun transpile-production && bun --env-file=.env.production ./src/webserver/server.ts",
-    "development": "bun transpile-development && bun --inspect --env-file=.env.development ./src/webserver/server.ts",
+    "minify": "bun ./src/utility/minify.ts",
+    "production": "bun transpile-production && bun minify && bun --env-file=.env.production ./src/webserver/server.ts",
+    "development": "bun transpile-development && bun minify && bun --inspect --env-file=.env.development ./src/webserver/server.ts",
     "setup": "bun --env-file=.env.production ./src/utility/database_setup.ts",
     "setup-sqlite": "bun --env-file=.env.development ./src/utility/database_setup_sqlite.ts",
     "docs": "bun ./src/utility/generate_docs.ts"
@@ -28,6 +29,7 @@
     "@types/jest": "^29.5.12",
     "@types/nodemailer": "^6.4.14",
     "@types/supertest": "^6.0.2",
+    "@types/uglify-js": "^3.17.5",
     "babel-jest": "^29.7.0",
     "compression": "^1.7.5",
     "cookie-parser": "^1.4.6",
@@ -42,6 +44,7 @@
     "supertest": "^7.0.0",
     "ts-jest": "^29.1.3",
     "ts-node": "^10.9.2",
-    "typescript-eslint": "^8.11.0"
+    "typescript-eslint": "^8.11.0",
+    "uglify-js": "^3.19.3"
   }
 }
