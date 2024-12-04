@@ -11,6 +11,11 @@ input:-webkit-autofill:active{
     font-weight: 600;
 }
 
+button, input[type="submit"] {
+  outline: none;
+  border: none;
+}
+
 p {
   color: #b17767;
   font-weight: 600;

@@ -688,21 +688,25 @@ window.addEventListener("keyup", (e) => {
 
 function handleKeyPress() {
   if (isMoving) return;
-  // const currentPlayer = players.find(
-  //   (player) => player.id === sessionStorage.getItem("connectionId")
-  // );
 
   isMoving = true;
-  const interval = setInterval(() => {
+  
+  // Track the time of the last update
+  let lastTime = performance.now();
+
+  function runMovement() {
+    const currentTime = performance.now();
+    const elapsedTime = currentTime - lastTime;
+    const delay = Math.max(10 - elapsedTime, 0);  // Ensure we always have at least 10ms delay
+
+    lastTime = currentTime + delay; // Set the last time to the current time plus the delay
+
     if (!isKeyPressed) {
-      clearInterval(interval);
       isMoving = false;
       return;
     }
 
     // Only send directional instructions to the server for calculations
-
-    // Check if more than one key is pressed
     if (pressedKeys.size > 1) {
       if (pressedKeys.has("KeyW") && pressedKeys.has("KeyA")) {
         socket.send(
@@ -742,6 +746,7 @@ function handleKeyPress() {
         );
       }
     } else {
+      // Ensure that individual key presses are only checked if no combination is pressed
       if (pressedKeys.has("KeyW")) {
         socket.send(
           packet.encode(
@@ -780,7 +785,12 @@ function handleKeyPress() {
         );
       }
     }
-  }, 10);
+
+    // Recursively call the function with adjusted timeout
+    setTimeout(runMovement, delay);
+  }
+
+  runMovement();  // Start the movement loop
 }
 
 async function isLoaded() {
@@ -1059,7 +1069,10 @@ async function updateMiniMap() {
   if (!currentPlayer) return;
 
   // Update position display
-  mapPosition.innerHTML = `X: ${currentPlayer.position.x}, Y: ${currentPlayer.position.y}`;
+  const positionText = `X: ${currentPlayer.position.x}, Y: ${currentPlayer.position.y}`;
+  if (mapPosition.innerHTML !== positionText) {
+    mapPosition.innerHTML = positionText;
+  }
 
   const canvasWidth = canvas.width;
   const canvasHeight = canvas.height;
@@ -1258,8 +1271,8 @@ document.addEventListener("contextmenu", (event) => {
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
 
-  const moveX = x - playerCanvas.width / 2 - 16;
-  const moveY = y - playerCanvas.height / 2 - 24;
+  const moveX = Math.floor(x - playerCanvas.width / 2 - 16);
+  const moveY = Math.floor(y - playerCanvas.height / 2 - 24);
   socket.send(
     packet.encode(
       JSON.stringify({

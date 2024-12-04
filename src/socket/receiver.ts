@@ -290,127 +290,138 @@ export default async function packetReceiver(
         break;
       }
       case "MOVEXY": {
+        const direction = data.toString().toLowerCase();
+        // Only allow the player to move in these directions
+        const directions = ["up", "down", "left", "right", "upleft", "upright", "downleft", "downright"];
+        if (!directions.includes(direction)) return;
+
         const speed = 2;
         const _player = cache.get(ws.data.id) as any;
+        const time = performance.now();
         if (!_player.lastMovementPacket) {
-          _player.lastMovementPacket = Date.now();
+          _player.lastMovementPacket = time;
         }
-
         /*
           Check if the player is moving too fast and ignore the packet.
           
           Due to the packet being dropped, the player will move at the normally
           enforced speed without the need to kick them.
         */
-        if (Date.now() - _player.lastMovementPacket < 10) return;
-        _player.lastMovementPacket = Date.now();
+        if (time - _player.lastMovementPacket < 8 && time - _player.lastMovementPacket !== 0) return;
 
-        const movePlayer = (axis: "x" | "y", direction: number) => {
-          const tempPosition = { ..._player.location.position };
-          tempPosition[axis] += speed * direction;
-          // Player border box
-          tempPosition.x += 16;
-          tempPosition.y += 24;
+        _player.lastMovementPacket = time;
 
-          // Down
-          if (axis === "y" && direction === 1) {
-            tempPosition.y += 24;
-            _player.location.position.direction = "down";
-          }
+        const tempPosition = { ..._player.location.position };
+        const collisionPosition = { ..._player.location.position };
+        const tileSize = 16;
+        // Center of the player
+        const playerHeight = 48;
+        const playerWidth = 32;
+        collisionPosition.x += playerWidth / 2;
+        collisionPosition.y += playerHeight / 2;
 
-          // Up
-          if (axis === "y" && direction === -1) {
-            tempPosition.y -= 24;
+        switch (direction) {
+          case "up":
+            tempPosition.y -= speed;
+            collisionPosition.y = tempPosition.y;
+            collisionPosition.x = tempPosition.x + tileSize * 2 / 2;
             _player.location.position.direction = "up";
-          }
-
-          // Right
-          if (axis === "x" && direction === 1) {
-            tempPosition.x += 16;
-            _player.location.position.direction = "right";
-          }
-
-          // Left
-          if (axis === "x" && direction === -1) {
-            tempPosition.x -= 16;
+            break;
+          case "down":
+            tempPosition.y += speed;
+            collisionPosition.y = tempPosition.y + tileSize * 2 + tileSize;
+            collisionPosition.x = tempPosition.x + tileSize;
+            _player.location.position.direction = "down";
+            break;
+          case "left":
+            tempPosition.x -= speed;
+            collisionPosition.x = tempPosition.x;
+            collisionPosition.y = tempPosition.y + tileSize * 2 + tileSize / 2;
             _player.location.position.direction = "left";
-          }
+            break;
+          case "right":
+            tempPosition.x += speed;
+            collisionPosition.x = tempPosition.x + tileSize * 2;
+            collisionPosition.y = tempPosition.y + tileSize * 2 + tileSize / 2;
+            _player.location.position.direction = "right";
+            break;
+          case "upleft":
+            tempPosition.x -= speed;
+            tempPosition.y -= speed;
+            collisionPosition.x = tempPosition.x;
+            collisionPosition.y = tempPosition.y;
+            _player.location.position.direction = "upleft";
+            break;
+          case "upright":
+            tempPosition.x += speed;
+            tempPosition.y -= speed;
+            collisionPosition.x = tempPosition.x + tileSize * 2;
+            collisionPosition.y = tempPosition.y;
+            _player.location.position.direction = "upright";
+            break;
+          case "downleft":
+            tempPosition.x -= speed;
+            tempPosition.y += speed;
+            collisionPosition.x = tempPosition.x;
+            collisionPosition.y = tempPosition.y + tileSize * 2 + tileSize;
+            _player.location.position.direction = "downleft";
+            break;
+          case "downright":
+            tempPosition.x += speed;
+            tempPosition.y += speed;
+            collisionPosition.x = tempPosition.x + tileSize * 2;
+            collisionPosition.y = tempPosition.y + tileSize * 2 + tileSize;
+            _player.location.position.direction = "downright";
+            break;
+        }
 
-          // If diagonal movement, adjust the player's position because they will move faster
-          if (axis === "x" && direction === -1 && _player.location.position.y % 2 === 0) {
-            tempPosition.y -= 12;
-          }
+        // console.log(`Old position: ${_player.location.position.x},${_player.location.position.y}`);
+        // console.log(`New position: ${tempPosition.x},${tempPosition.y}`);
 
-          if (axis === "x" && direction === 1 && _player.location.position.y % 2 === 0) {
-            tempPosition.y -= 12;
-          }
+        const collision = player.checkIfWouldCollide(_player.location.map, collisionPosition);
+        if (collision) return;
 
-          if (player.checkIfWouldCollide(_player.location.map, tempPosition)) {
-            return false;
-          }
-
-          _player.location.position[axis] += Math.floor(speed * direction);
-          return true;
-        };
-
-        const moveDirections: Record<string, () => boolean> = {
-          up: () => movePlayer("y", -1),
-          down: () => movePlayer("y", 1),
-          left: () => movePlayer("x", -1),
-          right: () => movePlayer("x", 1),
-          upleft: () => movePlayer("y", -1) && movePlayer("x", -1),
-          upright: () => movePlayer("y", -1) && movePlayer("x", 1),
-          downleft: () => movePlayer("y", 1) && movePlayer("x", -1),
-          downright: () => movePlayer("y", 1) && movePlayer("x", 1),
-        };
-
-        if (data.toString().toLowerCase() in moveDirections) {
-          const didMove = moveDirections[data.toString().toLowerCase()]();
-          if (didMove) {
-            // Send the player's new position to only admins if the player is in stealth mode
-            if (_player.isStealth) {
-              const playerCache = cache.list();
-              const players = Object.values(playerCache).filter(
-                (p) =>
-                  p.isAdmin &&
-                  p.location.map.replaceAll(".json", "") ===
-                    _player.location.map.replaceAll(".json", "")
-              );
-              players.forEach((player) => {
-                player.ws.send(
-                  packet.encode(
-                    JSON.stringify({
-                      type: "MOVEXY",
-                      data: {
-                        id: ws.data.id,
-                        _data: _player.location.position,
-                      },
-                    })
-                  )
-                );
-              });
-            } else {
-              const playerCache = cache.list();
-              const players = Object.values(playerCache).filter(
-                (p) =>
-                  p.location.map.replaceAll(".json", "") ===
-                  _player.location.map.replaceAll(".json", "")
-              );
-              players.forEach((player) => {
-                player.ws.send(
-                  packet.encode(
-                    JSON.stringify({
-                      type: "MOVEXY",
-                      data: {
-                        id: ws.data.id,
-                        _data: _player.location.position,
-                      },
-                    })
-                  )
-                );
-              });
-            }
-          }
+        _player.location.position = tempPosition;
+        const playerCache = cache.list();
+        if (_player.isStealth) {
+          const players = Object.values(playerCache).filter(
+            (p) =>
+              p.isAdmin &&
+              p.location.map.replaceAll(".json", "") ===
+                _player.location.map.replaceAll(".json", "")
+          );
+          players.forEach((player) => {
+            player.ws.send(
+              packet.encode(
+                JSON.stringify({
+                  type: "MOVEXY",
+                  data: {
+                    id: ws.data.id,
+                    _data: _player.location.position,
+                  },
+                })
+              )
+            );
+          });
+        } else {
+          const players = Object.values(playerCache).filter(
+            (p) =>
+              p.location.map.replaceAll(".json", "") ===
+              _player.location.map.replaceAll(".json", "")
+          );
+          players.forEach((player) => {
+            player.ws.send(
+              packet.encode(
+                JSON.stringify({
+                  type: "MOVEXY",
+                  data: {
+                    id: ws.data.id,
+                    _data: _player.location.position,
+                  },
+                })
+              )
+            );
+          });
         }
         break;
       }
@@ -422,6 +433,8 @@ export default async function packetReceiver(
         if (_player.isStealth) {
           const playerCache = cache.list();
           const players = Object.values(playerCache).filter((p) => p.isAdmin);
+          _player.location.position.x = Math.floor(Number(_player.location.position.x));
+          _player.location.position.y = Math.floor(Number(_player.location.position.y));
           players.forEach((player) => {
             player.ws.send(
               packet.encode(
