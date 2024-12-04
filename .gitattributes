@@ -5,6 +5,6 @@ eslint.config.mjs linguist-vendored
 babel.config.ts linguist-vendored
 jest.config.ts linguist-vendored
 webserver/www/game/js/libs/** linguist-vendored
-src/webserver/www/game/*.html linguist-vendored
-src/webserver/www/public/*.html linguist-vendored
-src/webserver/www/public/css/** linguist-vendored
+webserver/www/game/*.html linguist-vendored
+webserver/www/public/*.html linguist-vendored
+webserver/www/public/css/** linguist-vendored
