@@ -4,6 +4,8 @@
   <img src="../../blob/main/src/webserver/www/public/img/logo.gif?raw=true">
 </p>
 
+![github](https://img.shields.io/github/actions/workflow/status/Lillious-Networks/Mystika/build_release.yml)
+
 > [!NOTE]
 > This project is currently a **work in progress**
 >
