@@ -290,7 +290,7 @@ export default async function packetReceiver(
         break;
       }
       case "MOVEXY": {
-        const direction = data.toString().toLowerCase();
+        const direction = data.toString().toLowerCase() as keyof typeof directionAdjustments;
         // Only allow the player to move in these directions
         const directions = ["up", "down", "left", "right", "upleft", "upright", "downleft", "downright"];
         if (!directions.includes(direction)) return;
@@ -320,63 +320,65 @@ export default async function packetReceiver(
         collisionPosition.x += playerWidth / 2;
         collisionPosition.y += playerHeight / 2;
 
-        switch (direction) {
-          case "up":
-            tempPosition.y -= speed;
-            collisionPosition.y = tempPosition.y;
-            collisionPosition.x = tempPosition.x + tileSize * 2 / 2;
-            _player.location.position.direction = "up";
-            break;
-          case "down":
-            tempPosition.y += speed;
-            collisionPosition.y = tempPosition.y + tileSize * 2 + tileSize;
-            collisionPosition.x = tempPosition.x + tileSize;
-            _player.location.position.direction = "down";
-            break;
-          case "left":
-            tempPosition.x -= speed;
-            collisionPosition.x = tempPosition.x;
-            collisionPosition.y = tempPosition.y + tileSize * 2 + tileSize / 2;
-            _player.location.position.direction = "left";
-            break;
-          case "right":
-            tempPosition.x += speed;
-            collisionPosition.x = tempPosition.x + tileSize * 2;
-            collisionPosition.y = tempPosition.y + tileSize * 2 + tileSize / 2;
-            _player.location.position.direction = "right";
-            break;
-          case "upleft":
-            tempPosition.x -= speed;
-            tempPosition.y -= speed;
-            collisionPosition.x = tempPosition.x;
-            collisionPosition.y = tempPosition.y;
-            _player.location.position.direction = "upleft";
-            break;
-          case "upright":
-            tempPosition.x += speed;
-            tempPosition.y -= speed;
-            collisionPosition.x = tempPosition.x + tileSize * 2;
-            collisionPosition.y = tempPosition.y;
-            _player.location.position.direction = "upright";
-            break;
-          case "downleft":
-            tempPosition.x -= speed;
-            tempPosition.y += speed;
-            collisionPosition.x = tempPosition.x;
-            collisionPosition.y = tempPosition.y + tileSize * 2 + tileSize;
-            _player.location.position.direction = "downleft";
-            break;
-          case "downright":
-            tempPosition.x += speed;
-            tempPosition.y += speed;
-            collisionPosition.x = tempPosition.x + tileSize * 2;
-            collisionPosition.y = tempPosition.y + tileSize * 2 + tileSize;
-            _player.location.position.direction = "downright";
-            break;
-        }
+        const directionAdjustments = {
+          up: {
+              tempX: 0,
+              tempY: -speed,
+              collisionX: (tempPosition: PositionData) => tempPosition.x + (tileSize * 2) / 2,
+              collisionY: (tempPosition: PositionData) => tempPosition.y,
+          },
+          down: {
+              tempX: 0,
+              tempY: speed,
+              collisionX: (tempPosition: PositionData) => tempPosition.x + tileSize,
+              collisionY: (tempPosition: PositionData) => tempPosition.y + tileSize * 2 + tileSize,
+          },
+          left: {
+              tempX: -speed,
+              tempY: 0,
+              collisionX: (tempPosition: PositionData) => tempPosition.x,
+              collisionY: (tempPosition: PositionData) => tempPosition.y + tileSize * 2 + tileSize / 2,
+          },
+          right: {
+              tempX: speed,
+              tempY: 0,
+              collisionX: (tempPosition: PositionData) => tempPosition.x + tileSize * 2,
+              collisionY: (tempPosition: PositionData) => tempPosition.y + tileSize * 2 + tileSize / 2,
+          },
+          upleft: {
+              tempX: -speed,
+              tempY: -speed,
+              collisionX: (tempPosition: PositionData) => tempPosition.x,
+              collisionY: (tempPosition: PositionData) => tempPosition.y,
+          },
+          upright: {
+              tempX: speed,
+              tempY: -speed,
+              collisionX: (tempPosition: PositionData) => tempPosition.x + tileSize * 2,
+              collisionY: (tempPosition: PositionData) => tempPosition.y,
+          },
+          downleft: {
+              tempX: -speed,
+              tempY: speed,
+              collisionX: (tempPosition: PositionData) => tempPosition.x,
+              collisionY: (tempPosition: PositionData) => tempPosition.y + tileSize * 2 + tileSize,
+          },
+          downright: {
+              tempX: speed,
+              tempY: speed,
+              collisionX: (tempPosition: PositionData) => tempPosition.x + tileSize * 2,
+              collisionY: (tempPosition: PositionData) => tempPosition.y + tileSize * 2 + tileSize,
+          },
+      };
 
-        // console.log(`Old position: ${_player.location.position.x},${_player.location.position.y}`);
-        // console.log(`New position: ${tempPosition.x},${tempPosition.y}`);
+      if (!directionAdjustments[direction]) return;
+      
+        const adjustment = directionAdjustments[direction];
+        tempPosition.x += adjustment.tempX;
+        tempPosition.y += adjustment.tempY;
+        collisionPosition.x = adjustment.collisionX(tempPosition);
+        collisionPosition.y = adjustment.collisionY(tempPosition);
+
 
         const collision = player.checkIfWouldCollide(_player.location.map, collisionPosition);
         if (collision) return;
