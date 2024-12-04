@@ -4,3 +4,4 @@ assets/** linguist-vendored
 eslint.config.mjs linguist-vendored
 babel.config.ts linguist-vendored
 jest.config.ts linguist-vendored
+webserver/www/game/js/libs/** linguist-vendored
