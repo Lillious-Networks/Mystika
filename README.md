@@ -22,20 +22,20 @@
 > <br>
 > Database Creation:
 >
-> ``bun run setup``
+> ``bun setup``
 
 <h5>Running the server</h5>
 
 <p><b>- Production (MySQL)</b></p>
 
 ```
-bun run production
+bun production
 ```
 
 <p><b>- Development (Sqlite)</b></p>
 
 ```
-bun run development
+bun development
 ```
 
 <h5>Database Setup</h5>
