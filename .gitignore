@@ -20,3 +20,4 @@ src/webserver/www/game/js/*.js
 src/webserver/www/public/js/*.js
 *.sqlite
 src/utility/*.md
+.VSCodeCounter
