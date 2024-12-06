@@ -1,6 +1,7 @@
 const socket = new WebSocket(`__VAR.WEBSOCKETURL__`);
 socket.binaryType = "arraybuffer";
 const players = [] as any[];
+const audioCache = new Map<string, string>();
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d");
 const playerCanvas = document.getElementById("players") as HTMLCanvasElement;
@@ -491,6 +492,12 @@ socket.addEventListener("message", async (event) => {
         if (player.id === data.id) {
           player.isStealth = data.isStealth;
         }
+        // Untarget if the player is stealthed and targeted
+        if (player.isStealth && player.targeted) {
+          player.targeted = false;
+          targetStats.style.display = "none";
+          updateTargetStats(0, 0);
+        }
       });
       break;
     }
@@ -514,14 +521,49 @@ socket.addEventListener("message", async (event) => {
       if (target.id === sessionStorage.getItem("connectionId")) {
         updateStats(target.stats.health, target.stats.stamina);
       } else {
-        updateTargetStats(target.stats.health, target.stats.stamina);
+        target.targeted = false;
+        targetStats.style.display = "none";
+        updateTargetStats(0, 0);
       }
+      break;
+    }
+    case "AUDIO": {
+      // If the audio is muted, don't play any sounds
+      const name = JSON.parse(packet.decode(event.data))["name"];
+      const data = JSON.parse(packet.decode(event.data))["data"];
+      const pitch = JSON.parse(packet.decode(event.data))["pitch"] || 1;
+      playAudio(name, data.data.data, pitch);
       break;
     }
     default:
       break;
   }
 });
+
+function playAudio(name: string, data: Buffer, pitch: number): void {
+  // Get mute status
+  const mute = mutedCheckbox.checked;
+  if (mute) return;
+  // Get effects volume
+  const volume = Number(effectsSlider.value) / 100;
+  // @ts-expect-error - pako is not defined because it is loaded in the index.html
+  // Check if the audio is already cached, if not, inflate the data
+  const cachedAudio = audioCache.get(name) || pako.inflate(new Uint8Array(data), { to: 'string' });
+  const audio = new Audio(`data:audio/wav;base64,${cachedAudio}`);
+  if (!audio) {
+    console.error("Failed to create audio element");
+    return;
+  }
+  audio.playbackRate = pitch;
+  audio.volume = volume;
+  try {
+    audio.play();
+    // Cache the audio
+    audioCache.set(name, cachedAudio);
+  } catch (e) {
+    console.error(e);
+  }  
+}
 
 function getCookie(cname: string) {
   const name = cname + "=";
@@ -657,6 +699,9 @@ window.addEventListener("keydown", (e) => {
   }
 
   if (e.code === "Space") {
+    if (!loaded) return;
+    // Check if paused
+    if (pauseMenu.style.display == "block") return;
     const target = players.find((player) => player.targeted);
     if (!target) return;
     socket.send(
@@ -687,6 +732,10 @@ window.addEventListener("keyup", (e) => {
 });
 
 function handleKeyPress() {
+  if (!loaded) return;
+  // Check if paused
+  if (pauseMenu.style.display == "block") return;
+  // Check if the chat input is focused
   if (isMoving) return;
 
   isMoving = true;
@@ -1266,6 +1315,7 @@ languageSelect.addEventListener("change", () => {
 // Capture click and get coordinates from canvas
 document.addEventListener("contextmenu", (event) => {
   if (!loaded) return;
+  if ((event.target as HTMLElement)?.classList.contains("ui")) return;
   // Check where we clicked on the canvas
   const rect = canvas.getBoundingClientRect();
   const x = event.clientX - rect.left;

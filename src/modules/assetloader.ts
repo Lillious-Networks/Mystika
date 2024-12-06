@@ -18,7 +18,7 @@ const items = assetCache.get("items") as Item[];
 log.debug(`Loaded ${items.length} item(s) from the database`);
 
 // Load maps
-export function loadMaps() {
+function loadMaps() {
   const maps = [] as MapData[];
   const failedMaps = [] as string[];
   const mapDir = path.join(import.meta.dir, "..", "assets", "maps");
@@ -138,7 +138,7 @@ export function loadMaps() {
 loadMaps();
 
 // Load tilesets
-export function loadTilesets() {
+function loadTilesets() {
   const tilesets = [] as TilesetData[];
   const tilesetDir = path.join(import.meta.dir, "..", "assets", "tilesets");
   if (!fs.existsSync(tilesetDir)) return tilesets;
@@ -161,7 +161,7 @@ export function loadTilesets() {
 loadTilesets();
 
 // Load scripts
-export function loadScripts() {
+function loadScripts() {
   const scripts = [] as ScriptData[];
   const scriptDir = path.join(import.meta.dir, "..", "assets", "scripts");
   if (!fs.existsSync(scriptDir)) return scripts;
@@ -190,3 +190,23 @@ function tryParse(data: string): any {
     return null;
   }
 }
+
+
+function loadSoundEffects () {
+  const soundEffects = [] as AudioData[];
+  const soundEffectDir = path.join(import.meta.dir, "..", "assets", "sfx");
+  if (!fs.existsSync(soundEffectDir)) return soundEffects;
+  // MP3 files are used for sound effects
+  const soundEffectFiles = fs.readdirSync(soundEffectDir).filter((file) => file.endsWith(".mp3"));
+  soundEffectFiles.forEach((file) => {
+    const name = file.replace(".mp3", "");
+    const data = fs.readFileSync(path.join(soundEffectDir, file), "base64");
+    const compressedData = zlib.gzipSync(data);
+    log.debug(`Loaded sound effect: ${name}`);
+    log.debug(`Compressed sound effect: ${name}\n- ${data.length} (bytes) -> ${compressedData.length} (bytes)\n- Compression Ratio: ${(data.length / compressedData.length).toFixed(2)}% | Compression: ${(((data.length - compressedData.length) / data.length) * 100).toFixed(2)}%`);
+    soundEffects.push({ name, data: compressedData });
+  });
+  assetCache.add("audio", soundEffects);
+}
+
+loadSoundEffects();

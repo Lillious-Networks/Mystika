@@ -29,4 +29,5 @@ export const packetTypes: PacketType = {
   27: "REVIVE",
   28: "UPDATESTATS",
   29: "TARGETCLOSEST",
+  30: "AUDIO",
 };

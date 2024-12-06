@@ -35,6 +35,8 @@ export default async function packetReceiver(
       ws.close(1007, "Invalid packet type");
     }
 
+    const currentPlayer = cache.get(ws.data.id) || null;
+
     // Handle the packet
     switch (type) {
       case "BENCHMARK": {
@@ -278,28 +280,28 @@ export default async function packetReceiver(
         break;
       }
       case "LOGOUT": {
-        const _player = cache.get(ws.data.id) as any;
-        await player.setLocation(_player.id, _player.location.map, _player.location.position);
-        await player.logout(_player.id);
+        if (!currentPlayer) return;
+        await player.setLocation(currentPlayer.id, currentPlayer.location.map, currentPlayer.location.position);
+        await player.logout(currentPlayer.id);
         break;
       }
       case "DISCONNECT": {
-        const _player = cache.get(ws.data.id) as any;
-        await player.setLocation(_player.id, _player.location.map, _player.location.position);
-        await player.clearSessionId(_player.id);
+        if (!currentPlayer) return;
+        await player.setLocation(currentPlayer.id, currentPlayer.location.map, currentPlayer.location.position);
+        await player.clearSessionId(currentPlayer.id);
         break;
       }
       case "MOVEXY": {
+        if (!currentPlayer) return;
         const direction = data.toString().toLowerCase() as keyof typeof directionAdjustments;
         // Only allow the player to move in these directions
         const directions = ["up", "down", "left", "right", "upleft", "upright", "downleft", "downright"];
         if (!directions.includes(direction)) return;
 
         const speed = 2;
-        const _player = cache.get(ws.data.id) as any;
         const time = performance.now();
-        if (!_player.lastMovementPacket) {
-          _player.lastMovementPacket = time;
+        if (!currentPlayer.lastMovementPacket) {
+          currentPlayer.lastMovementPacket = time;
         }
         /*
           Check if the player is moving too fast and ignore the packet.
@@ -307,12 +309,12 @@ export default async function packetReceiver(
           Due to the packet being dropped, the player will move at the normally
           enforced speed without the need to kick them.
         */
-        if (time - _player.lastMovementPacket < 8 && time - _player.lastMovementPacket !== 0) return;
+        if (time - currentPlayer.lastMovementPacket < 8 && time - currentPlayer.lastMovementPacket !== 0) return;
 
-        _player.lastMovementPacket = time;
+        currentPlayer.lastMovementPacket = time;
 
-        const tempPosition = { ..._player.location.position };
-        const collisionPosition = { ..._player.location.position };
+        const tempPosition = { ...currentPlayer.location.position };
+        const collisionPosition = { ...currentPlayer.location.position };
         const tileSize = 16;
         // Center of the player
         const playerHeight = 48;
@@ -324,48 +326,56 @@ export default async function packetReceiver(
           up: {
               tempX: 0,
               tempY: -speed,
+              direction: "up",
               collisionX: (tempPosition: PositionData) => tempPosition.x + (tileSize * 2) / 2,
               collisionY: (tempPosition: PositionData) => tempPosition.y,
           },
           down: {
               tempX: 0,
               tempY: speed,
+              direction: "down",
               collisionX: (tempPosition: PositionData) => tempPosition.x + tileSize,
               collisionY: (tempPosition: PositionData) => tempPosition.y + tileSize * 2 + tileSize,
           },
           left: {
               tempX: -speed,
               tempY: 0,
+              direction: "left",
               collisionX: (tempPosition: PositionData) => tempPosition.x,
               collisionY: (tempPosition: PositionData) => tempPosition.y + tileSize * 2 + tileSize / 2,
           },
           right: {
               tempX: speed,
               tempY: 0,
+              direction: "right",
               collisionX: (tempPosition: PositionData) => tempPosition.x + tileSize * 2,
               collisionY: (tempPosition: PositionData) => tempPosition.y + tileSize * 2 + tileSize / 2,
           },
           upleft: {
               tempX: -speed,
               tempY: -speed,
+              direction: "upleft",
               collisionX: (tempPosition: PositionData) => tempPosition.x,
               collisionY: (tempPosition: PositionData) => tempPosition.y,
           },
           upright: {
               tempX: speed,
               tempY: -speed,
+              direction: "upright",
               collisionX: (tempPosition: PositionData) => tempPosition.x + tileSize * 2,
               collisionY: (tempPosition: PositionData) => tempPosition.y,
           },
           downleft: {
               tempX: -speed,
               tempY: speed,
+              direction: "downleft",
               collisionX: (tempPosition: PositionData) => tempPosition.x,
               collisionY: (tempPosition: PositionData) => tempPosition.y + tileSize * 2 + tileSize,
           },
           downright: {
               tempX: speed,
               tempY: speed,
+              direction: "downright",
               collisionX: (tempPosition: PositionData) => tempPosition.x + tileSize * 2,
               collisionY: (tempPosition: PositionData) => tempPosition.y + tileSize * 2 + tileSize,
           },
@@ -376,21 +386,21 @@ export default async function packetReceiver(
         const adjustment = directionAdjustments[direction];
         tempPosition.x += adjustment.tempX;
         tempPosition.y += adjustment.tempY;
+        tempPosition.direction = adjustment.direction;
         collisionPosition.x = adjustment.collisionX(tempPosition);
         collisionPosition.y = adjustment.collisionY(tempPosition);
 
-
-        const collision = player.checkIfWouldCollide(_player.location.map, collisionPosition);
+        const collision = player.checkIfWouldCollide(currentPlayer.location.map, collisionPosition);
         if (collision) return;
 
-        _player.location.position = tempPosition;
+        currentPlayer.location.position = tempPosition;
         const playerCache = cache.list();
-        if (_player.isStealth) {
+        if (currentPlayer.isStealth) {
           const players = Object.values(playerCache).filter(
             (p) =>
               p.isAdmin &&
               p.location.map.replaceAll(".json", "") ===
-                _player.location.map.replaceAll(".json", "")
+              currentPlayer.location.map.replaceAll(".json", "")
           );
           players.forEach((player) => {
             player.ws.send(
@@ -399,7 +409,7 @@ export default async function packetReceiver(
                   type: "MOVEXY",
                   data: {
                     id: ws.data.id,
-                    _data: _player.location.position,
+                    _data: currentPlayer.location.position,
                   },
                 })
               )
@@ -409,7 +419,7 @@ export default async function packetReceiver(
           const players = Object.values(playerCache).filter(
             (p) =>
               p.location.map.replaceAll(".json", "") ===
-              _player.location.map.replaceAll(".json", "")
+            currentPlayer.location.map.replaceAll(".json", "")
           );
           players.forEach((player) => {
             player.ws.send(
@@ -418,7 +428,7 @@ export default async function packetReceiver(
                   type: "MOVEXY",
                   data: {
                     id: ws.data.id,
-                    _data: _player.location.position,
+                    _data: currentPlayer.location.position,
                   },
                 })
               )
@@ -428,15 +438,14 @@ export default async function packetReceiver(
         break;
       }
       case "TELEPORTXY": {
-        const _player = cache.get(ws.data.id) as any;
-        if (!_player.isAdmin) return;
-        _player.location.position = data;
-        _player.location.position.direction = "down";
-        if (_player.isStealth) {
+        if (!currentPlayer?.isAdmin) return;
+        currentPlayer.location.position = data;
+        currentPlayer.location.position.direction = "down";
+        if (currentPlayer.isStealth) {
           const playerCache = cache.list();
           const players = Object.values(playerCache).filter((p) => p.isAdmin);
-          _player.location.position.x = Math.floor(Number(_player.location.position.x));
-          _player.location.position.y = Math.floor(Number(_player.location.position.y));
+          currentPlayer.location.position.x = Math.floor(Number(currentPlayer.location.position.x));
+          currentPlayer.location.position.y = Math.floor(Number(currentPlayer.location.position.y));
           players.forEach((player) => {
             player.ws.send(
               packet.encode(
@@ -444,7 +453,7 @@ export default async function packetReceiver(
                   type: "MOVEXY",
                   data: {
                     id: ws.data.id,
-                    _data: _player.location.position,
+                    _data: currentPlayer.location.position,
                   },
                 })
               )
@@ -458,7 +467,7 @@ export default async function packetReceiver(
                 type: "MOVEXY",
                 data: {
                   id: ws.data.id,
-                  _data: _player.location.position,
+                  _data: currentPlayer.location.position,
                 },
               })
             )
@@ -468,10 +477,7 @@ export default async function packetReceiver(
       }
       case "CHAT": {
         if (data.toString().length > 255) return;
-
-        const _player = cache.get(ws.data.id) as any;
-        if (!_player) return;
-
+        if (!currentPlayer) return;
         // Send message to the sender
         const sendMessageToPlayer = (playerWs: any, message: string) => {
           playerWs.send(
@@ -491,10 +497,10 @@ export default async function packetReceiver(
 
         const playerCache = cache.list();
         let playersInMap = Object.values(playerCache).filter(
-          (p) => p.location.map === _player.location.map && p.id !== ws.data.id
+          (p) => p.location.map === currentPlayer.location.map && p.id !== ws.data.id
         );
 
-        if (_player.isStealth) {
+        if (currentPlayer.isStealth) {
           // Filter only admins in the same map
           playersInMap = playersInMap.filter((p) => p.isAdmin);
         }
@@ -516,20 +522,20 @@ export default async function packetReceiver(
       }
 
       case "CLIENTCONFIG": {
-        const _player = cache.get(ws.data.id) as any;
+        if (!currentPlayer) return;
         const _data = data as any;
-        _player.language = _data.language;
+        currentPlayer.language = _data.language;
         await player.setConfig(ws.data.id, data);
         break;
       }
       case "SELECTPLAYER": {
+        if (!currentPlayer) return;
         const location = data as unknown as LocationData;
         const playerCache = cache.list();
         // Get current player data from cache
-        const player = cache.get(ws.data.id) as any;
         // only get players that are in the same map
         const players = Object.values(playerCache).filter(
-          (p) => p.location.map === player.location.map
+          (p) => p.location.map === currentPlayer.location.map
         );
         // Find the first player that is closest to the selected location within a 25px radius
         const selectedPlayer = players.find(
@@ -578,13 +584,13 @@ export default async function packetReceiver(
         break;
       }
       case "TARGETCLOSEST": {
+        if (!currentPlayer) return;
         const playerCache = cache.list();
-        const _player = cache.get(ws.data.id) as any;
         const players = Object.values(playerCache).filter(
-          (p) => p.location.map === _player.location.map && p.id !== ws.data.id
+          (p) => p.location.map === currentPlayer.location.map && p.id !== ws.data.id
         );
         const closestPlayer = await player.findClosestPlayer(
-          _player,
+          currentPlayer,
           players,
           500
         );
@@ -604,10 +610,9 @@ export default async function packetReceiver(
         break;
       }
       case "STEALTH": {
-        const _player = cache.get(ws.data.id);
-        if (!_player || !_player.isAdmin) return;
-        const isStealth = await player.toggleStealth(_player.username);
-        _player.isStealth = isStealth;
+        if (!currentPlayer?.isAdmin) return;
+        const isStealth = await player.toggleStealth(currentPlayer.username);
+        currentPlayer.isStealth = isStealth;
         server.publish(
           "STEALTH" as Subscription["event"],
           packet.encode(
@@ -629,7 +634,7 @@ export default async function packetReceiver(
                 type: "MOVEXY",
                 data: {
                   id: ws.data.id,
-                  _data: _player.location.position,
+                  _data: currentPlayer.location.position,
                 },
               })
             )
@@ -638,15 +643,54 @@ export default async function packetReceiver(
         break;
       }
       case "ATTACK": {
-        const _player = cache.get(ws.data.id);
-        if (_player.attackDelay > Date.now()) return;
+        if (currentPlayer?.attackDelay > Date.now()) return;
         const _data = data as any;
         const target = cache.get(_data.id);
         if (!target) return;
-        // Check if the player can attack
-        if (!(await player.canAttack(_player, target, 60))) return;
 
-        const damage = 5;
+        const players = Object.values(cache.list()).filter(
+          (p) => p.location.map.replaceAll(".json", "") === currentPlayer.location.map.replaceAll(".json", "")
+        );
+
+        // Check if the player can attack
+        if (!player.canAttack(currentPlayer, target, 60)) return;
+
+        // Generate a number for the pitch of the audio
+        const pitch = Math.random() * 0.1 + 0.95;
+        
+        // Check if player is currently in stealth mode
+        // If the player is in stealth mode, only send an audio packet to admins
+        if (currentPlayer.isStealth) {
+          const adminPlayers = players.filter((p) => p.isAdmin);
+          adminPlayers.forEach((player) => {
+            player.ws.send(
+              packet.encode(
+                JSON.stringify({
+                  type: "AUDIO",
+                  name: "attack_sword",
+                  data: assetCache.get("audio").find((a: AudioData) => a.name === "attack_sword"),
+                  pitch: pitch
+                })
+              )
+            );
+          });
+        } else {
+          players.forEach((player) => {
+            player.ws.send(
+              packet.encode(
+                JSON.stringify({
+                  type: "AUDIO",
+                  name: "attack_sword",
+                  data: assetCache.get("audio").find((a: AudioData) => a.name === "attack_sword"),
+                  pitch: pitch
+                })
+              )
+            );
+          });
+        }
+
+        // Random whole number between 10 and 25
+        const damage = Math.floor(Math.random() * (25 - 10 + 1) + 10);
         target.stats.health -= damage;
 
         if (target.stats.health <= 0) {
@@ -694,10 +738,9 @@ export default async function packetReceiver(
         }
 
         player.setStats(target.username, target.stats);
-        _player.attackDelay = Date.now() + 1000;
+        currentPlayer.attackDelay = Date.now() + 1000;
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        _player.attackDelay = 0;
-
+        currentPlayer.attackDelay = 0;
         break;
       }
       // Unknown packet type

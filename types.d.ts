@@ -76,6 +76,7 @@ declare interface Player {
   map?: string;
   stats?: StatsData;
   isStealth?: boolean;
+  isAdmin?: boolean;
 }
 
 type NullablePlayer = Player | null;
@@ -127,4 +128,11 @@ declare interface WeaponData {
   quality: string;
   type: string;
   description: string;
+}
+
+// Define Sound effects data
+declare interface AudioData {
+  name: string;
+  data: Buffer;
+  pitch?: number;
 }

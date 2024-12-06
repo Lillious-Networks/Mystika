@@ -132,6 +132,7 @@ const PacketTypes: PacketType = {
   27: "REVIVE",
   28: "UPDATESTATS",
   29: "TARGETCLOSEST",
+  30: "AUDIO",
 };
 ```
 
@@ -644,6 +645,33 @@ await player.canAttack(self, target, range);
 <h5>player.findClosestPlayer();</h5>
 <p style="font-size:0.75em;">Returns the closest player or null</p>
 
+<hr>
+<h3>Audio Management</h3>
+
 ```ts
-await player.findClosestPlayer(self, players, range)
+import audio from "../systems/audio";
+```
+
+<h5>Structure</h5>
+
+```ts
+declare interface AudioData {
+  name: string;
+  data: Buffer;
+  pitch?: number;
+}
+```
+
+<h5>audio.list();</h5>
+<p style="font-size:0.75em;">List all audio files in cache</p>
+
+```ts
+audio.list() as AudioData[];
+```
+
+<h5>audio.get();</h5>
+<p style="font-size:0.75em;">Fetches an audio file from cache</p>
+
+```ts
+audio.get(name) as AudioData[];
 ```

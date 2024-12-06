@@ -52,7 +52,7 @@ const player = {
     findByUsername: async (username: string) => {
         if (!username) return;
         const response = await query("SELECT username FROM accounts WHERE username = ?", [username]);
-        return response;
+        return response || [];
     },
     findByEmail: async (email: string) => {
         if (!email) return;
@@ -284,7 +284,7 @@ const player = {
         const response = await query("UPDATE accounts SET banned = 1 WHERE username = ?", [username]);
         return response;
     },
-    canAttack: async (self: Player, target: Player, range: number): Promise<boolean> => {
+    canAttack: (self: Player, target: Player, range: number): boolean => {
         // No self or target or no range
         if (!self || !target || !range) return false;
 
@@ -303,7 +303,7 @@ const player = {
         const targetPosition = target.location.position as unknown as PositionData;
         const selfPosition = self.location.position as unknown as PositionData;
         const direction = selfPosition.direction;
-
+        
         if (direction === "up" && (selfPosition.y - targetPosition.y <= range
             && selfPosition.y - targetPosition.y >= 0)
             && (Math.abs(selfPosition.x - targetPosition.x) <= range)) return true;
