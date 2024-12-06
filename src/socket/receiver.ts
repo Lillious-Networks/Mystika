@@ -682,7 +682,8 @@ export default async function packetReceiver(
                   type: "AUDIO",
                   name: "attack_sword",
                   data: assetCache.get("audio").find((a: AudioData) => a.name === "attack_sword"),
-                  pitch: pitch
+                  pitch: pitch,
+                  timestamp: performance.now()
                 })
               )
             );

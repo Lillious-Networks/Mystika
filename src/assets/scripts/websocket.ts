@@ -532,7 +532,8 @@ socket.addEventListener("message", async (event) => {
       const name = JSON.parse(packet.decode(event.data))["name"];
       const data = JSON.parse(packet.decode(event.data))["data"];
       const pitch = JSON.parse(packet.decode(event.data))["pitch"] || 1;
-      playAudio(name, data.data.data, pitch);
+      const timestamp = JSON.parse(packet.decode(event.data))["timestamp"];
+      playAudio(name, data.data.data, pitch, timestamp);
       break;
     }
     default:
@@ -540,15 +541,17 @@ socket.addEventListener("message", async (event) => {
   }
 });
 
-function playAudio(name: string, data: Buffer, pitch: number): void {
+function playAudio(name: string, data: Buffer, pitch: number, timestamp: number): void {
   // Get mute status
   const mute = mutedCheckbox.checked;
   if (mute) return;
   // Get effects volume
   const volume = Number(effectsSlider.value) / 100;
-  // @ts-expect-error - pako is not defined because it is loaded in the index.html
+  const newTimestamp = performance.now();
   // Check if the audio is already cached, if not, inflate the data
-  const cachedAudio = audioCache.get(name) || pako.inflate(new Uint8Array(data), { to: 'string' });
+  // @ts-expect-error - pako is not defined because it is loaded in the index.html
+  const cachedAudio = timestamp < newTimestamp - 3.6e+6 ? pako.inflate(new Uint8Array(data), { to: 'string' }) : audioCache.get(name) || pako.inflate(new Uint8Array(data), { to: 'string' });
+  
   const audio = new Audio(`data:audio/wav;base64,${cachedAudio}`);
   if (!audio) {
     console.error("Failed to create audio element");
