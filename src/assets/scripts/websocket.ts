@@ -528,7 +528,6 @@ socket.addEventListener("message", async (event) => {
       break;
     }
     case "AUDIO": {
-      // If the audio is muted, don't play any sounds
       const name = JSON.parse(packet.decode(event.data))["name"];
       const data = JSON.parse(packet.decode(event.data))["data"];
       const pitch = JSON.parse(packet.decode(event.data))["pitch"] || 1;
@@ -549,7 +548,6 @@ function playAudio(name: string, data: Buffer, pitch: number, timestamp: number)
   // Check if the audio is already cached, if not, inflate the data
   // @ts-expect-error - pako is not defined because it is loaded in the index.html
   const cachedAudio = timestamp < performance.now() - 3.6e+6 ? pako.inflate(new Uint8Array(data),{ to: 'string' }) : audioCache.get(name)|| pako.inflate(new Uint8Array(data), { to: 'string' });
-  
   const audio = new Audio(`data:audio/wav;base64,${cachedAudio}`);
   if (!audio) {
     console.error("Failed to create audio element");
