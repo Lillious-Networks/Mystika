@@ -543,14 +543,12 @@ socket.addEventListener("message", async (event) => {
 
 function playAudio(name: string, data: Buffer, pitch: number, timestamp: number): void {
   // Get mute status
-  const mute = mutedCheckbox.checked;
-  if (mute) return;
+  if (mutedCheckbox.checked) return;
   // Get effects volume
   const volume = Number(effectsSlider.value) / 100;
-  const newTimestamp = performance.now();
   // Check if the audio is already cached, if not, inflate the data
   // @ts-expect-error - pako is not defined because it is loaded in the index.html
-  const cachedAudio = timestamp < newTimestamp - 3.6e+6 ? pako.inflate(new Uint8Array(data), { to: 'string' }) : audioCache.get(name) || pako.inflate(new Uint8Array(data), { to: 'string' });
+  const cachedAudio = timestamp < performance.now() - 3.6e+6 ? pako.inflate(new Uint8Array(data),{ to: 'string' }) : audioCache.get(name)|| pako.inflate(new Uint8Array(data), { to: 'string' });
   
   const audio = new Audio(`data:audio/wav;base64,${cachedAudio}`);
   if (!audio) {
