@@ -11,12 +11,16 @@ const language = {
         let response = await language.post({ text, lang }) as any;
         if (!response) return text;
         // Replace any HTML entities
-        response = response.replace(/&amp;/g, "&");
-        response = response.replace(/&lt;/g, "<");
-        response = response.replace(/&gt;/g, ">");
-        response = response.replace(/&quot;/g, "\"");
-        response = response.replace(/&#39;/g, "'");
-        response = response.replace(/&#96;/g, "`");
+        const htmlEntities: { [key: string]: string } = {
+            "&amp;": "&",
+            "&lt;": "<",
+            "&gt;": ">",
+            "&quot;": "\"",
+            "&#39;": "'",
+            "&#96;": "`"
+        };
+
+        response = response.replace(/&(?:amp|lt|gt|quot|#39|#96);/g, (match: string) => htmlEntities[match]);
         
         log.debug(`Translated text: ${response}`);
         return response;
