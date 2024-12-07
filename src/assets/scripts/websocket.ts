@@ -50,6 +50,7 @@ let loaded: boolean = false;
 let toggleInventory = false;
 const times = [] as number[];
 let lastFrameTime = 0; // Track the time of the last frame
+let controllerConnected = false;
 
 const packet = {
   decode(data: ArrayBuffer) {
@@ -127,6 +128,92 @@ function currentPlayerLoop() {
 // Start the animation loops
 animationLoop();
 currentPlayerLoop();
+
+let lastSentTime = 0; // Tracks the last time data was sent
+
+async function gameLoop() {
+  // Check if the game is loaded or the pause menu is open or the chat input is focused
+  if (!loaded || pauseMenu.style.display === "block" || chatInput == document.activeElement) {
+    window.requestAnimationFrame(gameLoop);
+    return;
+  }
+
+  const currentTime = performance.now();
+
+  // Throttle sending data to once every 10ms
+  if (currentTime - lastSentTime < 10) {
+    window.requestAnimationFrame(gameLoop);
+    return;
+  }
+
+  const gamepads = navigator.getGamepads();
+  if (!gamepads || !gamepads[0]) {
+    window.requestAnimationFrame(gameLoop);
+    return;
+  }
+
+  const gamepad = gamepads[0];
+
+  // Get joystick values and handle potential NaN
+  let x = Number(gamepad.axes[0]) || 0;
+  let y = Number(gamepad.axes[1]) || 0;
+
+  // Apply deadzone threshold
+  const deadzone = 0.1;
+  x = Math.abs(x) < deadzone ? 0 : x;
+  y = Math.abs(y) < deadzone ? 0 : y;
+
+  // Skip sending data if joystick is in the deadzone
+  if (x === 0 && y === 0) {
+    window.requestAnimationFrame(gameLoop);
+    return;
+  }
+
+  // Determine the angle in degrees
+  const angle = Math.atan2(y, x) * (180 / Math.PI);
+
+  // Determine direction based on angle ranges
+  let direction = "";
+  if (angle >= -22.5 && angle < 22.5) {
+    direction = "RIGHT";
+  } else if (angle >= 22.5 && angle < 67.5) {
+    direction = "DOWNRIGHT";
+  } else if (angle >= 67.5 && angle < 112.5) {
+    direction = "DOWN";
+  } else if (angle >= 112.5 && angle < 157.5) {
+    direction = "DOWNLEFT";
+  } else if (angle >= 157.5 || angle < -157.5) {
+    direction = "LEFT";
+  } else if (angle >= -157.5 && angle < -112.5) {
+    direction = "UPLEFT";
+  } else if (angle >= -112.5 && angle < -67.5) {
+    direction = "UP";
+  } else if (angle >= -67.5 && angle < -22.5) {
+    direction = "UPRIGHT";
+  }
+
+  // Send the direction if determined
+  if (direction) {
+    socket.send(
+      packet.encode(
+        JSON.stringify({
+          type: "MOVEXY",
+          data: direction,
+        })
+      )
+    );
+
+    // Update the last sent time
+    lastSentTime = currentTime;
+  }
+
+  window.requestAnimationFrame(gameLoop);
+}
+
+
+
+// Start the game loop
+gameLoop();
 
 socket.addEventListener("open", () => {
   const _packet = {
@@ -586,7 +673,7 @@ const pressedKeys = new Set();
 const movementKeys = new Set(["KeyW", "KeyA", "KeyS", "KeyD"]);
 
 window.addEventListener("keydown", (e) => {
-  if (!loaded) return;
+  if (!loaded || controllerConnected) return;
   if (movementKeys.has(e.code) && chatInput !== document.activeElement) {
     if (pauseMenu.style.display == "block") return;
     pressedKeys.add(e.code);
@@ -1353,4 +1440,17 @@ document.addEventListener("click", (event) => {
       })
     )
   );
+});
+
+
+window.addEventListener("gamepadconnected", (e) => {
+  const gamepad = navigator.getGamepads()[e.gamepad.index];
+  if (!gamepad) return;
+  controllerConnected = true;
+  console.log(`Gamepad connected at index ${gamepad.index}: ${gamepad.id}`);
+});
+
+window.addEventListener("gamepaddisconnected", (e) => {
+  controllerConnected = false;
+  console.log("Gamepad disconnected");
 });
