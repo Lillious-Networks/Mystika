@@ -1450,7 +1450,7 @@ window.addEventListener("gamepadconnected", (e) => {
   console.log(`Gamepad connected at index ${gamepad.index}: ${gamepad.id}`);
 });
 
-window.addEventListener("gamepaddisconnected", (e) => {
+window.addEventListener("gamepaddisconnected", () => {
   controllerConnected = false;
   console.log("Gamepad disconnected");
 });
