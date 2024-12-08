@@ -52,6 +52,16 @@ const times = [] as number[];
 let lastFrameTime = 0; // Track the time of the last frame
 let controllerConnected = false;
 
+// Event listener for gamepad connection
+window.addEventListener("gamepadconnected", () => {
+  controllerConnected = true;
+});
+
+// Event listener for gamepad disconnection
+window.addEventListener("gamepaddisconnected", () => {
+  controllerConnected = false;
+});
+
 const packet = {
   decode(data: ArrayBuffer) {
     const decoder = new TextDecoder();
@@ -136,9 +146,13 @@ window.addEventListener("gamepadjoystick", (e: CustomEventInit) => {
   if (!loaded) return;
   if (pauseMenu.style.display == "block") return;
 
+  if (performance.now() - lastSentTime < 10) {
+    return;
+  }
+
   // Get the joystick coordinates
-  let x = e.detail.x;
-  let y = e.detail.y;
+  const x = e.detail.x;
+  const y = e.detail.y;
 
   // Determine the angle in degrees
   const angle = Math.atan2(y, x) * (180 / Math.PI);
