@@ -56,7 +56,8 @@ async function loadScripts(scripts: string[]) {
     try {
       await loadScripts([
         "packets",
-        "websocket"
+        "websocket",
+        "gamepad",
       ]);
     } catch (error) {
       console.error(error);

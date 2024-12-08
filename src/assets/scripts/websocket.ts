@@ -129,45 +129,16 @@ function currentPlayerLoop() {
 animationLoop();
 currentPlayerLoop();
 
-let lastSentTime = 0; // Tracks the last time data was sent
+let lastSentTime = 0;
 
-async function gameLoop() {
-  // Check if the game is loaded or the pause menu is open or the chat input is focused
-  if (!loaded || pauseMenu.style.display === "block" || chatInput == document.activeElement) {
-    window.requestAnimationFrame(gameLoop);
-    return;
-  }
+// Event listener for joystick movement
+window.addEventListener("gamepadjoystick", (e: CustomEventInit) => {
+  if (!loaded) return;
+  if (pauseMenu.style.display == "block") return;
 
-  const currentTime = performance.now();
-
-  // Throttle sending data to once every 10ms
-  if (currentTime - lastSentTime < 10) {
-    window.requestAnimationFrame(gameLoop);
-    return;
-  }
-
-  const gamepads = navigator.getGamepads();
-  if (!gamepads || !gamepads[0]) {
-    window.requestAnimationFrame(gameLoop);
-    return;
-  }
-
-  const gamepad = gamepads[0];
-
-  // Get joystick values and handle potential NaN
-  let x = Number(gamepad.axes[0]) || 0;
-  let y = Number(gamepad.axes[1]) || 0;
-
-  // Apply deadzone threshold
-  const deadzone = 0.1;
-  x = Math.abs(x) < deadzone ? 0 : x;
-  y = Math.abs(y) < deadzone ? 0 : y;
-
-  // Skip sending data if joystick is in the deadzone
-  if (x === 0 && y === 0) {
-    window.requestAnimationFrame(gameLoop);
-    return;
-  }
+  // Get the joystick coordinates
+  let x = e.detail.x;
+  let y = e.detail.y;
 
   // Determine the angle in degrees
   const angle = Math.atan2(y, x) * (180 / Math.PI);
@@ -202,18 +173,9 @@ async function gameLoop() {
         })
       )
     );
-
-    // Update the last sent time
-    lastSentTime = currentTime;
+    lastSentTime = performance.now();
   }
-
-  window.requestAnimationFrame(gameLoop);
-}
-
-
-
-// Start the game loop
-gameLoop();
+});
 
 socket.addEventListener("open", () => {
   const _packet = {
@@ -1443,14 +1405,14 @@ document.addEventListener("click", (event) => {
 });
 
 
-window.addEventListener("gamepadconnected", (e) => {
-  const gamepad = navigator.getGamepads()[e.gamepad.index];
-  if (!gamepad) return;
-  controllerConnected = true;
-  console.log(`Gamepad connected at index ${gamepad.index}: ${gamepad.id}`);
-});
+// window.addEventListener("gamepadconnected", (e) => {
+//   const gamepad = navigator.getGamepads()[e.gamepad.index];
+//   if (!gamepad) return;
+//   controllerConnected = true;
+//   console.log(`Gamepad connected at index ${gamepad.index}: ${gamepad.id}`);
+// });
 
-window.addEventListener("gamepaddisconnected", () => {
-  controllerConnected = false;
-  console.log("Gamepad disconnected");
-});
+// window.addEventListener("gamepaddisconnected", () => {
+//   controllerConnected = false;
+//   console.log("Gamepad disconnected");
+// });
