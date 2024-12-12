@@ -649,7 +649,7 @@ const pressedKeys = new Set();
 const movementKeys = new Set(["KeyW", "KeyA", "KeyS", "KeyD"]);
 
 window.addEventListener("keydown", (e) => {
-  if (!loaded || controllerConnected) return;
+  if (!loaded) return;
   if (movementKeys.has(e.code) && chatInput !== document.activeElement) {
     if (pauseMenu.style.display == "block") return;
     pressedKeys.add(e.code);
@@ -726,8 +726,11 @@ window.addEventListener("keydown", (e) => {
     chatInput.focus();
   } else if (e.code === "Enter" && chatInput == document.activeElement) {
     if (pauseMenu.style.display == "block") return;
-    if (!chatInput?.value) return;
-    if (chatInput.value.trim() === "") return;
+    if (!chatInput?.value || chatInput?.value?.trim() === "") {
+      chatInput.value = "";
+      chatInput.blur();
+      return;
+    }
     socket.send(
       packet.encode(
         JSON.stringify({
@@ -794,7 +797,7 @@ window.addEventListener("keyup", (e) => {
 });
 
 function handleKeyPress() {
-  if (!loaded) return;
+  if (!loaded || controllerConnected) return;
   // Check if paused
   if (pauseMenu.style.display == "block") return;
   // Check if the chat input is focused
