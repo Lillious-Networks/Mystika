@@ -1,0 +1,11 @@
+{
+    "maps": {
+        "path": "../assets/maps/"
+    },
+    "tilesets": {
+        "path": "../assets/tilesets/"
+    },
+    "sfx": {
+        "path": "../assets/sfx/"
+    }
+}

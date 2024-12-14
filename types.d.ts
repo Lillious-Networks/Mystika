@@ -131,7 +131,7 @@ declare interface WeaponData {
 }
 
 // Define Sound effects data
-declare interface AudioData {
+declare interface SoundData {
   name: string;
   data: Buffer;
   pitch?: number;
