@@ -6,7 +6,8 @@ import weapon from "../systems/weapon";
 import item from "../systems/items";
 import assetCache from "../services/assetCache";
 import zlib from "zlib";
-import * as asset from '../config/assets.json';
+// @ts-ignore - Generated file
+import * as asset from '../config/assets.json'
 
 // Load weapon data
 assetCache.add("weapons", await weapon.list());

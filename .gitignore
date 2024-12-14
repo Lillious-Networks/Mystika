@@ -13,6 +13,7 @@ src/certs/*.jceks
 src/certs/*.ca-bundle
 src/certs/**
 src/logs/
+src/config/assets.json
 .env
 .env.production
 src/assets/scripts/*.js

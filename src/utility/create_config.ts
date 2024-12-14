@@ -1,0 +1,27 @@
+import path from "path";
+import fs from "fs";
+import log from "../modules/logger";
+
+const configPath = path.join(import.meta.dir, "..", "config");
+if (!fs.existsSync(configPath)) {
+  fs.mkdirSync(configPath);
+}
+
+const config = {
+    "maps": {
+        "path": "../assets/maps/"
+    },
+    "tilesets": {
+        "path": "../assets/tilesets/"
+    },
+    "sfx": {
+        "path": "../assets/sfx/"
+    }
+};
+
+if (!fs.existsSync(path.join(configPath, "assets.json"))) {
+  fs.writeFileSync(path.join(configPath, "assets.json"), JSON.stringify(config, null, 2));
+  log.info("Created config file");
+} else {
+    log.info("Loaded config file");
+}
