@@ -11,7 +11,6 @@ src/certs/*.pfx
 src/certs/*.jks
 src/certs/*.jceks
 src/certs/*.ca-bundle
-src/certs/**
 src/logs/
 config/
 .env
