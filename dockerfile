@@ -9,5 +9,6 @@ COPY package*.json ./
 COPY . .
 EXPOSE 80
 EXPOSE 3000
+EXPOSE 443
 
 CMD ["sh", "-c", "bun install && bun production"]
