@@ -58,6 +58,11 @@ bun setup-sqlite
 bun test
 ```
 
+<h5>Create Config</h5>
+```
+bun create-config
+```
+
 <h3>Production Environment Variables</h3>
 
 > [!IMPORTANT]
@@ -83,6 +88,7 @@ WEBSRV_USESSL
 WEBSRV_USECERT
 GOOGLE_TRANSLATE_API_KEY
 WEB_SOCKET_URL
+ASSET_PATH
 ```
 
 <h3>Client Identity</h3>
