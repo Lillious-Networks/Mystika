@@ -7,19 +7,6 @@ import item from "../systems/items";
 import assetCache from "../services/assetCache";
 import zlib from "zlib";
 
-import assetConfig from "../services/assetConfig";
-const assetPath = assetConfig.getAssetConfig();
-if (!assetPath || !fs.existsSync(path.join(import.meta.dir, assetPath))) {
-  throw new Error(`Asset path not found at ${assetPath}`);
-}
-
-const asset = fs.readFileSync(path.join(import.meta.dir, assetPath), "utf-8");
-if (!asset) {
-  throw new Error("Failed to load asset config");
-}
-
-const assetData = JSON.parse(asset);
-
 // Load weapon data
 assetCache.add("weapons", await weapon.list());
 const weapons = assetCache.get("weapons") as WeaponData[];
@@ -34,7 +21,8 @@ log.debug(`Loaded ${items.length} item(s) from the database`);
 function loadMaps() {
   const maps = [] as MapData[];
   const failedMaps = [] as string[];
-  const mapDir = path.join(import.meta.dir, assetData.maps.path);
+  const mapDir = path.join(import.meta.dir, '..', 'assets', 'maps');
+  console.log(mapDir);
   if (!fs.existsSync(mapDir)) {
     throw new Error(`Maps directory not found at ${mapDir}`);
   }
@@ -155,7 +143,7 @@ loadMaps();
 // Load tilesets
 function loadTilesets() {
   const tilesets = [] as TilesetData[];
-  const tilesetDir = path.join(import.meta.dir, assetData.tilesets.path);
+  const tilesetDir = path.join(import.meta.dir, "..", "assets", "tilesets");
   if (!fs.existsSync(tilesetDir)) {
     throw new Error(`Tilesets directory not found at ${tilesetDir}`);
   }
@@ -211,7 +199,7 @@ function tryParse(data: string): any {
 
 function loadSoundEffects () {
   const soundEffects = [] as SoundData[];
-  const soundEffectDir = path.join(import.meta.dir, assetData.sfx.path);
+  const soundEffectDir = path.join(import.meta.dir, "..", "assets", "sfx");
   if (!fs.existsSync(soundEffectDir)) {
     throw new Error(`Sound effects directory not found at ${soundEffectDir}`);
   }

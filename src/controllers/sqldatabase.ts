@@ -1,7 +1,22 @@
 import log from "../modules/logger";
 import * as mysql from "mysql2";
 import * as sqlite from "bun:sqlite";
-const _databaseEngine = process.env.DATABASE_ENGINE || "mysql";
+import fs from "fs";
+import path from "path";
+
+
+const _databaseEngine = process.env.DATABASE_ENGINE || "mysql"
+
+function getSqlCert() {
+  if (process.env.SQL_SSL_MODE === "DISABLED") {
+    return false;
+  }
+  return {
+    ca: fs.readFileSync(
+      path.join(import.meta.dirname, "..", "certs", "ca-certificate.crt")
+    ),
+  }
+}
 
 const pool = mysql.createPool({
   host: process.env.DATABASE_HOST,
@@ -9,6 +24,7 @@ const pool = mysql.createPool({
   password: process.env.DATABASE_PASSWORD,
   waitForConnections: true,
   database: process.env.DATABASE_NAME,
+  ssl: getSqlCert(),
 } as mysql.PoolOptions);
 
 let _sqlitedb: sqlite.Database;
