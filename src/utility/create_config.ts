@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import log from "../modules/logger";
 
-const configPath = path.join(import.meta.dir, "..", "config");
+const configPath = path.join("config");
 if (!fs.existsSync(configPath)) {
   fs.mkdirSync(configPath);
 }
