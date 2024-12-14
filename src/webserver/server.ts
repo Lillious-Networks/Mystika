@@ -19,23 +19,8 @@ import "../modules/assetloader";
 
 /* SSL Certificate Setup */
 const _cert = path.join(import.meta.dir, "../certs/cert.crt");
-const _ca = path.join(import.meta.dir, "../certs/cert.ca-bundle");
 const _key = path.join(import.meta.dir, "../certs/cert.key");
-let _https = false;
-
-if (fs.existsSync(_cert) && fs.existsSync(_ca) && fs.existsSync(_key)) {
-  _https = true;
-}
-
-const cert = _https ? fs.readFileSync(_cert, "utf8") : "";
-const ca = _https ? fs.readFileSync(_ca, "utf8") : "";
-const key = _https ? fs.readFileSync(_key, "utf8") : "";
-
-const credentials = {
-  cert: cert,
-  ca: ca,
-  key: key,
-};
+const _https = fs.existsSync(_cert) && fs.existsSync(_key);
 
 // Middleware
 app.use(express.json());
@@ -140,12 +125,21 @@ import { router as functionRouter } from "../routes/functions";
 app.use(functionRouter);
 
 const server = http.createServer(app);
-const httpsServer = https.createServer(credentials, app);
 
 if (_https) {
-  httpsServer.listen(sslport, async () => {
-    log.info(`HTTPS server is listening on localhost:${sslport}`);
-  });
+  try {
+    const cert = _https ? fs.readFileSync(_cert, "utf8") : "";
+    const key = _https ? fs.readFileSync(_key, "utf8") : "";
+  
+    https.createServer({
+      cert: cert,
+      key: key,
+    }, app).listen(sslport, () => {
+      log.info(`HTTPS server is listening on localhost:${sslport}`);
+    });
+  } catch (e: any) {
+    log.error(`Error starting HTTPS server: ${e.message}`);
+  }
 }
 
 server.listen(port, async () => {
