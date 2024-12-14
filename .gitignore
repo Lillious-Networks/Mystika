@@ -22,3 +22,4 @@ src/webserver/www/public/js/*.js
 *.sqlite
 src/utility/*.md
 .VSCodeCounter
+bun.lockb
