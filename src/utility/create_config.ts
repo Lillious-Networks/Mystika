@@ -20,8 +20,8 @@ const config = {
 };
 
 if (!fs.existsSync(path.join(configPath, "assets.json"))) {
-  fs.writeFileSync(path.join(configPath, "assets.json"), JSON.stringify(config, null, 2));
-  log.info("Created config file");
-} else {
-    log.info("Loaded config file");
-}
+    fs.writeFileSync(path.join(configPath, "assets.json"), JSON.stringify(config, null, 2));
+    log.info(`Created config file at ${path.join(configPath, "assets.json")}`);
+  } else {
+      log.info(`Config file loaded from ${path.join(configPath, "assets.json")}`);
+  }
