@@ -70,6 +70,12 @@ bun create-config
 bun docker
 ```
 
+<h5>Stop Docker</h5>
+
+```
+bun stop-docker
+```
+
 <h3>Production Environment Variables</h3>
 
 > [!IMPORTANT]

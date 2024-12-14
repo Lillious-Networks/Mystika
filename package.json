@@ -15,7 +15,7 @@
     "docker-stop": "docker stop Mystika && bun docker-remove",
     "docker-remove": "docker rm Mystika",
     "docker-build": "docker build --pull --rm -f 'dockerfile' -t mystika:latest '.'",
-    "docker-run": "bun docker-stop && docker run -d --name Mystika -p 80:80 -p 3000:3000 mystika:latest",
+    "docker-run": "docker run -d --name Mystika -p 80:80 -p 3000:3000 mystika:latest",
     "docker": "bun docker-build && bun docker-run"
   },
   "devDependencies": {
