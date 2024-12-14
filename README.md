@@ -64,6 +64,12 @@ bun test
 bun create-config
 ```
 
+<h5>Run Docker</h5>
+
+```
+bun docker
+```
+
 <h3>Production Environment Variables</h3>
 
 > [!IMPORTANT]
