@@ -15,6 +15,7 @@ router.post("/register", async (req, res) => {
   // Checks if both passwords are equivalent, returns error if different
   if (req.body.password != req.body.password2) {
     res.status(400).send("Passwords do not match");
+    return;
   }
 
   const user = await player.register(req.body.username, req.body.password, req.body.email, req) as string;
