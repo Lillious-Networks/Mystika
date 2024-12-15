@@ -12,11 +12,17 @@ import fs from "node:fs";
 
 const _cert = path.join(import.meta.dir, "../certs/cert.crt");
 const _key = path.join(import.meta.dir, "../certs/cert.key");
-const _https = process.env.WEBSRV_USESSL === "true" && fs.existsSync(_cert) && fs.existsSync(_key);
+const _https = process.env.WEBSRV_USESSL === "true";
 
 let options;
 
 if (_https) {
+  if (!fs.existsSync(_cert) || !fs.existsSync(_key)) {
+    log.error(`Attempted to locate certificate and key but failed`);
+    log.error(`Certificate: ${_cert}`);
+    log.error(`Key: ${_key}`);
+    throw new Error("SSL certificate or key is missing");
+  }
   try {
     options = {
       key: Bun.file(_key),
