@@ -13,11 +13,12 @@ import fs from "node:fs";
 const _cert = path.join(import.meta.dir, "../certs/cert.crt");
 const _key = path.join(import.meta.dir, "../certs/cert.key");
 const _https = process.env.WEBSRV_USESSL === "true";
-
+log.debug(`SSL: ${_https}`);
+log.info(`Loading SSL certificate and key from: ${_cert} and ${_key}`);
 let options;
 
 if (_https) {
-  log.info(`Loading SSL certificate and key from: ${_cert} and ${_key}`);
+
   if (!fs.existsSync(_cert) || !fs.existsSync(_key)) {
     log.error(`Attempted to locate certificate and key but failed`);
     log.error(`Certificate: ${_cert}`);
