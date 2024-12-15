@@ -12,9 +12,10 @@ function getSqlCert() {
     return false;
   }
   return {
-    ca: fs.readFileSync(
-      path.join(import.meta.dirname, "..", "certs", "ca-certificate.crt")
+    cert: fs.readFileSync(
+      path.join(import.meta.dirname, "..", "certs", "db.crt")
     ),
+    rejectUnauthorized: false,
   }
 }
 
@@ -25,6 +26,7 @@ const pool = mysql.createPool({
   waitForConnections: true,
   database: process.env.DATABASE_NAME,
   ssl: getSqlCert(),
+  port: parseInt(process.env.DATABASE_PORT || "3306"),
 } as mysql.PoolOptions);
 
 let _sqlitedb: sqlite.Database;
