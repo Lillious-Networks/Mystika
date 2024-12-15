@@ -20,7 +20,7 @@ import "../modules/assetloader";
 /* SSL Certificate Setup */
 const _cert = path.join(import.meta.dir, "../certs/cert.crt");
 const _key = path.join(import.meta.dir, "../certs/cert.key");
-const _https = fs.existsSync(_cert) && fs.existsSync(_key);
+const _https = process.env.WEBSRV_USESSL === "true" && fs.existsSync(_cert) && fs.existsSync(_key);
 
 // Middleware
 app.use(express.json());

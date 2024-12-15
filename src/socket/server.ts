@@ -7,6 +7,25 @@ import log from "../modules/logger";
 import player from "../systems/player";
 import cache from "../services/cache.ts";
 import packet from "../modules/packet";
+import path from "node:path";
+import fs from "node:fs";
+
+const _cert = path.join(import.meta.dir, "../certs/cert.crt");
+const _key = path.join(import.meta.dir, "../certs/cert.key");
+const _https = process.env.WEBSRV_USESSL === "true" && fs.existsSync(_cert) && fs.existsSync(_key);
+
+let options;
+
+if (_https) {
+  try {
+    options = {
+      key: Bun.file(_key),
+      cert: Bun.file(_cert),
+    };
+  } catch (e) {
+    log.error(e as string);
+  }
+}
 
 const RateLimitOptions: RateLimitOptions = {
   // Maximum amount of requests
@@ -23,6 +42,8 @@ const connections = new Set<Identity>();
 // Set to track the amount of requests
 const ClientRateLimit = [] as ClientRateLimit[];
 
+
+
 export const Server = Bun.serve<Packet>({
   fetch(req, Server) {
     // Upgrade the request to a WebSocket connection
@@ -36,6 +57,7 @@ export const Server = Bun.serve<Packet>({
       ? undefined
       : new Response("WebSocket upgrade error", { status: 400 });
   },
+  tls: options,
   websocket: {
     perMessageDeflate: true, // Enable per-message deflate compression
     maxPayloadLength: 1024 * 1024, // 1 MiB
