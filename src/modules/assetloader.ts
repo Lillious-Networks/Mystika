@@ -40,6 +40,11 @@ function loadMaps() {
   }
 
   const mapFiles = fs.readdirSync(mapDir);
+  // If no maps throw an error
+  if (mapFiles.length === 0) {
+    throw new Error("No maps found in the maps directory");
+  }
+
   mapFiles.forEach((file) => {
     if (!file.endsWith(".json")) return;
     const f = path.join(mapDir, file);
@@ -146,6 +151,12 @@ function loadMaps() {
       compressedCollisionMap
     );
   });
+
+  // Check if main.json exists and if not throw an error
+  const mainMap = maps.find((map) => map.name === "main.json");
+  if (!mainMap) {
+    throw new Error("Main map not found");
+  }
 
   assetCache.add("maps", maps);
 }

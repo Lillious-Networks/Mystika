@@ -9,24 +9,17 @@ const player = {
         await query("UPDATE accounts SET session_id = NULL, online = 0, token = NULL;");
     },    
     register: async (username: string, password: string, email: string, req: any) => {
-        if (!username || !password || !email) return;
-        // Validate field lengths
-        if (username.length <= 3 || password.length < 5 || email.length < 5) return;
+        if (!username || !password || !email) return { error: "Missing fields" };
         username = username.toLowerCase();
-        // Validate email format
-        if (!email.includes("@") || !email.includes(".")) return;
-
-        const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if (!regex.test(email)) return;
         email = email.toLowerCase();
 
         // Check if the user exists by username
         const usernameExists = await player.findByUsername(username) as string[];
-        if (usernameExists && usernameExists.length != 0) return;
+        if (usernameExists && usernameExists.length != 0) return { error: "Username already exists" };
 
         // Check if the user exists by email
         const emailExists = await player.findByEmail(email) as string[];
-        if (emailExists && emailExists.length != 0) return;
+        if (emailExists && emailExists.length != 0) return { error: "Email already exists" };
 
         const response = await query(
             "INSERT INTO accounts (email, username, token, password_hash, ip_address, geo_location, map, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -42,9 +35,9 @@ const player = {
             ]
           ).catch((err) => {
             log.error(err);
-            return;
+            return { error: "An unexpected error occurred" };
           });
-          if (!response) return;
+          if (!response) return { error: "An unexpected error occurred" };
 
         await query("INSERT INTO stats (username, health, max_health, stamina, max_stamina) VALUES (?, ?, ?, ?, ?)", [username, 100, 100, 100, 100]);
         await query("INSERT INTO clientconfig (username, fps, music_volume, effects_volume, muted) VALUES (?, ?, ?, ?, ?)", [username, 60, 100, 100, 0]);

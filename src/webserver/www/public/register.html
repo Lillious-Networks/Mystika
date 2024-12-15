@@ -2,17 +2,22 @@
     <head>
         <meta charset="utf-8">
         <title>Mystika - Login</title>
+        <script type="module">
+            import Notify from "/js/notification.js";
+            window.Notify = Notify;
+        </script>
+        <script defer src="js/register.js"></script>
         <link rel="stylesheet" href="css/style.css">
     </head>
     <body>
         <div id="container"> <!-- Displays the background of the webpage -->
             <div id="register-container"> <!-- Creates the container for the registration form-->
-                <form method="POST" action="/register">
+                <form>
                     <input type="text" id="register-email" name="email" placeholder="Email" spellcheck="false" autocomplete="off" required>
                     <input type="text" id="register-username" name="username" placeholder="Username" spellcheck="false" autocomplete="off" required>
                     <input type="password" id="register-password" name="password" placeholder="Password" spellcheck="false" autocomplete="off" required>
                     <input type="password" id="register-confirm-password" name="password2" placeholder="Confirm Password" spellcheck="false" autocomplete="off" required>
-                    <input type="submit" id="register-button" value="Register">
+                    <input type="button" id="register-button" value="Register">
                 </form>
             </div>
             <div id="register"></div> <!-- Displays the registration UI-->
