@@ -6,7 +6,7 @@ import assetCache from "../services/assetCache";
 const player = {
     clear: async () => {
         // Clear all session_ids, set online to 0, and clear all tokens
-        await query("UPDATE accounts SET session_id = NULL, online = 0, token = NULL;");
+        await query("UPDATE accounts SET session_id = NULL, online = 0, token = NULL, verified = 0, verification_code = NULL");
     },    
     register: async (username: string, password: string, email: string, req: any) => {
         if (!username || !password || !email) return { error: "Missing fields" };
@@ -42,6 +42,13 @@ const player = {
         await query("INSERT INTO stats (username, health, max_health, stamina, max_stamina) VALUES (?, ?, ?, ?, ?)", [username, 100, 100, 100, 100]);
         await query("INSERT INTO clientconfig (username, fps, music_volume, effects_volume, muted) VALUES (?, ?, ?, ?, ?)", [username, 60, 100, 100, 0]);
         return username;
+    },
+    verify: async (session_id: string) => {
+        // Check if there is a verification code
+        const response = await query("SELECT verified FROM accounts WHERE session_id = ?", [session_id]) as any[];
+        // If a verification code exists, prevent the user from logging in until they verify their account
+        if (response[0]?.verified) return true;
+        return false;
     },
     findByUsername: async (username: string) => {
         if (!username) return;
@@ -99,7 +106,7 @@ const player = {
     },
     logout: async (session_id: string) => {
         if (!session_id) return;
-        const response = await query("UPDATE accounts SET token = NULL, online = ?, session_id = NULL WHERE session_id = ?", [0, session_id]);
+        const response = await query("UPDATE accounts SET token = NULL, online = ?, session_id = NULL, verification_code = NULL, verified = ? WHERE session_id = ?", [0, 0, session_id]);
         return response;
     },
     clearSessionId: async (session_id: string) => {
@@ -136,10 +143,10 @@ const player = {
         const response = await query("SELECT username FROM accounts WHERE token = ?", [token]);
         return response;
     },
-    getEmail: async (session_id: string) => {
-        if (!session_id) return;
-        const response = await query("SELECT email FROM accounts WHERE session_id = ?", [session_id]);
-        return response;
+    getEmail: async (username: string) => {
+        if (!username) return;
+        const response = await query("SELECT email FROM accounts WHERE username = ?", [username]) as any;
+        return response[0]?.email;
     },
     returnHome: async (session_id: string) => {
         if (!session_id) return;

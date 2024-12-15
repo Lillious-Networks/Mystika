@@ -17,7 +17,7 @@ const createAccountsTable = async () => {
         banned INTEGER DEFAULT 0 NOT NULL,
         ip_address TEXT DEFAULT NULL,
         geo_location TEXT DEFAULT NULL,
-        two_fa_code TEXT DEFAULT NULL,
+        verification_code TEXT DEFAULT NULL,
         needs_password_reset INTEGER DEFAULT 0 NOT NULL,
         map TEXT DEFAULT NULL,
         position TEXT DEFAULT NULL,

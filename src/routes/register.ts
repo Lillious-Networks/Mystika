@@ -1,6 +1,7 @@
 import express from "express";
 export const router = express.Router();
 import player from "../systems/player";
+import verify from "../services/verification";
 
 router.get("/register", (req, res) => {
   res.redirect("/register.html");
@@ -84,8 +85,14 @@ router.post("/register", async (req, res) => {
     httpOnly: false,
   });
 
-  // Redirect the user to the game
-  res.status(200).redirect("/game/");
+  // Send the verification email
+  const result = await verify(token, req.body.email, req.body.username) as any;
+  if (result instanceof Error) {
+    res.status(500).send({ message: "An unexpected error occurred" });
+    return;
+  }
+
+  res.status(200).send({ message: "Please check your email to verify your account" });
 });
 
 export default router;

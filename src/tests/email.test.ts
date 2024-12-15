@@ -7,7 +7,7 @@ describe("send", () => {
     const message = "Test Message";
 
     email.send(testEmail, subject, message).then((response: any) => {
-      expect(response).toBeDefined();
+      expect(response).resolves.toEqual("Email sent successfully");
     });
   });
 });

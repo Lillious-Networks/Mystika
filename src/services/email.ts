@@ -20,11 +20,11 @@ export function send(email: string, subject: string, message: string): any {
       subject: `${subject}`,
       html: createHTML(subject, message),
     };
-    transporter.sendMail(mailOptions, function (error: any, info: any) {
+    transporter.sendMail(mailOptions, function (error: any) {
       if (error) {
         reject(error);
       } else {
-        resolve(info.response);
+        resolve("Email sent successfully");
       }
     });
   });

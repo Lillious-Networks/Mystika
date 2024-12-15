@@ -100,6 +100,10 @@ app.use("/", express.static(path.join(import.meta.dirname, "www/public")));
 import { router as ReigisterRouter } from "../routes/register";
 app.use(ReigisterRouter);
 
+// Verify Routes
+import { router as VerifyRouter } from "../routes/verify";
+app.use(VerifyRouter);
+
 // Benchmark Routes
 import { router as BenchmarkRouter } from "../routes/benchmark";
 app.use(BenchmarkRouter);

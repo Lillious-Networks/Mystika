@@ -668,7 +668,7 @@ export default async function packetReceiver(
                 JSON.stringify({
                   type: "AUDIO",
                   name: "attack_sword",
-                  data: assetCache.get("audio").find((a: AudioData) => a.name === "attack_sword"),
+                  data: assetCache.get("audio").find((a: SoundData) => a.name === "attack_sword"),
                   pitch: pitch
                 })
               )
@@ -681,7 +681,7 @@ export default async function packetReceiver(
                 JSON.stringify({
                   type: "AUDIO",
                   name: "attack_sword",
-                  data: assetCache.get("audio").find((a: AudioData) => a.name === "attack_sword"),
+                  data: assetCache.get("audio").find((a: SoundData) => a.name === "attack_sword"),
                   pitch: pitch,
                   timestamp: performance.now()
                 })
