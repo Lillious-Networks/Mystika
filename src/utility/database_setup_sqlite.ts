@@ -23,7 +23,8 @@ const createAccountsTable = async () => {
         position TEXT DEFAULT NULL,
         session_id TEXT UNIQUE DEFAULT NULL,
         stealth INTEGER DEFAULT 0 NOT NULL,
-        direction TEXT DEFAULT NULL
+        direction TEXT DEFAULT NULL,
+        verified INTEGER DEFAULT 0 NOT NULL
       );
   `;
   await query(sql);
