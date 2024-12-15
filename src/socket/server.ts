@@ -17,6 +17,7 @@ const _https = process.env.WEBSRV_USESSL === "true";
 let options;
 
 if (_https) {
+  log.info(`Loading SSL certificate and key from: ${_cert} and ${_key}`);
   if (!fs.existsSync(_cert) || !fs.existsSync(_key)) {
     log.error(`Attempted to locate certificate and key but failed`);
     log.error(`Certificate: ${_cert}`);
