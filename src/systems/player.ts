@@ -11,13 +11,14 @@ const player = {
     register: async (username: string, password: string, email: string, req: any) => {
         if (!username || !password || !email) return;
         // Validate field lengths
-        if (username.length < 5 || password.length < 5 || email.length < 5) return;
-
+        if (username.length <= 3 || password.length < 5 || email.length < 5) return;
+        username = username.toLowerCase();
         // Validate email format
         if (!email.includes("@") || !email.includes(".")) return;
 
         const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!regex.test(email)) return;
+        email = email.toLowerCase();
 
         // Check if the user exists by username
         const usernameExists = await player.findByUsername(username) as string[];
