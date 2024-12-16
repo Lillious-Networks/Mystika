@@ -349,7 +349,7 @@ socket.addEventListener("message", async (event) => {
         }
 
         // Optimized drawMap function using batch processing
-        async function drawMap(images: string[]) {
+        async function drawMap(images: string[]): Promise<void> {
           canvas.width = mapData.width * mapData.tilewidth;
           canvas.height = mapData.height * mapData.tileheight;
 
@@ -371,73 +371,93 @@ socket.addEventListener("message", async (event) => {
           if (!ctx) return;
           ctx.imageSmoothingEnabled = false;
 
-          const layers = mapData.layers;
+          interface Layer {
+            data: number[];
+            zIndex?: number;
+          }
+
+          interface Tileset {
+            firstgid: number;
+            tilecount: number;
+            imagewidth: number;
+            tilewidth: number;
+            tileheight: number;
+          }
+
+          const layers: Layer[] = mapData.layers;
           let currentLayer = 0;
 
-          function processLayer() {
-            if (currentLayer >= layers.length) {
+          // Sort layers by their 'z-index' or predefined order to ensure correct rendering
+          const sortedLayers = [...layers].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+
+          function processLayer(): void {
+            if (currentLayer >= sortedLayers.length) {
               canvas.style.display = "block";
               loaded = true;
               animationLoop();
               return;
             }
 
-            const layer = layers[currentLayer];
+            const layer = sortedLayers[currentLayer];
             if (!layer || !layer.data) {
               currentLayer++;
               processLayer();
               return;
             }
 
-            const tileset =
-              tilesets.find((t: any) => t.firstgid <= layer.data[0]) ||
-              tilesets[0];
-            const image = images[tilesets.indexOf(tileset)];
-            const tileWidth = tileset.tilewidth;
-            const tileHeight = tileset.tileheight;
-            const tilesetWidth = tileset.imagewidth;
+            const batchSize = 10; // Adjust batch size for performance
 
-            const batchSize = 1; // Adjust batch size for performance
-
-            async function processRowBatch(startY: number) {
-              for (
-                let y = startY;
-                y < startY + batchSize && y < mapData.height;
-                y++
-              ) {
+            async function processRowBatch(startY: number): Promise<void> {
+              for (let y = startY; y < startY + batchSize && y < mapData.height; y++) {
                 for (let x = 0; x < mapData.width; x++) {
                   const tileIndex = layer.data[y * mapData.width + x];
-                  if (tileIndex === 0) continue;
-
-                  const tilesPerRow = tilesetWidth / tileWidth;
-                  const tileY = Math.floor(
-                    (tileIndex - tileset.firstgid) / tilesPerRow
+                  if (tileIndex === 0) continue; // Skip empty tiles
+            
+                  // Find the correct tileset for the tileIndex
+                  const tileset = tilesets.find(
+                    (t: Tileset) => t.firstgid <= tileIndex && tileIndex < t.firstgid + t.tilecount
                   );
-                  const tileX = (tileIndex - tileset.firstgid) % tilesPerRow;
-
-                  if (!ctx || !image) return;
-
+                  if (!tileset) continue;
+            
+                  const image = images[tilesets.indexOf(tileset)] as unknown as HTMLImageElement;
+                  if (!image) continue;
+            
+                  // Calculate tile position within the tileset
+                  const localTileIndex = tileIndex - tileset.firstgid;
+                  const tilesPerRow = Math.floor(tileset.imagewidth / tileset.tilewidth);
+                  const tileX = (localTileIndex % tilesPerRow) * tileset.tilewidth;
+                  const tileY = Math.floor(localTileIndex / tilesPerRow) * tileset.tileheight;
+            
+                  // Correctly calculate tile position on the canvas
+                  const drawX = x * mapData.tilewidth;
+                  const drawY = y * mapData.tileheight; // <-- Ensure this is accurate
+            
+                  if (!ctx) return;
+            
                   ctx.drawImage(
-                    image as unknown as CanvasImageSource,
-                    tileX * tileWidth,
-                    tileY * tileHeight,
-                    tileWidth,
-                    tileHeight,
-                    x * tileWidth,
-                    y * tileHeight,
-                    tileWidth,
-                    tileHeight
+                    image,
+                    tileX,
+                    tileY,
+                    tileset.tilewidth,
+                    tileset.tileheight,
+                    drawX,
+                    drawY,
+                    mapData.tilewidth,
+                    mapData.tileheight
                   );
                 }
               }
-
+            
+              // Continue processing the next batch of rows
               if (startY + batchSize < mapData.height) {
-                await new Promise(() => setTimeout(() => { processRowBatch(startY + batchSize); }, 0))
+                await new Promise((resolve) => setTimeout(resolve, 0));
+                await processRowBatch(startY + batchSize);
               } else {
                 currentLayer++;
                 processLayer();
               }
             }
+            
 
             processRowBatch(0);
           }
