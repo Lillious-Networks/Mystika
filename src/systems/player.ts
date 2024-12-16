@@ -52,6 +52,7 @@ const player = {
     },
     findByUsername: async (username: string) => {
         if (!username) return;
+        username = username.toLowerCase();
         const response = await query("SELECT username FROM accounts WHERE username = ?", [username]);
         return response || [];
     },
@@ -116,6 +117,7 @@ const player = {
     },
     login: async (username: string, password: string) => {
         if (!username || !password) return;
+        username = username.toLowerCase();
         // Validate credentials
         const response = await query("SELECT username FROM accounts WHERE username = ? AND password_hash = ?", [username, hash(password)]) as string[];
         if (response.length === 0) {
@@ -145,6 +147,7 @@ const player = {
     },
     getEmail: async (username: string) => {
         if (!username) return;
+        username = username.toLowerCase();
         const response = await query("SELECT email FROM accounts WHERE username = ?", [username]) as any;
         return response[0]?.email;
     },
@@ -162,15 +165,18 @@ const player = {
     },
     isOnline: async (username: string) => {
         if (!username) return;
+        username = username.toLowerCase();
         const response = await query("SELECT online FROM accounts WHERE username = ?", [username]);
         return response;
     },
     isBanned: async (username: string) => {
         if (!username) return;
+        username = username.toLowerCase();
         const response = await query("SELECT banned FROM accounts WHERE username = ?", [username]);
         return response;
     },
     getPlayers: async (map: string) => {
+        if (!map) return;
         const response = await query("SELECT username, session_id as id, position, map FROM accounts WHERE online = 1 and map = ?", [map]);
         return response;
     },
@@ -181,29 +187,33 @@ const player = {
     },
     isAdmin: async (username: string) => {
         if (!username) return;
+        username = username.toLowerCase();
         const response = await query("SELECT role FROM accounts WHERE username = ?", [username]) as any;
         return response[0]?.role === 1;
     },
     isStealth: async (username: string) => {
         if (!username) return;
+        username = username.toLowerCase();
         const response = await query("SELECT stealth FROM accounts WHERE username = ?", [username]) as any;
         return response[0]?.stealth === 1;
     },
     toggleStealth: async (username: string) => {
         if (!username) return;
+        username = username.toLowerCase();
         await query("UPDATE accounts SET stealth = !stealth WHERE username = ?", [username]) as any;
         return await player.isStealth(username);
     },
     getSession: async (username: string) => {
         if (!username) return;
+        username = username.toLowerCase();
         const response = await query("SELECT session_id FROM accounts WHERE username = ?", [username]) as any;
         return response[0]?.session_id;
     },
     getStats: async (username: string) => {
-        // Grab the stats from the database
+        if (!username) return;
+        username = username.toLowerCase();
         const response = await query("SELECT max_health, health, max_stamina, stamina FROM stats WHERE username = ?",
             [username]) as StatsData[];
-            
         if (!response || response.length === 0) return [];
         return {
             health: response[0].health,
@@ -213,18 +223,21 @@ const player = {
         };
     },
     setStats: async (username: string, stats: StatsData) => {
+        if (!username) return;
+        username = username.toLowerCase();
         if (!stats.health || !stats.max_health || !stats.stamina || !stats.max_stamina) return;
-        // Tell the database to update the stats
         const response = await query("UPDATE stats SET health = ?, max_health = ?, stamina = ?, max_stamina = ? WHERE username = ?", [stats.health, stats.max_health, stats.stamina, stats.max_stamina, username]);
-        // Do the thing
         if (!response) return [];
         return response ;
     },
     getConfig: async (username: string) => {
+        if (!username) return;
+        username = username.toLowerCase();
         const response = await query("SELECT * FROM clientconfig WHERE username = ?", [username]);
         return response || [];
     },
     setConfig: async (session_id: string, data: any) => {
+        if (!session_id) return;
         if (!data.fps || !data.music_volume || !data.effects_volume || typeof data.muted != 'boolean' || !data.language) return [];
         const result = await query("SELECT username FROM accounts WHERE session_id = ?", [session_id]) as any;
         if (!result[0].username) return [];
@@ -276,11 +289,13 @@ const player = {
     },
     kick: async (username: string, ws: WebSocket) => {
         if (!username) return;
+        username = username.toLowerCase();
         player.logout(username);
         ws.close();
     },
     ban: async (username: string, ws: WebSocket) => {
         if (!username) return;
+        username = username.toLowerCase();
         player.kick(username, ws);
         const response = await query("UPDATE accounts SET banned = 1 WHERE username = ?", [username]);
         return response;

@@ -6,6 +6,11 @@ function verify(token: string, useremail: string, username: string): Promise<voi
     return new Promise((resolve, reject) => {
         async function execute() {
             try {
+                if (!token || !useremail || !username) {
+                    return reject(new Error("Invalid input"));
+                }
+                useremail = useremail.toLowerCase();
+                username = username.toLowerCase();
                 // Generate a random 2FA code
                 const gameName = process.env.GAME_NAME || process.env.DOMAIN || "Game";
                 const subject = `${gameName} - Verify your account`;
