@@ -51,7 +51,6 @@ const healthLabel = document.getElementById("stats-screen-health-label") as HTML
 const manaLabel = document.getElementById("stats-screen-mana-label") as HTMLDivElement;
 let loaded: boolean = false;
 let toggleInventory = false;
-let toggleStats = false;
 const times = [] as number[];
 let lastFrameTime = 0; // Track the time of the last frame
 let controllerConnected = false;
