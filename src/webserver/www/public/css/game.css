@@ -506,3 +506,36 @@ input::placeholder {
   background-repeat: no-repeat;
   cursor: pointer;
 }
+
+#stat-screen {
+  position: fixed;
+  width: 566px;
+  height: 484px;
+  top: 150;
+  left: -570;
+  z-index: 100;
+  transition: bottom ease-in-out 1s;
+  background: url("../img/ui/ui-stats-sheet.png");
+  background-repeat: no-repeat;
+}
+
+#stats-screen-player-info {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 125px;
+  height: 300;
+  left: 398px;
+  top: 139px;
+  z-index: 100;
+  transition: bottom ease-in-out 1s;
+}
+
+#stats-screen-health-label {
+  padding-top: 50px;
+}
+
+#stats-screen-mana-label {
+  padding-top: 50px;
+}

@@ -609,6 +609,23 @@ export default async function packetReceiver(
         );
         break;
       }
+      case "INSPECTPLAYER": {
+        if(currentPlayer){
+          ws.send(
+            packet.encode(
+              JSON.stringify({
+                type: "INSPECTPLAYER",
+                data: {
+                  id: currentPlayer?.id,
+                  stats: currentPlayer?.stats,
+                  username: currentPlayer?.username
+                },
+              })
+            )
+          )
+        };
+        break;
+      }
       case "STEALTH": {
         if (!currentPlayer?.isAdmin) return;
         const isStealth = await player.toggleStealth(currentPlayer.username);

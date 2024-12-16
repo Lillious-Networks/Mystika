@@ -30,4 +30,5 @@ export const packetTypes: PacketType = {
   28: "UPDATESTATS",
   29: "TARGETCLOSEST",
   30: "AUDIO",
+  31: "INSPECTPLAYER"
 };

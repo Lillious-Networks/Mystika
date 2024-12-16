@@ -176,6 +176,7 @@ input[type="range"] {
   height: 70px;
   color: transparent;
   cursor: pointer;
+  outline: none;
 }
 
 #register-email, #register-username, #register-password, #register-confirm-password {
@@ -212,6 +213,7 @@ input[type="range"] {
   height: 70px;
   color: transparent;
   cursor: pointer;
+  outline: none;
 }
 
 /* Move #logo up and down over time very smoothly */

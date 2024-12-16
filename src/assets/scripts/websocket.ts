@@ -12,6 +12,7 @@ const currentPlayerCanvas = document.getElementById(
 const currentPlayerContext = currentPlayerCanvas.getContext("2d");
 const inventoryUI = document.getElementById("inventory") as HTMLDivElement;
 const inventoryGrid = document.getElementById("grid") as HTMLDivElement;
+const statUI = document.getElementById("stat-screen") as HTMLDivElement;
 const chatInput = document.getElementById("chat-input") as HTMLInputElement;
 const healthBar = document.getElementById(
   "health-progress-bar"
@@ -46,8 +47,11 @@ const mutedCheckbox = document.getElementById(
   "muted-checkbox"
 ) as HTMLInputElement;
 const languageSelect = document.getElementById("language") as HTMLSelectElement;
+const healthLabel = document.getElementById("stats-screen-health-label") as HTMLDivElement;
+const manaLabel = document.getElementById("stats-screen-mana-label") as HTMLDivElement;
 let loaded: boolean = false;
 let toggleInventory = false;
+let toggleStats = false;
 const times = [] as number[];
 let lastFrameTime = 0; // Track the time of the last frame
 let controllerConnected = false;
@@ -598,6 +602,15 @@ socket.addEventListener("message", async (event) => {
       playAudio(name, data.data.data, pitch, timestamp);
       break;
     }
+    case "INSPECTPLAYER": {
+      const data = JSON.parse(packet.decode(event.data))["data"];
+      console.log(data);
+      healthLabel!.innerText = `Health: (${data.stats.health})`;
+      manaLabel!.innerText = `Mana: (${data.stats.stamina})`;
+      statUI.style.transition = "1s";
+      statUI.style.left = "10";
+      break;
+    }
     default:
       break;
   }
@@ -697,6 +710,21 @@ window.addEventListener("keydown", (e) => {
       inventoryUI.style.right = "10";
       toggleInventory = true;
     }
+  }
+
+  // Open Stats UI
+  if (e.code === "KeyC") {
+    if(!loaded)return;
+    if (chatInput === document.activeElement) return;
+    if (pauseMenu.style.display == "block") return;
+    socket.send(
+      packet.encode(
+        JSON.stringify({
+          type: "INSPECTPLAYER",
+          data: null,
+        })
+      )
+    );
   }
 
   if (e.code === "Tab") {
