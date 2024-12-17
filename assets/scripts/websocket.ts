@@ -405,7 +405,7 @@ socket.addEventListener("message", async (event) => {
               return;
             }
 
-            const batchSize = 10; // Adjust batch size for performance
+            const batchSize = 1; // Adjust batch size for performance
 
             async function processRowBatch(startY: number): Promise<void> {
               for (let y = startY; y < startY + batchSize && y < mapData.height; y++) {
