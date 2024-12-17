@@ -191,7 +191,7 @@ loadTilesets();
 // Load scripts
 function loadScripts() {
   const scripts = [] as ScriptData[];
-  const scriptDir = path.join(import.meta.dir, "..", "assets", "scripts");
+  const scriptDir = path.join(import.meta.dir, assetData.scripts.path);
   if (!fs.existsSync(scriptDir)) return scripts;
 
   const scriptFiles = fs

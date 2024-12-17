@@ -9,14 +9,17 @@ if (!fs.existsSync(configPath)) {
 
 const config = {
     "maps": {
-        "path": "../assets/maps/"
+        "path": "../../assets/maps/"
     },
     "tilesets": {
-        "path": "../assets/tilesets/"
+        "path": "../../assets/tilesets/"
     },
     "sfx": {
-        "path": "../assets/sfx/"
-    }
+        "path": "../../assets/sfx/"
+    },
+    "scripts": {
+        "path": "../../assets/scripts/"
+    },
 };
 
 if (!fs.existsSync(path.join(configPath, "assets.json"))) {
