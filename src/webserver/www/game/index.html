@@ -9,7 +9,10 @@
   </head>
   <body oncontextmenu="return false;">
     <div id="loading-screen" class="ui">
-      <div class="loader ui"></div>
+      <button type="button" id="start-game-button" class="ui">Start Game</button>
+      <div id="progress-bar-container" class="ui">
+        <div id="progress-bar" class="ui"></div>
+      </div>
     </div>
     <div id="overlay" class="ui">
       <div id="pause-menu-container" class="ui">
@@ -46,47 +49,49 @@
           </div>
         </div>
       </div>
-      <div id="position"></div>
-      <div id="map-container">
-        <img id="map-border" src="../img/ui/ui-map.png" fetchpriority="high"></img>
-        <div id="map"></div>
+      <div id="position" class="ui"></div>
+      <div id="map-container" class="ui">
+        <img id="map-border" src="../img/ui/ui-map.png" fetchpriority="high" class="ui"></img>
+        <div id="map" class="ui"></div>
       </div>
-      <div id="chat-container">
-        <div id="chat">
-          <div id="chat-messages"></div>
-          <input id="chat-input" type="text" placeholder="Type here..." spellcheck="false" autocomplete="off"/>
+      <div id="chat-container" class="ui">
+        <div id="chat" class="ui">
+          <div id="chat-messages" class="ui"></div>
+          <input id="chat-input" type="text" placeholder="Type here..." spellcheck="false" autocomplete="off" class="ui"/>
         </div>
       </div>
-      <div id="inventory">
-        <div id="grid"></div>
+      <div id="full-map" class="ui">
       </div>
-      <div id="stat-screen">
-        <div id="stats-screen-player-info">
+      <div id="inventory" class="ui">
+        <div id="grid" class="ui"></div>
+      </div>
+      <div id="stat-screen" class="ui">
+        <div id="stats-screen-player-info" class="ui">
           <label id="stats-screen-health-label" class="ui">Health:</label>
           <label id="stats-screen-mana-label" class="ui">Mana:</label>
         </div>
       </div>
-      <div id="hotbar">
-        <div id="hotbar-grid"></div>
+      <div id="hotbar" class="ui">
+        <div id="hotbar-grid" class="ui"></div>
       </div>
-      <div id="player-image-container"></div>
-      <div id="stats-container">
-        <div id="health-bar-container">
-          <div id="health-progress-bar">
+      <div id="player-image-container" class="ui"></div>
+      <div id="stats-container" class="ui">
+        <div id="health-bar-container" class="ui">
+          <div id="health-progress-bar" class="ui">
           </div>
         </div>
-        <div id="stamina-bar-container">
-          <div id="stamina-progress-bar">
+        <div id="stamina-bar-container" class="ui">
+          <div id="stamina-progress-bar" class="ui">
           </div>
         </div>
       </div>
-      <div id="target-stats-container">
-        <div id="target-health-bar-container">
-          <div id="target-health-progress-bar">
+      <div id="target-stats-container" class="ui">
+        <div id="target-health-bar-container" class="ui">
+          <div id="target-health-progress-bar" class="ui">
           </div>
         </div>
-        <div id="target-stamina-bar-container">
-          <div id="target-stamina-progress-bar">
+        <div id="target-stamina-bar-container" class="ui">
+          <div id="target-stamina-progress-bar" class="ui">
           </div>
         </div>
       </div>

@@ -1,11 +1,14 @@
 const socket = new WebSocket(`__VAR.WEBSOCKETURL__`);
 socket.binaryType = "arraybuffer";
 const players = [] as any[];
+const mapScale = 0.1;
 const audioCache = new Map<string, string>();
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d");
 const playerCanvas = document.getElementById("players") as HTMLCanvasElement;
 const playerContext = playerCanvas.getContext("2d");
+const progressBar = document.getElementById("progress-bar") as HTMLDivElement;
+const progressBarContainer = document.getElementById("progress-bar-container") as HTMLDivElement;
 const currentPlayerCanvas = document.getElementById(
   "current-player"
 ) as HTMLCanvasElement;
@@ -14,6 +17,33 @@ const inventoryUI = document.getElementById("inventory") as HTMLDivElement;
 const inventoryGrid = document.getElementById("grid") as HTMLDivElement;
 const statUI = document.getElementById("stat-screen") as HTMLDivElement;
 const chatInput = document.getElementById("chat-input") as HTMLInputElement;
+const startGameButton = document.getElementById("start-game-button") as HTMLButtonElement;
+const loadingScreen = document.getElementById("loading-screen");
+if (startGameButton) {
+  startGameButton.addEventListener("click", () => {
+    socket.send(
+      packet.encode(
+        JSON.stringify({
+          type: "STARTGAME",
+          data: null,
+        })
+      )
+    );
+    // Hide the start game button
+    startGameButton.style.display = "none";
+    // Hide the loading screen
+    if (loadingScreen) {
+      // Fade out the loading screen after the map is loaded
+      loadingScreen.style.transition = "1s";
+      loadingScreen.style.opacity = "0";
+      setTimeout(() => {
+        loadingScreen.style.display = "none";
+        progressBar.style.width = "0%";
+        progressBarContainer.style.display = "block";
+      }, 1000);
+    }
+  });
+}
 const healthBar = document.getElementById(
   "health-progress-bar"
 ) as HTMLDivElement;
@@ -30,6 +60,7 @@ const targetStaminaBar = document.getElementById(
   "target-stamina-progress-bar"
 ) as HTMLDivElement;
 const map = document.getElementById("map") as HTMLDivElement;
+const fullmap = document.getElementById("full-map") as HTMLDivElement;
 const mapPosition = document.getElementById("position") as HTMLDivElement;
 const pauseMenu = document.getElementById(
   "pause-menu-container"
@@ -142,16 +173,10 @@ function currentPlayerLoop() {
 animationLoop();
 currentPlayerLoop();
 
-let lastSentTime = 0;
-
 // Event listener for joystick movement
 window.addEventListener("gamepadjoystick", (e: CustomEventInit) => {
   if (!loaded) return;
   if (pauseMenu.style.display == "block") return;
-
-  if (performance.now() - lastSentTime < 10) {
-    return;
-  }
 
   // Get the joystick coordinates
   const x = e.detail.x;
@@ -182,6 +207,7 @@ window.addEventListener("gamepadjoystick", (e: CustomEventInit) => {
 
   // Send the direction if determined
   if (direction) {
+    if (pauseMenu.style.display == "block") return;
     socket.send(
       packet.encode(
         JSON.stringify({
@@ -190,7 +216,6 @@ window.addEventListener("gamepadjoystick", (e: CustomEventInit) => {
         })
       )
     );
-    lastSentTime = performance.now();
   }
 });
 
@@ -252,11 +277,23 @@ socket.addEventListener("message", async (event) => {
     }
     case "DISCONNECT_PLAYER": {
       console.log("Player disconnected: " + data);
+      // Remove the player from the players array
       players.forEach((player, index) => {
         if (player.id === data) {
           players.splice(index, 1);
+          const dot = document.querySelector(`[data-id="${player.id}"]`) as HTMLElement;
+          if (dot) {
+            dot.remove();
+          }
+        }
+        // Untarget the player if they are targeted
+        if (player.targeted) {
+          player.targeted = false;
+          targetStats.style.display = "none";
+          updateTargetStats(0, 0);
         }
       });
+
       break;
     }
     case "MOVEXY": {
@@ -270,11 +307,33 @@ socket.addEventListener("message", async (event) => {
           player.position.x - window.innerWidth / 2 + 32,
           player.position.y - window.innerHeight / 2 + 48
         );
+        if (fullmap.style.display === "block") {
+          if (player.id === sessionStorage.getItem("connectionId")) {
+            const dot = document.getElementsByClassName("self")[0] as HTMLDivElement;
+            if (dot) {
+              dot.style.left = `${player.position.x * mapScale}px`;
+              dot.style.top = `${player.position.y * mapScale}px`;
+            }
+          }
+        }
+      } else {
+        if (fullmap.style.display === "block") {
+          const dot = document.querySelector(`[data-id="${player.id}"]`) as HTMLElement;
+          if (dot) {
+            dot.style.left = `${player.position.x * mapScale}px`;
+            dot.style.top = `${player.position.y * mapScale}px`;
+          }
+        }
       }
       break;
     }
     case "LOAD_MAP":
       {
+        // Remove the full map image if it exists to update the map image with a new one
+        const image = fullmap.querySelector("img") as HTMLImageElement;
+        if (image) {
+          fullmap.removeChild(image);
+        }
         // Uncompress zlib compressed data
         // @ts-expect-error - pako is not defined because it is loaded in the index.html
         const inflated = pako.inflate(new Uint8Array(new Uint8Array(data[0].data)), { to: "string" });
@@ -348,34 +407,33 @@ socket.addEventListener("message", async (event) => {
           images.push(image as unknown as string);
         }
 
-        // Optimized drawMap function using batch processing
         async function drawMap(images: string[]): Promise<void> {
           canvas.width = mapData.width * mapData.tilewidth;
           canvas.height = mapData.height * mapData.tileheight;
-
+        
           playerCanvas.width = mapData.width * mapData.tilewidth;
           playerCanvas.height = mapData.height * mapData.tileheight;
-
+        
           currentPlayerCanvas.width = playerCanvas.width;
           currentPlayerCanvas.height = playerCanvas.height;
-
+        
           canvas.style.width = mapData.width * mapData.tilewidth + "px";
           canvas.style.height = mapData.height * mapData.tilewidth + "px";
-
+        
           playerCanvas.style.width = mapData.width * mapData.tilewidth + "px";
           playerCanvas.style.height = mapData.height * mapData.tilewidth + "px";
-
+        
           currentPlayerCanvas.style.width = playerCanvas.style.width;
           currentPlayerCanvas.style.height = playerCanvas.style.height;
-
+        
           if (!ctx) return;
           ctx.imageSmoothingEnabled = false;
-
+        
           interface Layer {
             data: number[];
             zIndex?: number;
           }
-
+        
           interface Tileset {
             firstgid: number;
             tilecount: number;
@@ -383,57 +441,47 @@ socket.addEventListener("message", async (event) => {
             tilewidth: number;
             tileheight: number;
           }
-
+        
           const layers: Layer[] = mapData.layers;
-          let currentLayer = 0;
-
-          // Sort layers by their 'z-index' or predefined order to ensure correct rendering
+        
+          // Sort layers by 'zIndex' or default order
           const sortedLayers = [...layers].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
-
-          function processLayer(): void {
-            if (currentLayer >= sortedLayers.length) {
-              canvas.style.display = "block";
-              loaded = true;
-              animationLoop();
-              return;
-            }
-
-            const layer = sortedLayers[currentLayer];
-            if (!layer || !layer.data) {
-              currentLayer++;
-              processLayer();
-              return;
-            }
-
-            const batchSize = 1; // Adjust batch size for performance
-
+          let currentLayer = 0;
+          let progress = 0;
+          const step = 100 / layers.length;
+        
+          async function processLayer(layer: Layer): Promise<void> {
+            const batchSize = 10; // Adjust for performance
+            progress += step;
+            progressBar.style.width = `${progress}%`;
+        
             async function processRowBatch(startY: number): Promise<void> {
               for (let y = startY; y < startY + batchSize && y < mapData.height; y++) {
                 for (let x = 0; x < mapData.width; x++) {
                   const tileIndex = layer.data[y * mapData.width + x];
                   if (tileIndex === 0) continue; // Skip empty tiles
-            
+        
                   // Find the correct tileset for the tileIndex
                   const tileset = tilesets.find(
                     (t: Tileset) => t.firstgid <= tileIndex && tileIndex < t.firstgid + t.tilecount
                   );
                   if (!tileset) continue;
-            
+        
                   const image = images[tilesets.indexOf(tileset)] as unknown as HTMLImageElement;
                   if (!image) continue;
-            
+        
                   // Calculate tile position within the tileset
                   const localTileIndex = tileIndex - tileset.firstgid;
                   const tilesPerRow = Math.floor(tileset.imagewidth / tileset.tilewidth);
                   const tileX = (localTileIndex % tilesPerRow) * tileset.tilewidth;
                   const tileY = Math.floor(localTileIndex / tilesPerRow) * tileset.tileheight;
-            
-                  // Correctly calculate tile position on the canvas
+        
+                  // Calculate tile position on the canvas
                   const drawX = x * mapData.tilewidth;
-                  const drawY = y * mapData.tileheight; // <-- Ensure this is accurate
-            
+                  const drawY = y * mapData.tileheight;
+        
                   if (!ctx) return;
-            
+        
                   ctx.drawImage(
                     image,
                     tileX,
@@ -447,23 +495,40 @@ socket.addEventListener("message", async (event) => {
                   );
                 }
               }
-            
-              // Continue processing the next batch of rows
+        
+              // Process next batch of rows
               if (startY + batchSize < mapData.height) {
                 await new Promise((resolve) => setTimeout(resolve, 0));
                 await processRowBatch(startY + batchSize);
-              } else {
-                currentLayer++;
-                processLayer();
               }
             }
-            
-
-            processRowBatch(0);
+        
+            await processRowBatch(0);
           }
-
-          processLayer();
-        }
+        
+          async function renderLayers(): Promise<void> {
+            while (currentLayer < sortedLayers.length) {
+              const layer = sortedLayers[currentLayer];
+              await processLayer(layer);
+              currentLayer++;
+        
+              // Update the canvas display after rendering each layer
+              await new Promise((resolve) => requestAnimationFrame(resolve));
+            }
+        
+            // Once all layers are drawn, start the animation loop
+            canvas.style.display = "block";
+            animationLoop();
+            // Show the start game button
+            startGameButton.style.display = "block";
+            // Hide the progress bar
+            progressBarContainer.style.display = "none";
+            updateFullMap();
+          }
+        
+          loaded = true;
+          await renderLayers();
+        }        
 
         await drawMap(images);
       }
@@ -496,6 +561,7 @@ socket.addEventListener("message", async (event) => {
             // Create a new item slot
             const slot = document.createElement("div");
             slot.classList.add("slot");
+            slot.classList.add("ui");
             const item = data[i];
             slot.classList.add(item.quality.toLowerCase() || "empty");
             slot.innerHTML = `${item.item}${
@@ -509,6 +575,7 @@ socket.addEventListener("message", async (event) => {
           const slot = document.createElement("div");
           slot.classList.add("slot");
           slot.classList.add("empty");
+          slot.classList.add("ui");
           inventoryGrid.appendChild(slot);
         }
       }
@@ -526,6 +593,12 @@ socket.addEventListener("message", async (event) => {
       const health = (data.health / data.max_health) * 100;
       const stamina = (data.stamina / data.max_stamina) * 100;
       updateStats(health, stamina);
+      // Update the player's stats so the health and stamina bars are accurate
+      players.forEach((player) => {
+        if (player.id === data.id) {
+          player.stats = data;
+        }
+      });
       break;
     }
     case "CLIENTCONFIG": {
@@ -574,6 +647,10 @@ socket.addEventListener("message", async (event) => {
     }
     case "STEALTH": {
       const data = JSON.parse(packet.decode(event.data))["data"];
+      const currentPlayer = players.find(
+        (player) => player.id === sessionStorage.getItem("connectionId")
+      );
+
       players.forEach((player) => {
         if (player.id === data.id) {
           player.isStealth = data.isStealth;
@@ -583,6 +660,18 @@ socket.addEventListener("message", async (event) => {
           player.targeted = false;
           targetStats.style.display = "none";
           updateTargetStats(0, 0);
+        }
+
+        const dot = document.querySelector(`[data-id="${player.id}"]`) as HTMLElement;
+        if (!dot) return;
+        if (player.isStealth) {
+          if (currentPlayer?.isAdmin) {
+            dot.style.opacity = "1";
+          } else {
+            dot.style.opacity = "0";
+          }
+        } else {
+          dot.style.opacity = "1";
         }
       });
       break;
@@ -608,9 +697,14 @@ socket.addEventListener("message", async (event) => {
         updateStats(target.stats.health, target.stats.stamina);
       } else {
         target.targeted = false;
-        targetStats.style.display = "none";
         updateTargetStats(0, 0);
       }
+
+      // untarget all players
+      targetStats.style.display = "none";
+      players.forEach((player) => {
+        player.targeted = false;
+      });
       break;
     }
     case "AUDIO": {
@@ -621,9 +715,18 @@ socket.addEventListener("message", async (event) => {
       playAudio(name, data.data.data, pitch, timestamp);
       break;
     }
+    case "MUSIC": {
+      const name = JSON.parse(packet.decode(event.data))["name"];
+      const data = JSON.parse(packet.decode(event.data))["data"];
+      const timestamp = JSON.parse(packet.decode(event.data))["timestamp"];
+      playMusic(name, data.data.data, timestamp);
+      break;
+    }
     case "INSPECTPLAYER": {
       const data = JSON.parse(packet.decode(event.data))["data"];
       console.log(data);
+      // Add the player ID as an attribute to the target stats container
+      statUI.setAttribute("data-id", data.id);
       healthLabel!.innerText = `Health: (${data.stats.health})`;
       manaLabel!.innerText = `Mana: (${data.stats.stamina})`;
       statUI.style.transition = "1s";
@@ -634,6 +737,33 @@ socket.addEventListener("message", async (event) => {
       break;
   }
 });
+
+function playMusic(name: string, data: Buffer, timestamp: number): void {
+// Check if the audio is already cached, if not, inflate the data
+    // @ts-expect-error - pako is not defined because it is loaded in the index.html
+    const cachedAudio = timestamp < performance.now() - 3.6e+6 ? pako.inflate(new Uint8Array(data),{ to: 'string' }) : audioCache.get(name)|| pako.inflate(new Uint8Array(data), { to: 'string' });
+    const music = new Audio(`data:audio/wav;base64,${cachedAudio}`);
+    if (!music) {
+      console.error("Failed to create audio element");
+      return;
+    }
+    music.volume = mutedCheckbox.checked ? 0 : Number(musicSlider.value) / 100;
+    music.loop = true;
+    try {
+      music.play();
+      // Cache the audio
+      audioCache.set(name, cachedAudio);
+      startMusicInterval(music);
+    } catch (e) {
+      console.error(e);
+    }
+}
+
+function startMusicInterval(music: any) {
+  setInterval(() => {
+    music.volume = mutedCheckbox.checked ? 0 : Number(musicSlider.value) / 100;
+  }, 100);
+}
 
 function playAudio(name: string, data: Buffer, pitch: number, timestamp: number): void {
   // Get mute status
@@ -650,6 +780,9 @@ function playAudio(name: string, data: Buffer, pitch: number, timestamp: number)
   }
   audio.playbackRate = pitch;
   audio.volume = volume;
+  // Auto play
+  audio.autoplay = true;
+
   try {
     audio.play();
     // Cache the audio
@@ -697,6 +830,7 @@ window.addEventListener("keydown", (e) => {
   if (e.code === "Escape") {
     if (!loaded) return;
     chatInput.blur();
+    // If any menu is open, close it
     if (
       document.getElementById("pause-menu-container")?.style.display != "block"
     ) {
@@ -733,17 +867,36 @@ window.addEventListener("keydown", (e) => {
 
   // Open Stats UI
   if (e.code === "KeyC") {
-    if(!loaded)return;
+    if(!loaded) return;
     if (chatInput === document.activeElement) return;
     if (pauseMenu.style.display == "block") return;
-    socket.send(
-      packet.encode(
-        JSON.stringify({
-          type: "INSPECTPLAYER",
-          data: null,
-        })
-      )
-    );
+    // If the menu is open and the current players id is the data-id attribute of the target stats container, close the menu
+    if (statUI.style.left === "10px" && statUI.getAttribute("data-id") === sessionStorage.getItem("connectionId")) {
+      statUI.style.transition = "1s";
+      statUI.style.left = "-570";
+    } else {
+      socket.send(
+        packet.encode(
+          JSON.stringify({
+            type: "INSPECTPLAYER",
+            data: null,
+          })
+        )
+      );
+    }
+  }
+
+  // Open Full Map
+  if (e.code === "KeyM") {
+    if(!loaded) return;
+    if (chatInput === document.activeElement) return;
+    if (pauseMenu.style.display == "block") return;
+    if (fullmap.style.display === "block") {
+      fullmap.style.display = "none";
+    } else {
+      fullmap.style.display = "block";
+      updatePlayerDots();
+    }
   }
 
   if (e.code === "Tab") {
@@ -851,21 +1004,15 @@ function handleKeyPress() {
   if (isMoving) return;
 
   isMoving = true;
-  
-  // Track the time of the last update
-  let lastTime = performance.now();
 
   function runMovement() {
-    const currentTime = performance.now();
-    const elapsedTime = currentTime - lastTime;
-    const delay = Math.max(10 - elapsedTime, 0);  // Ensure we always have at least 10ms delay
-
-    lastTime = currentTime + delay; // Set the last time to the current time plus the delay
 
     if (!isKeyPressed) {
       isMoving = false;
       return;
     }
+
+    if (pauseMenu.style.display == "block") return;
 
     // Only send directional instructions to the server for calculations
     if (pressedKeys.size > 1) {
@@ -948,7 +1095,7 @@ function handleKeyPress() {
     }
 
     // Recursively call the function with adjusted timeout
-    setTimeout(runMovement, delay);
+    setTimeout(runMovement, 0);
   }
 
   runMovement();  // Start the movement loop
@@ -960,15 +1107,7 @@ async function isLoaded() {
     const interval = setInterval(() => {
       if (loaded) {
         clearInterval(interval);
-        const loadingScreen = document.getElementById("loading-screen");
-        if (loadingScreen) {
-          // Fade out the loading screen after the map is loaded
-          loadingScreen.style.transition = "1s";
-          loadingScreen.style.opacity = "0";
-          setTimeout(() => {
-            loadingScreen.style.display = "none";
-          }, 1000);
-        }
+
         resolve();
       }
     }, 10);
@@ -1120,6 +1259,11 @@ function createPlayer(data: any) {
     );
   }
   players.push(player);
+
+  // Update player dots on the full map if it is open
+  if (fullmap.style.display === "block") {
+    updatePlayerDots();
+  }
 }
 
 function getLines(ctx: any, text: string, maxWidth: number) {
@@ -1163,6 +1307,7 @@ window.addEventListener("blur", () => {
 
 function updateStats(health: number, stamina: number) {
   healthBar.removeAttribute("class");
+  healthBar.classList.add("ui");
   healthBar.style.width = `${health}%`;
   staminaBar.style.width = `${stamina}%`;
   if (health >= 80) {
@@ -1181,10 +1326,13 @@ function updateStats(health: number, stamina: number) {
     healthBar.classList.add("red");
     return;
   }
+
+
 }
 
 function updateTargetStats(health: number, stamina: number) {
   targetHealthBar.removeAttribute("class");
+  targetHealthBar.classList.add("ui");
   targetHealthBar.style.width = `${health}%`;
   targetStaminaBar.style.width = `${stamina}%`;
   if (health >= 80) {
@@ -1203,6 +1351,82 @@ function updateTargetStats(health: number, stamina: number) {
     targetHealthBar.classList.add("red");
     return;
   }
+}
+
+function updatePlayerDots() {
+  const currentPlayer = players.find(
+    (player) => player.id === sessionStorage.getItem("connectionId")
+  );
+  // Add a new dot for each player
+  players.forEach((player) => {
+    if (player.id === sessionStorage.getItem("connectionId")) {
+      const dot = document.getElementsByClassName("self")[0] as HTMLElement;
+      if (dot) {
+        dot.style.left = `${player.position.x * mapScale}px`;
+        dot.style.top = `${player.position.y * mapScale}px`;
+      } else {
+        const newDot = document.createElement("div");
+        newDot.classList.add("dot");
+        newDot.classList.add("self");
+        newDot.style.left = `${player.position.x * mapScale}px`;
+        newDot.style.top = `${player.position.y * mapScale}px`;
+        fullmap.appendChild(newDot);
+      }
+    } else {
+      // Get by data-id attribute
+      const dot = document.querySelector(`[data-id="${player.id}"]`) as HTMLElement;
+      if (dot) {
+        dot.style.left = `${player.position.x * mapScale}px`;
+        dot.style.top = `${player.position.y * mapScale}px`;
+        if (player.isStealth) {
+          if (currentPlayer?.isAdmin) {
+            dot.style.opacity = "1";
+          } else {
+            dot.style.opacity = "0";
+          }
+        } else {
+          dot.style.opacity = "1";
+        }
+      } else {
+        const newDot = document.createElement("div");
+        newDot.classList.add("dot");
+        newDot.classList.add("other");
+        newDot.setAttribute("data-id", player.id);
+        newDot.style.left = `${player.position.x * mapScale}px`;
+        newDot.style.top = `${player.position.y * mapScale}px`;
+        if (player.isStealth) {
+          if (currentPlayer?.isAdmin) {
+            newDot.style.opacity = "1";
+          } else {
+            newDot.style.opacity = "0";
+          }
+        } else {
+          newDot.style.opacity = "1";
+        }
+        fullmap.appendChild(newDot);
+      }
+    }
+  });
+}
+
+async function updateFullMap() {
+  if (!loaded) return;
+
+  // Generate the data URL for the full map
+  const dataUrl = canvas.toDataURL("image/png");
+
+  const image = fullmap.querySelector("img");
+
+  if (image) {
+    image.src = dataUrl;
+  } else {
+    const newImage = new Image();
+    newImage.src = dataUrl;
+    fullmap.appendChild(newImage);
+  }
+
+  fullmap.style.width = canvas.width * mapScale + "px";
+  fullmap.style.height = canvas.height * mapScale + "px";
 }
 
 async function updateMiniMap() {
@@ -1230,7 +1454,9 @@ async function updateMiniMap() {
   if (!currentPlayer) return;
 
   // Update position display
-  const positionText = `X: ${currentPlayer.position.x}, Y: ${currentPlayer.position.y}`;
+  const x = currentPlayer.position.x - playerCanvas.width / 2;
+  const y = currentPlayer.position.y - playerCanvas.height / 2;
+  const positionText = `X: ${x}, Y: ${y}`;
   if (mapPosition.innerHTML !== positionText) {
     mapPosition.innerHTML = positionText;
   }
@@ -1239,7 +1465,7 @@ async function updateMiniMap() {
   const canvasHeight = canvas.height;
 
   // Calculate the cropping region centered around the current player
-  const scale = 5; // Scale factor for the minimap
+  const scale = 10; // Scale factor for the minimap
   const cropWidth = minimapWidth * scale;
   const cropHeight = minimapHeight * scale;
 
@@ -1255,6 +1481,9 @@ async function updateMiniMap() {
       canvasHeight - cropHeight
     )
   );
+
+  // Grey out the minimap
+  context.globalAlpha = 0.8;
 
   // Draw the cropped and scaled-down region of the canvas to the minimap
   context.drawImage(
@@ -1302,7 +1531,6 @@ document
   .getElementById("pause-menu-action-options")
   ?.addEventListener("click", () => {
     // If any other menu is open, close all other menus
-
     pauseMenu.style.display = "none";
     optionsMenu.style.display = "block";
   });

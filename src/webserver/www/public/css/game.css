@@ -216,22 +216,39 @@ input::placeholder {
   height: 82px;
 }
 
-.loader {
+#loading-screen {
   position: fixed;
   top: 0;
-  bottom:0;
   left: 0;
   right: 0;
-  /* height: 10px; */
-  --c:no-repeat linear-gradient(#ffffff25 0 0);
-  background:transparent var(--c);
-  background-size: 60% 100%;
-  animation: l16 3s infinite;
+  bottom: 0;
+  background: url("/img/background.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 100000;
 }
-@keyframes l16 {
-  0%   {background-position:-150% 0,-150% 0}
-  66%  {background-position: 250% 0,-150% 0}
-  100% {background-position: 250% 0, 250% 0}
+
+#loading-screen #progress-bar-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: #653B1D;
+  border-top: solid 2px #815E44;
+}
+
+/* Center it such as that it has a top and bottom padding of 10px*/
+#loading-screen #progress-bar {
+  background: #469CD9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 70%;
+  width: 0%;
+  transform: translateY(23.333%);
+  transition: width 0.1s;
 }
 
 #stats-container, #target-stats-container {
@@ -362,7 +379,7 @@ input::placeholder {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1000;
+  z-index: 10000;
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(2px);
 }
@@ -418,7 +435,7 @@ input::placeholder {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1000;
+  z-index: 10000;
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(2px);
 }
@@ -532,10 +549,57 @@ input::placeholder {
   transition: bottom ease-in-out 1s;
 }
 
-#stats-screen-health-label {
-  padding-top: 50px;
+#stats-screen-health-label, #stats-screen-mana-label {
+  padding-top: 15px;
+  color: #000;
 }
 
-#stats-screen-mana-label {
-  padding-top: 50px;
+#start-game-button {
+  position: fixed;
+  display: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #653B1D;
+  border: 2px solid #815E44;
+  outline: none;
+  color: #fff;
+  width: 200px;
+  height: 50px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Center of the screen */
+#full-map {
+  position: fixed;
+  z-index: 1000;
+  display: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 8px solid #b3996a;
+  background: rgba(179, 153, 106, 0.2);
+}
+
+#full-map img {
+  width: 100%;
+  height: 100%;
+  opacity: 0.8;
+}
+
+.self {
+  background: #fff;
+}
+
+.other {
+  background: #ff0000;
+}
+
+.dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  z-index: 1001;
 }

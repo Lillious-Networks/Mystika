@@ -229,28 +229,30 @@ export default async function packetReceiver(
 
         const playerData = [] as any[];
 
-        players.forEach((player) => {
-          player.ws.send(
-            packet.encode(
-              JSON.stringify({
-                type: "SPAWN_PLAYER",
-                data: {
-                  id: ws.data.id,
-                  location: {
-                    map: spawnLocation.map,
-                    x: position.x || 0,
-                    y: position.y || 0,
-                    direction: position.direction,
+        setTimeout(() => {
+          players.forEach((player) => {
+            player.ws.send(
+              packet.encode(
+                JSON.stringify({
+                  type: "SPAWN_PLAYER",
+                  data: {
+                    id: ws.data.id,
+                    location: {
+                      map: spawnLocation.map,
+                      x: position.x || 0,
+                      y: position.y || 0,
+                      direction: position.direction,
+                    },
+                    username,
+                    isAdmin,
+                    isStealth,
+                    stats,
                   },
-                  username,
-                  isAdmin,
-                  isStealth,
-                  stats,
-                },
-              })
-            )
-          );
-        });
+                })
+              )
+            );
+          });
+        }, 5000);
 
         players.forEach((player) => {
           const location = player.location;
@@ -309,7 +311,7 @@ export default async function packetReceiver(
           Due to the packet being dropped, the player will move at the normally
           enforced speed without the need to kick them.
         */
-        if (time - currentPlayer.lastMovementPacket < 8 && time - currentPlayer.lastMovementPacket !== 0) return;
+        if (time - currentPlayer.lastMovementPacket < 10 && time - currentPlayer.lastMovementPacket !== 0) return;
 
         currentPlayer.lastMovementPacket = time;
 
@@ -759,6 +761,19 @@ export default async function packetReceiver(
         currentPlayer.attackDelay = Date.now() + 1000;
         await new Promise((resolve) => setTimeout(resolve, 1000));
         currentPlayer.attackDelay = 0;
+        break;
+      }
+      case "STARTGAME": {
+        // Send music
+        ws.send(
+          packet.encode(
+            JSON.stringify({
+              type: "MUSIC",
+              name: "music_morning_dew",
+              data: assetCache.get("audio").find((a: SoundData) => a.name === "music_morning_dew"),
+            })
+          )
+        );
         break;
       }
       // Unknown packet type

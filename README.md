@@ -1,7 +1,8 @@
-<h1 align="center">Mystika - Game Engine</h1>
+<h1 align="center">Frostfire Forge</h1>
+<h4 align="center">🧊🔥 2D MMO Game Engine 🔥🧊</h4>
 
 <p align="center">
-  <img src="../../blob/main/src/webserver/www/public/img/logo.gif?raw=true">
+  <img src="../../blob/main/src/webserver/www/public/img/engine-logo.png?raw=true">
 </p>
 
 ![github](https://img.shields.io/github/actions/workflow/status/Lillious-Networks/Mystika/build_release.yml)
@@ -155,6 +156,9 @@ const PacketTypes: PacketType = {
   28: "UPDATESTATS",
   29: "TARGETCLOSEST",
   30: "AUDIO",
+  31: "INSPECTPLAYER",
+  32: "MUSIC",
+  33: "STARTGAME",
 };
 ```
 
