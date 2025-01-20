@@ -1,9 +1,8 @@
-<h1 align="center">Frostfire Forge</h1>
-<h4 align="center">🧊🔥 2D MMO Game Engine 🔥🧊</h4>
-
 <p align="center">
-  <img src="../../blob/main/src/webserver/www/public/img/engine-logo.png?raw=true">
+  <img src="../../blob/main/src/webserver/www/public/img/engine-logo-transparent.png?raw=true">
 </p>
+
+<h4 align="center">🧊🔥 2D MMO Game Engine 🔥🧊</h4>
 
 ![github](https://img.shields.io/github/actions/workflow/status/Lillious-Networks/Mystika/build_release.yml)
 
