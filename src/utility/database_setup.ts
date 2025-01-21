@@ -165,6 +165,25 @@ const createWeaponsTable = async () => {
   await query(sql);
 };
 
+const createSpellsTable = async () => {
+  const useDatabaseSql = `USE ${database};`;
+  await query(useDatabaseSql);
+
+  const sql = `
+    CREATE TABLE IF NOT EXISTS spells (
+      id INT NOT NULL AUTO_INCREMENT PRIMARY KEY UNIQUE,
+      name VARCHAR(255) NOT NULL,
+      damage INT NULL DEFAULT 0,
+      mana INT NULL DEFAULT 0,
+      \`range\` INT NULL DEFAULT 0,
+      type VARCHAR(255) NULL DEFAULT 'cast',
+      cast_time INT NULL DEFAULT 0,
+      description VARCHAR(255) NULL
+    )
+  `;
+  await query(sql);
+}
+
 // Run the database setup
 const setupDatabase = async () => {
   await createDatabase();
@@ -177,6 +196,7 @@ const setupDatabase = async () => {
   await createStatsTable();
   await createClientConfig();
   await createWeaponsTable();
+  await createSpellsTable();
 };
 
 try {
