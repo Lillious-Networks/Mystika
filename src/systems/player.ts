@@ -13,6 +13,18 @@ const player = {
         username = username.toLowerCase();
         email = email.toLowerCase();
 
+        // A-Z, a-z, 0-9
+        const usernameRegex = /^[A-Za-z0-9]+$/;
+        if (!usernameRegex.test(username)) return { error: "Invalid username" };
+
+        // A-Z, a-z, 0-9, @, .
+        const emailRegex = /^[A-Za-z0-9@.]+$/;
+        if (!emailRegex.test(email)) return { error: "Invalid email" };
+
+        // A-Z, a-z, 0-9, special characters
+        const passwordRegex = /^[A-Za-z0-9!@#$%^&*()_+]+$/;
+        if (!passwordRegex.test(password)) return { error: "Invalid password" };
+
         // Check if the user exists by username
         const usernameExists = await player.findByUsername(username) as string[];
         if (usernameExists && usernameExists.length != 0) return { error: "Username already exists" };
