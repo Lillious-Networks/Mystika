@@ -2,7 +2,7 @@
 FROM oven/bun:latest
 LABEL author="Lillious Networks"
 LABEL version="1.0"
-LABEL description="Mystika Dockerfile"
+LABEL description="Frostfire Forge Dockerfile"
 WORKDIR /usr/src/app
 COPY package*.json ./
 

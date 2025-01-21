@@ -5,6 +5,7 @@ import log from "./logger";
 import weapon from "../systems/weapon";
 import item from "../systems/items";
 import assetCache from "../services/assetCache";
+import generate from "../modules/sprites";
 import zlib from "zlib";
 
 import assetConfig from "../services/assetConfig";
@@ -32,6 +33,7 @@ log.debug(`Loaded ${items.length} item(s) from the database`);
 
 // Load maps
 function loadMaps() {
+  const now = performance.now();
   const maps = [] as MapData[];
   const failedMaps = [] as string[];
   const mapDir = path.join(import.meta.dir, assetData.maps.path);
@@ -159,12 +161,14 @@ function loadMaps() {
   }
 
   assetCache.add("maps", maps);
+  log.info(`Loaded ${maps.length} map(s) in ${(performance.now() - now).toFixed(2)}ms`);
 }
 
 loadMaps();
 
 // Load tilesets
 function loadTilesets() {
+  const now = performance.now();
   const tilesets = [] as TilesetData[];
   const tilesetDir = path.join(import.meta.dir, assetData.tilesets.path);
   if (!fs.existsSync(tilesetDir)) {
@@ -185,11 +189,13 @@ function loadTilesets() {
   });
 
   assetCache.add("tilesets", tilesets);
+  log.success(`Loaded ${tilesets.length} tileset(s) in ${(performance.now() - now).toFixed(2)}ms`);
 }
 loadTilesets();
 
 // Load scripts
 function loadScripts() {
+  const now = performance.now();
   const scripts = [] as ScriptData[];
   const scriptDir = path.join(import.meta.dir, assetData.scripts.path);
   if (!fs.existsSync(scriptDir)) return scripts;
@@ -207,6 +213,7 @@ function loadScripts() {
     scripts.push({ name: file, data: scriptData, hash: scriptHash });
   });
   assetCache.add("scripts", scripts);
+  log.success(`Loaded ${scripts.length} script(s) in ${(performance.now() - now).toFixed(2)}ms`);
 }
 loadScripts();
 
@@ -221,6 +228,7 @@ function tryParse(data: string): any {
 
 
 function loadSoundEffects () {
+  const now = performance.now();
   const soundEffects = [] as SoundData[];
   const soundEffectDir = path.join(import.meta.dir, assetData.sfx.path);
   if (!fs.existsSync(soundEffectDir)) {
@@ -237,6 +245,48 @@ function loadSoundEffects () {
     soundEffects.push({ name, data: compressedData });
   });
   assetCache.add("audio", soundEffects);
+  log.success(`Loaded ${soundEffects.length} sound effect(s) in ${(performance.now() - now).toFixed(2)}ms`);
 }
 
 loadSoundEffects();
+
+async function loadSpriteSheets() {
+  const spritesheetnow = performance.now();
+  const spritesheets = [] as SpriteSheetData[];
+  const spriteDir = path.join(import.meta.dir, assetData.spritesheets.path);
+  if (!fs.existsSync(spriteDir)) {
+    throw new Error(`Sprites directory not found at ${spriteDir}`);
+  }
+
+  // Not a folder
+  fs.readdirSync(spriteDir).filter((file) => file.endsWith(".png")).map((file) => {
+    const name = file.replace(".png", "");
+    const data = fs.readFileSync(path.join(spriteDir, file), "base64");
+    const buffer = Buffer.from(data, "base64");
+    log.debug(`Loaded sprite sheet: ${name}`);
+    const spriteHash = crypto
+      .createHash("sha256")
+      .update(data)
+      .digest("hex");
+      spritesheets.push({ name, width: 24, height: 40, data: buffer, hash: spriteHash });
+  });
+
+  assetCache.add("spritesheets", spritesheets);
+  log.success(`Loaded ${spritesheets.length} sprite sheet(s) in ${(performance.now() - spritesheetnow).toFixed(2)}ms`);
+
+  const sprites = [] as SpriteData[];
+  const spritenow = performance.now();
+  const spritePromises = spritesheets.map(async (spritesheet: any) => {
+    const sprite = await generate(spritesheet) as SpriteData;
+    return sprite;
+  });
+
+  const spriteData = await Promise.all(spritePromises);
+  spriteData.forEach((sprite) => {
+    sprites.push(sprite);
+  });
+
+  log.success(`Generated ${sprites.length} sprite(s) in ${(performance.now() - spritenow).toFixed(2)}ms`);
+}
+
+await loadSpriteSheets();

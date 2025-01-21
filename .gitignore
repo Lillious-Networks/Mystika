@@ -37,3 +37,8 @@ src/webserver/www/public/js/*.js
 src/utility/*.md
 .VSCodeCounter
 bun.lockb
+
+assets/sprites/*
+
+assets/spritesheets/*
+!assets/spritesheets/frostfire-player.png

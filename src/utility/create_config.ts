@@ -20,6 +20,12 @@ const config = {
     "scripts": {
         "path": "../../assets/scripts/"
     },
+    "spritesheets": {
+        "path": "../../assets/spritesheets/"
+    },
+    "sprites": {
+        "path": "../../assets/sprites/"
+    },
 };
 
 if (!fs.existsSync(path.join(configPath, "assets.json"))) {

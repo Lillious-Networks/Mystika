@@ -136,3 +136,19 @@ declare interface SoundData {
   data: Buffer;
   pitch?: number;
 }
+
+// Define Sprite data
+declare interface SpriteSheetData {
+  name: string;
+  width: number;
+  height: number;
+  data: Buffer;
+  hash: string;
+}
+
+// Define Sprite data
+declare interface SpriteData {
+  name: string;
+  data: Buffer;
+  hash: string;
+}

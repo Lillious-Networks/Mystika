@@ -6,8 +6,19 @@ import cache from "../services/cache";
 import assetCache from "../services/assetCache";
 import language from "../systems/language";
 import packet from "../modules/packet";
+import generate from "../modules/sprites";
 
 const maps = assetCache.get("maps");
+const spritesheets = assetCache.get("spritesheets");
+// Create sprites from the spritesheets
+const spritePromises = spritesheets.map(async (spritesheet: any) => {
+  const sprite = await generate(spritesheet);
+  return sprite;
+});
+
+Promise.all(spritePromises).then((sprites) => {
+  assetCache.add("sprites", sprites);
+});
 
 export default async function packetReceiver(
   server: any,

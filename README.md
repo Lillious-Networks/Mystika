@@ -4,7 +4,7 @@
 
 <h4 align="center">🧊🔥 2D MMO Game Engine 🔥🧊</h4>
 
-![github](https://img.shields.io/github/actions/workflow/status/Lillious-Networks/Mystika/build_release.yml)
+![github](https://img.shields.io/github/actions/workflow/status/Lillious-Networks/Frostfire-Forge/build_release.yml)
 
 > [!NOTE]
 > This project is currently a **work in progress**
