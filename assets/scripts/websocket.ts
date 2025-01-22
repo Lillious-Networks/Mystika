@@ -1467,7 +1467,7 @@ async function updateMiniMap() {
   const canvasHeight = canvas.height;
 
   // Calculate the cropping region centered around the current player
-  const scale = 10; // Scale factor for the minimap
+  const scale = 20; // Scale factor for the minimap
   const cropWidth = minimapWidth * scale;
   const cropHeight = minimapHeight * scale;
 
@@ -1484,8 +1484,8 @@ async function updateMiniMap() {
     )
   );
 
-  // Grey out the minimap
-  context.globalAlpha = 0.8;
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
 
   // Draw the cropped and scaled-down region of the canvas to the minimap
   context.drawImage(
@@ -1513,7 +1513,7 @@ async function updateMiniMap() {
 }
 
 // Update minimap less frequently to avoid freezing
-const updateInterval = 150; // Update every 150ms
+const updateInterval = 100; // Update every 150ms
 
 setTimeout(async () => {
   const updateLoop = async () => {
