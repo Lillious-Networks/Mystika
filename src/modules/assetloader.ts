@@ -4,9 +4,13 @@ import crypto from "crypto";
 import log from "./logger";
 import weapon from "../systems/weapon";
 import item from "../systems/items";
+import spell from "../systems/spells";
 import assetCache from "../services/assetCache";
 import generate from "../modules/sprites";
 import zlib from "zlib";
+import query from "../controllers/sqldatabase";
+// Warm up the database connection
+await query("SELECT 1 + 1 AS solution -- Warm up the database connection");
 
 import assetConfig from "../services/assetConfig";
 const assetPath = assetConfig.getAssetConfig();
@@ -21,15 +25,23 @@ if (!asset) {
 
 const assetData = JSON.parse(asset);
 
-// Load weapon data
-assetCache.add("weapons", await weapon.list());
-const weapons = assetCache.get("weapons") as WeaponData[];
-log.debug(`Loaded ${weapons.length} weapon(s) from the database`);
-
 // Load item data
+const itemnow = performance.now();
 assetCache.add("items", await item.list());
 const items = assetCache.get("items") as Item[];
-log.debug(`Loaded ${items.length} item(s) from the database`);
+log.success(`Loaded ${items.length} item(s) from the database in ${(performance.now() - itemnow).toFixed(2)}ms`);
+
+// Load spell data
+const spellnow = performance.now();
+assetCache.add("spells", await spell.list());
+const spells = assetCache.get("spells") as SpellData[];
+log.success(`Loaded ${spells.length} spell(s) from the database in ${(performance.now() - spellnow).toFixed(2)}ms`);
+
+// Load weapon data
+const weaponnow = performance.now();
+assetCache.add("weapons", await weapon.list());
+const weapons = assetCache.get("weapons") as WeaponData[];
+log.success(`Loaded ${weapons.length} weapon(s) from the database in ${(performance.now() - weaponnow).toFixed(2)}ms`);
 
 // Load maps
 function loadMaps() {
@@ -161,7 +173,7 @@ function loadMaps() {
   }
 
   assetCache.add("maps", maps);
-  log.info(`Loaded ${maps.length} map(s) in ${(performance.now() - now).toFixed(2)}ms`);
+  log.success(`Loaded ${maps.length} map(s) in ${(performance.now() - now).toFixed(2)}ms`);
 }
 
 loadMaps();
@@ -277,7 +289,7 @@ async function loadSpriteSheets() {
   const sprites = [] as SpriteData[];
   const spritenow = performance.now();
   const spritePromises = spritesheets.map(async (spritesheet: any) => {
-    const sprite = await generate(spritesheet) as SpriteData;
+    const sprite = await generate(spritesheet) as any;
     return sprite;
   });
 

@@ -152,3 +152,14 @@ declare interface SpriteData {
   data: Buffer;
   hash: string;
 }
+
+// Define Spell data
+declare interface SpellData {
+  name: string;
+  damage: number;
+  mana: number;
+  range: number;
+  type: string;
+  cast_time: number;
+  description: string;
+}
