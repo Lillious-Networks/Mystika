@@ -61,7 +61,7 @@ body {
   transition: right ease-in-out 1s;
 }
 
-#inventory #grid {
+#inventory #grid{
   display: flex;
   flex-wrap: wrap;
   padding: 35px;
@@ -74,6 +74,33 @@ body {
 #inventory #grid .slot {
   width: 50px;
   height: 50px;
+  box-sizing: border-box;
+  font-size: 12px;
+  font-weight: lighter;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow: hidden;
+  color: #bdbdbd;
+  background: url("/img/ui/ui-inventory-slot.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  user-select: none;
+}
+
+#hotbar #grid {
+  display: flex;
+  padding: 25px;
+  padding-left: 35px;
+  padding-right: 35px;
+}
+
+#hotbar #grid .slot {
+  width: 42px;
+  height: 42px;
   box-sizing: border-box;
   font-size: 12px;
   font-weight: lighter;
@@ -156,6 +183,26 @@ body {
 .legendary:hover {
   border: 2px solid rgba(235, 156, 52, 0.7);
   transition: border ease-in-out 0.2s;
+}
+
+.glow {
+  animation: glow 0.3s infinite;
+}
+
+/* Slot animation where it glows smoothly from yellow to gold infinitely */
+@keyframes glow {
+  0% {
+    border: 2px solid rgba(255, 255, 0, 0.3);
+    box-shadow: 0 0 0px rgba(255, 255, 0, 0.3);
+  }
+  50% {
+    border: 2px solid rgba(255, 215, 0, 0.7);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+  }
+  100% {
+    border: 2px solid rgba(255, 255, 0, 0.3);
+    box-shadow: 0 0 0px rgba(255, 255, 0, 0.3);
+  }
 }
 
 #chat-container {

@@ -747,7 +747,8 @@ function playMusic(name: string, data: Buffer, timestamp: number): void {
       console.error("Failed to create audio element");
       return;
     }
-    music.volume = mutedCheckbox.checked ? 0 : Number(musicSlider.value) / 100;
+    const musicVolume = Number(musicSlider.value);
+    music.volume = mutedCheckbox.checked || musicVolume === 0 ? 0 : musicVolume / 100;
     music.loop = true;
     try {
       music.play();
@@ -761,7 +762,8 @@ function playMusic(name: string, data: Buffer, timestamp: number): void {
 
 function startMusicInterval(music: any) {
   setInterval(() => {
-    music.volume = mutedCheckbox.checked ? 0 : Number(musicSlider.value) / 100;
+    const musicVolume = Number(musicSlider.value);
+    music.volume = mutedCheckbox.checked || musicVolume === 0 ? 0 : musicVolume / 100;
   }, 100);
 }
 
@@ -769,7 +771,7 @@ function playAudio(name: string, data: Buffer, pitch: number, timestamp: number)
   // Get mute status
   if (mutedCheckbox.checked) return;
   // Get effects volume
-  const volume = Number(effectsSlider.value) / 100;
+  const volume = effectsSlider.value === "0" ? 0 : Number(effectsSlider.value) / 100;
   // Check if the audio is already cached, if not, inflate the data
   // @ts-expect-error - pako is not defined because it is loaded in the index.html
   const cachedAudio = timestamp < performance.now() - 3.6e+6 ? pako.inflate(new Uint8Array(data),{ to: 'string' }) : audioCache.get(name)|| pako.inflate(new Uint8Array(data), { to: 'string' });
