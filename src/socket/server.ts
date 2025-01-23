@@ -50,7 +50,7 @@ const ClientRateLimit = [] as ClientRateLimit[];
 
 
 
-export const Server = Bun.serve<Packet>({
+const Server = Bun.serve<Packet>({
   fetch(req, Server) {
     // Upgrade the request to a WebSocket connection
     // and generate a random id for the client

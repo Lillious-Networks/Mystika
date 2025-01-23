@@ -59,9 +59,9 @@ const targetHealthBar = document.getElementById(
 const targetStaminaBar = document.getElementById(
   "target-stamina-progress-bar"
 ) as HTMLDivElement;
-const map = document.getElementById("map") as HTMLDivElement;
+//const map = document.getElementById("map") as HTMLDivElement;
 const fullmap = document.getElementById("full-map") as HTMLDivElement;
-const mapPosition = document.getElementById("position") as HTMLDivElement;
+//const mapPosition = document.getElementById("position") as HTMLDivElement;
 const pauseMenu = document.getElementById(
   "pause-menu-container"
 ) as HTMLDivElement;
@@ -1431,97 +1431,97 @@ async function updateFullMap() {
   fullmap.style.height = canvas.height * mapScale + "px";
 }
 
-async function updateMiniMap() {
-  if (!loaded) return;
-  // Check if there is already a minimap image
-  const image = map.querySelector("img");
+// async function updateMiniMap() {
+//   if (!loaded) return;
+//   // Check if there is already a minimap image
+//   const image = map.querySelector("img");
 
-  // Create a temporary canvas for the minimap
-  const tempCanvas = document.createElement("canvas");
-  const context = tempCanvas.getContext("2d");
+//   // Create a temporary canvas for the minimap
+//   const tempCanvas = document.createElement("canvas");
+//   const context = tempCanvas.getContext("2d");
 
-  if (!context) return;
+//   if (!context) return;
 
-  // Set the minimap size
-  const minimapWidth = 200; // Set to your desired minimap width
-  const minimapHeight = 200; // Set to your desired minimap height
-  tempCanvas.width = minimapWidth;
-  tempCanvas.height = minimapHeight;
+//   // Set the minimap size
+//   const minimapWidth = 200; // Set to your desired minimap width
+//   const minimapHeight = 200; // Set to your desired minimap height
+//   tempCanvas.width = minimapWidth;
+//   tempCanvas.height = minimapHeight;
 
-  // Get the current player's position
-  const currentPlayer = players.find(
-    (player) => player.id === sessionStorage.getItem("connectionId")
-  );
+//   // Get the current player's position
+//   const currentPlayer = players.find(
+//     (player) => player.id === sessionStorage.getItem("connectionId")
+//   );
 
-  if (!currentPlayer) return;
+//   if (!currentPlayer) return;
 
-  // Update position display
-  const x = currentPlayer.position.x - playerCanvas.width / 2;
-  const y = currentPlayer.position.y - playerCanvas.height / 2;
-  const positionText = `X: ${x}, Y: ${y}`;
-  if (mapPosition.innerHTML !== positionText) {
-    mapPosition.innerHTML = positionText;
-  }
+//   // Update position display
+//   const x = currentPlayer.position.x - playerCanvas.width / 2;
+//   const y = currentPlayer.position.y - playerCanvas.height / 2;
+//   const positionText = `X: ${x}, Y: ${y}`;
+//   if (mapPosition.innerHTML !== positionText) {
+//     mapPosition.innerHTML = positionText;
+//   }
 
-  const canvasWidth = canvas.width;
-  const canvasHeight = canvas.height;
+//   const canvasWidth = canvas.width;
+//   const canvasHeight = canvas.height;
 
-  // Calculate the cropping region centered around the current player
-  const scale = 20; // Scale factor for the minimap
-  const cropWidth = minimapWidth * scale;
-  const cropHeight = minimapHeight * scale;
+//   // Calculate the cropping region centered around the current player
+//   const scale = 20; // Scale factor for the minimap
+//   const cropWidth = minimapWidth * scale;
+//   const cropHeight = minimapHeight * scale;
 
-  // Ensure the player stays centered in the minimap
-  const cropX = Math.max(
-    0,
-    Math.min(currentPlayer.position.x - cropWidth / 2, canvasWidth - cropWidth)
-  );
-  const cropY = Math.max(
-    0,
-    Math.min(
-      currentPlayer.position.y - cropHeight / 2,
-      canvasHeight - cropHeight
-    )
-  );
+//   // Ensure the player stays centered in the minimap
+//   const cropX = Math.max(
+//     0,
+//     Math.min(currentPlayer.position.x - cropWidth / 2, canvasWidth - cropWidth)
+//   );
+//   const cropY = Math.max(
+//     0,
+//     Math.min(
+//       currentPlayer.position.y - cropHeight / 2,
+//       canvasHeight - cropHeight
+//     )
+//   );
 
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = "high";
+//   context.imageSmoothingEnabled = true;
+//   context.imageSmoothingQuality = "high";
 
-  // Draw the cropped and scaled-down region of the canvas to the minimap
-  context.drawImage(
-    canvas, // Source canvas
-    cropX, // Crop start X
-    cropY, // Crop start Y
-    cropWidth, // Crop width
-    cropHeight, // Crop height
-    0, // Destination X
-    0, // Destination Y
-    minimapWidth, // Destination width
-    minimapHeight // Destination height
-  );
+//   // Draw the cropped and scaled-down region of the canvas to the minimap
+//   context.drawImage(
+//     canvas, // Source canvas
+//     cropX, // Crop start X
+//     cropY, // Crop start Y
+//     cropWidth, // Crop width
+//     cropHeight, // Crop height
+//     0, // Destination X
+//     0, // Destination Y
+//     minimapWidth, // Destination width
+//     minimapHeight // Destination height
+//   );
 
-  // Generate the data URL for the minimap
-  const dataUrl = tempCanvas.toDataURL("image/png");
+//   // Generate the data URL for the minimap
+//   const dataUrl = tempCanvas.toDataURL("image/png");
 
-  if (image) {
-    image.src = dataUrl;
-  } else {
-    const newImage = new Image();
-    newImage.src = dataUrl;
-    map.appendChild(newImage);
-  }
-}
+//   if (image) {
+//     image.src = dataUrl;
+//   } else {
+//     const newImage = new Image();
+//     newImage.src = dataUrl;
+//     map.appendChild(newImage);
+//   }
+// }
 
 // Update minimap less frequently to avoid freezing
-const updateInterval = 100; // Update every 150ms
+// const updateInterval = 200; // Update every 150ms
 
-setTimeout(async () => {
-  const updateLoop = async () => {
-    await updateMiniMap();
-    setTimeout(async () => await updateLoop(), updateInterval);
-  };
-  await updateLoop();
-}, 1000);
+// setTimeout(async () => {
+//   const updateLoop = async () => {
+//     await updateMiniMap();
+//     setTimeout(async () => await updateLoop(), updateInterval);
+//   };
+//   await updateLoop();
+// }, 1000);
 
 document
   .getElementById("pause-menu-action-back")
