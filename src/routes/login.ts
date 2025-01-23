@@ -2,6 +2,8 @@ import express from "express";
 export const router = express.Router();
 import player from "../systems/player";
 import verify from "../services/verification";
+import query from "../controllers/sqldatabase";
+import * as settings from "../../config/settings.json";
 
 router.post("/login", async (req, res) => {
 
@@ -69,12 +71,20 @@ router.post("/login", async (req, res) => {
     httpOnly: false,
   });
 
-  // Send the verification email
-  const result = await verify(token, useremail, req.body.username) as any;
-  if (result instanceof Error) {
-    res.status(403).send({ message: "Failed to send verification email" });
-    return;
-  }
+  // Auto verify the account if 2fa is disabled
+  if (!settings["2fa"].enabled) {
+    // Update the account to verified
+    await query("UPDATE accounts SET verified = 1 WHERE token = ?", [token]);
 
-  res.status(200).send({ message: "Verification email sent" });
+    // Remove any verification code that may exist
+    await query("UPDATE accounts SET verification_code = NULL WHERE token = ?", [token]);
+    res.status(301).send({ message: "Logged in" });
+  } else {
+    const result = await verify(token, useremail, req.body.username) as any;
+    if (result instanceof Error) {
+      res.status(403).send({ message: "Failed to send verification email" });
+    } else {
+      res.status(200).send({ message: "Verification email sent" });
+    }
+  }
 });

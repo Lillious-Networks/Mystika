@@ -177,6 +177,7 @@ input[type="range"] {
   color: transparent;
   cursor: pointer;
   outline: none;
+  border: none;
 }
 
 #register-email, #register-username, #register-password, #register-confirm-password {

@@ -1,10 +1,6 @@
 import path from "path";
 import fs from "fs";
-
-const config = {
-  debug: true,
-  trace: true,
-};
+import * as settings from "../../config/settings.json";
 
 const types = {
   info: "\x1b[97m",
@@ -54,11 +50,11 @@ const log = {
     log.createLogFile(`[SUCCESS] ${msg}`, "success");
   },
   debug: (msg: string) => {
-    if (!config.debug) return;
+    if (settings.logging.level !== "debug" && settings.logging.level !== "trace") return;
     log.createLogFile(`[DEBUG] ${msg}`, "debug");
   },
   trace: (msg: string) => {
-    if (!config.trace) return;
+    if (settings.logging.level !== "trace") return;
     log.createLogFile(`[TRACE] ${msg}`, "trace");
   },
   object: (obj: any) => {
