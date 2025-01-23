@@ -1,6 +1,5 @@
 import path from "path";
 import fs from "fs";
-import log from "../modules/logger";
 
 const configPath = path.join("config");
 if (!fs.existsSync(configPath)) {
@@ -42,9 +41,9 @@ if (!fs.existsSync(path.join(configPath, "assets.json"))) {
     path.join(configPath, "assets.json"),
     JSON.stringify(assetConfig, null, 2)
   );
-  log.info(`Created assets config file at ${path.join(configPath, "assets.json")}`);
+  console.log(`Created assets config file at ${path.join(configPath, "assets.json")}`);
 } else {
-  log.info(`Assets config file loaded from ${path.join(configPath, "assets.json")}`);
+  console.log(`Assets config file loaded from ${path.join(configPath, "assets.json")}`);
 }
 
 if (!fs.existsSync(path.join(configPath, "settings.json"))) {
@@ -52,7 +51,7 @@ if (!fs.existsSync(path.join(configPath, "settings.json"))) {
     path.join(configPath, "settings.json"),
     JSON.stringify(settings, null, 2)
   );
-  log.info(`Created settings file at ${path.join(configPath, "settings.json")}`);
+  console.log(`Created settings file at ${path.join(configPath, "settings.json")}`);
 } else {
-  log.info(`Settings loaded from ${path.join(configPath, "settings.json")}`);
+  console.log(`Settings loaded from ${path.join(configPath, "settings.json")}`);
 }
