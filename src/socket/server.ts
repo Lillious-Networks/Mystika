@@ -48,8 +48,6 @@ const connections = new Set<Identity>();
 // Set to track the amount of requests
 const ClientRateLimit = [] as ClientRateLimit[];
 
-
-
 const Server = Bun.serve<Packet>({
   fetch(req, Server) {
     // Upgrade the request to a WebSocket connection

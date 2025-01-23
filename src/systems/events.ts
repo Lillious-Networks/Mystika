@@ -2,10 +2,11 @@ import EventEmitter from "node:events";
 import log from "../modules/logger";
 export const event = new EventEmitter();
 import { listener } from "../socket/server";
+const now = performance.now();
 
 // Online runs once the Server is online
 event.on("online", (data) => {
-  log.info(`TCP server is listening on localhost:${data.port}`);
+  log.success(`TCP server is listening on localhost:${data.port} - Ready in ${(performance.now() - now).toFixed(2)}ms`);
   // Emit awake event
   listener.emit("onAwake");
   // Emit start event

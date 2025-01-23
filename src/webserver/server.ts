@@ -1,3 +1,4 @@
+const now = performance.now();
 import express from "express";
 import compression from "compression";
 import { rateLimit } from "express-rate-limit";
@@ -139,7 +140,7 @@ if (_https) {
       cert: cert,
       key: key,
     }, app).listen(sslport, () => {
-      log.info(`HTTPS server is listening on localhost:${sslport}`);
+      log.success(`HTTPS server is listening on localhost:${sslport} - Ready in ${(performance.now() - now).toFixed(2)}ms`);
     });
   } catch (e: any) {
     log.error(`Error starting HTTPS server: ${e.message}`);
@@ -147,7 +148,7 @@ if (_https) {
 }
 
 server.listen(port, async () => {
-  log.info(`HTTP server is listening on localhost:${port}`);
+  log.success(`HTTP server is listening on localhost:${port} - Ready in ${(performance.now() - now).toFixed(2)}ms`);
   await import("../../src/socket/server");
 });
 
