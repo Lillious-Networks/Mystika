@@ -377,7 +377,7 @@ await inventory.get(username);
 <h3>Weapon Management</h3>
 
 ```ts
-import weapons from "../systems/weapon";
+import weapon from "../systems/weapons";
 ```
 
 <h5>Structure</h5>
@@ -394,39 +394,39 @@ declare interface WeaponData {
 }
 ```
 
-<h5>weapons.add();</h5>
+<h5>weapon.add();</h5>
 <p style="font-size:0.75em;">Adds a weapon to the weapon database</p>
 
 ```ts
-await weapons.add(weapon);
+await weapon.add(weapon);
 ```
 
-<h5>weapons.remove();</h5>
+<h5>weapon.remove();</h5>
 <p style="font-size:0.75em;">Removes a weapon to the weapon database</p>
 
 ```ts
-await weapons.remove(weapon);
+await weapon.remove(weapon);
 ```
 
-<h5>weapons.find();</h5>
+<h5>weapon.find();</h5>
 <p style="font-size:0.75em;">Fetches a weapon from the weapon database</p>
 
 ```ts
-await weapons.find(weapon);
+await weapon.find(weapon);
 ```
 
-<h5>weapons.update();</h5>
+<h5>weapon.update();</h5>
 <p style="font-size:0.75em;">Updates a weapon in the weapon database</p>
 
 ```ts
-await weapons.update(weapon);
+await weapon.update(weapon);
 ```
 
-<h5>weapons.list();</h5>
-<p style="font-size:0.75em;">Lists all weapons in the weapon database</p>
+<h5>weapon.list();</h5>
+<p style="font-size:0.75em;">Lists all weapon in the weapon database</p>
 
 ```ts
-await weapons.list();
+await weapon.list();
 ```
 
 <hr>
@@ -670,6 +670,10 @@ await player.canAttack(self, target, range);
 <h5>player.findClosestPlayer();</h5>
 <p style="font-size:0.75em;">Returns the closest player or null</p>
 
+```ts
+await player.findClosestPlayer(self, players, range);
+```
+
 <hr>
 <h3>Audio Management</h3>
 
@@ -699,4 +703,60 @@ audio.list() as AudioData[];
 
 ```ts
 audio.get(name) as AudioData[];
+```
+
+<hr>
+<h3>Spell Management</h3>
+
+```ts
+import spell from "../systems/spells";
+```
+
+<h5>Structure</h5>
+
+```ts
+declare interface SpellData {
+  name: string;
+  damage: number;
+  mana: number;
+  range: number;
+  type: string;
+  cast_time: number;
+  description: string;
+}
+```
+
+<h5>spell.add();</h5>
+<p style="font-size:0.75em;">Adds a spell to the spell database</p>
+
+```ts
+await spell.add(spell);
+```
+
+<h5>spell.remove();</h5>
+<p style="font-size:0.75em;">Removes a spell to the spell database</p>
+
+```ts
+await spell.remove(spell);
+```
+
+<h5>spell.find();</h5>
+<p style="font-size:0.75em;">Fetches a spell from the spell database</p>
+
+```ts
+await spell.find(spell);
+```
+
+<h5>spell.update();</h5>
+<p style="font-size:0.75em;">Updates a spell in the spell database</p>
+
+```ts
+await spell.update(spell);
+```
+
+<h5>spell.list();</h5>
+<p style="font-size:0.75em;">Lists all spell in the spell database</p>
+
+```ts
+await spell.list();
 ```

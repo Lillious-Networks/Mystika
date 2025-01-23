@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import log from '../modules/logger'
 
 const readme = path.join(import.meta.dir, '..', '..', 'README.md');
 const output = path.join(import.meta.dir, 'output.md');
@@ -11,6 +12,7 @@ if (!fs.existsSync(readme))
     throw new Error('README.md not found');
 
 try {
+    const now = performance.now();
     const content = fs.readFileSync(readme, 'utf-8');
     const lines = content.split('\n');
     lines.forEach((line, index) => {
@@ -41,8 +43,9 @@ try {
             }
         }
     });
-} catch (error) {
-    console.error(error);
+    log.success(`Documentation generated in ${(performance.now() - now).toFixed(2)}ms`);
+} catch (error: any) {
+    log.error(error);
 }
 
 // Generate html file

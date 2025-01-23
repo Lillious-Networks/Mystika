@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import log from "./logger";
-import weapon from "../systems/weapon";
+import weapon from "../systems/weapons";
 import item from "../systems/items";
 import spell from "../systems/spells";
 import assetCache from "../services/assetCache";
