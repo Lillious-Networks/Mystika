@@ -11,11 +11,11 @@ const port = process.env.WEBSRV_PORT || 80;
 const sslport = process.env.WEBSRV_PORTSSL || 443;
 const app = express();
 app.use(compression());
-import log from "../modules/logger";
-import "../services/security";
+import log from "../../src/modules/logger";
+import "../../src/services/security";
 
 // Load assets
-import "../modules/assetloader";
+import "../../src/modules/assetloader";
 
 /* SSL Certificate Setup */
 const _cert = path.join(import.meta.dir, "../certs/cert.crt");
@@ -65,7 +65,7 @@ if (_https) {
 }
 
 // Filter
-import filter from "../systems/security";
+import filter from "../../src/systems/security";
 app.use(function (req: any, res: any, next: any) {
   res.header(
     "Access-Control-Allow-Headers",
@@ -97,35 +97,35 @@ app.use(function (req: any, res: any, next: any) {
 app.use("/", express.static(path.join(import.meta.dirname, "www/public")));
 
 // Unauthenticated Routes
-import { router as ReigisterRouter } from "../routes/register";
+import { router as ReigisterRouter } from "../../src/routes/register";
 app.use(ReigisterRouter);
 
 // Verify Routes
-import { router as VerifyRouter } from "../routes/verify";
+import { router as VerifyRouter } from "../../src/routes/verify";
 app.use(VerifyRouter);
 
 // Benchmark Routes
-import { router as BenchmarkRouter } from "../routes/benchmark";
+import { router as BenchmarkRouter } from "../../src/routes/benchmark";
 app.use(BenchmarkRouter);
 
 // Documentation Routes
-import { router as DocumentationRouter } from "../routes/documentation";
+import { router as DocumentationRouter } from "../../src/routes/documentation";
 app.use(DocumentationRouter);
 
-import { router as LoginRouter } from "../routes/login";
+import { router as LoginRouter } from "../../src/routes/login";
 app.use(LoginRouter);
 
 // Authorization Middleware
-import { router as AuthorizationRouter } from "../routes/authorization";
+import { router as AuthorizationRouter } from "../../src/routes/authorization";
 app.use(AuthorizationRouter);
 
 // Static files
 app.use("/game", express.static(path.join(import.meta.dirname, "www/game")));
-import { router as mapRouter } from "../routes/map";
+import { router as mapRouter } from "../../src/routes/map";
 app.use(mapRouter);
-import { router as tilesetRouter } from "../routes/tileset";
+import { router as tilesetRouter } from "../../src/routes/tileset";
 app.use(tilesetRouter);
-import { router as functionRouter } from "../routes/functions";
+import { router as functionRouter } from "../../src/routes/functions";
 app.use(functionRouter);
 
 const server = http.createServer(app);
@@ -148,7 +148,7 @@ if (_https) {
 
 server.listen(port, async () => {
   log.info(`HTTP server is listening on localhost:${port}`);
-  await import("../socket/server");
+  await import("../../src/socket/server");
 });
 
 export default app;
