@@ -151,4 +151,12 @@ server.listen(port, async () => {
   await import("../../src/socket/server");
 });
 
+// Wait for connections to close gracefully
+server.on("stop", () => {
+  log.info("Server is stopping...");
+  server.close(() => {
+    log.info("Server stopped.");
+  });
+});
+
 export default app;
