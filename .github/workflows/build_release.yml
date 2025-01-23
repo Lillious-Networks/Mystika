@@ -37,5 +37,6 @@ jobs:
 
       - name: Unit tests
         run: |
+            bun ./src/utility/create_config.ts
             bun test database
             bun test email
