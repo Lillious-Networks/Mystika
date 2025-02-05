@@ -77,7 +77,6 @@ const effectsSlider = document.getElementById(
 const mutedCheckbox = document.getElementById(
   "muted-checkbox"
 ) as HTMLInputElement;
-const languageSelect = document.getElementById("language") as HTMLSelectElement;
 const healthLabel = document.getElementById("stats-screen-health-label") as HTMLDivElement;
 const manaLabel = document.getElementById("stats-screen-mana-label") as HTMLDivElement;
 let loaded: boolean = false;
@@ -541,8 +540,9 @@ socket.addEventListener("message", async (event) => {
         if (!sessionToken) {
           throw new Error("No session token found");
         }
+        const language = navigator.language.split("-")[0] || navigator.language || "en";
         socket.send(
-          packet.encode(JSON.stringify({ type: "AUTH", data: sessionToken }))
+          packet.encode(JSON.stringify({ type: "AUTH", data: sessionToken, language }))
         );
       }
       break;
@@ -619,8 +619,6 @@ socket.addEventListener("message", async (event) => {
       document.getElementById(
         "muted-checkbox"
       )!.innerText = `Muted: ${mutedCheckbox.checked}`;
-      // Update selected language option
-      languageSelect.value = data.language;
       break;
     }
     case "SELECTPLAYER": {
@@ -1579,7 +1577,6 @@ fpsSlider.addEventListener("change", () => {
           music_volume: parseInt(musicSlider.value),
           effects_volume: parseInt(effectsSlider.value),
           muted: mutedCheckbox.checked,
-          language: languageSelect.value,
         } as ConfigData,
       })
     )
@@ -1596,7 +1593,6 @@ musicSlider.addEventListener("change", () => {
           music_volume: parseInt(musicSlider.value),
           effects_volume: parseInt(effectsSlider.value),
           muted: mutedCheckbox.checked,
-          language: languageSelect.value,
         } as ConfigData,
       })
     )
@@ -1613,7 +1609,6 @@ effectsSlider.addEventListener("change", () => {
           music_volume: parseInt(musicSlider.value),
           effects_volume: parseInt(effectsSlider.value),
           muted: mutedCheckbox.checked,
-          language: languageSelect.value,
         } as ConfigData,
       })
     )
@@ -1630,24 +1625,6 @@ mutedCheckbox.addEventListener("change", () => {
           music_volume: parseInt(musicSlider.value),
           effects_volume: parseInt(effectsSlider.value),
           muted: mutedCheckbox.checked,
-          language: languageSelect.value,
-        } as ConfigData,
-      })
-    )
-  );
-});
-
-languageSelect.addEventListener("change", () => {
-  socket.send(
-    packet.encode(
-      JSON.stringify({
-        type: "CLIENTCONFIG",
-        data: {
-          fps: parseInt(fpsSlider.value),
-          music_volume: parseInt(musicSlider.value),
-          effects_volume: parseInt(effectsSlider.value),
-          muted: mutedCheckbox.checked,
-          language: languageSelect.value,
         } as ConfigData,
       })
     )

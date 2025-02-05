@@ -6,6 +6,7 @@ declare interface Packet {
   data: PacketData;
   id: Nullable<string>;
   useragent: Nullable<string>;
+  language: Nullable<string>;
 }
 
 // Define the packet type

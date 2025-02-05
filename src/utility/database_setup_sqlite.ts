@@ -115,15 +115,13 @@ const insertDemoClientConfig = async () => {
       fps,
       music_volume,
       effects_volume,
-      muted,
-      language
+      muted
     ) VALUES (
       'demo_user',
       60,
       100,
       100,
-      0,
-      'en'
+      0
     );
     `;
   await query(sql);
@@ -183,8 +181,7 @@ const createClientConfig = async () => {
         fps INTEGER NOT NULL DEFAULT 240,
         music_volume INTEGER NOT NULL DEFAULT 100,
         effects_volume INTEGER NOT NULL DEFAULT 100,
-        muted INTEGER NOT NULL DEFAULT 0,
-        language TEXT NOT NULL DEFAULT 'en'
+        muted INTEGER NOT NULL DEFAULT 0
     );
   `;
   await query(sql);

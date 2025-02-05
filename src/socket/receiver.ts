@@ -202,7 +202,7 @@ export default async function packetReceiver(
               direction: "down",
             },
           },
-          language: clientConfig[0].language,
+          language: parsedMessage?.language || "en",
           ws,
           stats,
           attackDelay: 0,
@@ -536,8 +536,6 @@ export default async function packetReceiver(
 
       case "CLIENTCONFIG": {
         if (!currentPlayer) return;
-        const _data = data as any;
-        currentPlayer.language = _data.language;
         await player.setConfig(ws.data.id, data);
         break;
       }
