@@ -7,6 +7,7 @@ import assetCache from "../services/assetCache";
 import language from "../systems/language";
 import packet from "../modules/packet";
 import generate from "../modules/sprites";
+import swears from "../../config/swears.json";
 
 const maps = assetCache.get("maps");
 const spritesheets = assetCache.get("spritesheets");
@@ -491,6 +492,7 @@ export default async function packetReceiver(
       case "CHAT": {
         if (data.toString().length > 255) return;
         if (!currentPlayer) return;
+        
         // Send message to the sender
         const sendMessageToPlayer = (playerWs: any, message: string) => {
           playerWs.send(
@@ -518,12 +520,32 @@ export default async function packetReceiver(
           playersInMap = playersInMap.filter((p) => p.isAdmin);
         }
 
+
+        // If there are no players in the map, return
+        if (playersInMap.length === 0) return;
+
+        // Translate the original message to English so that we can filter it against an English swear word list
+        const englishMessage = await language.translate(data.toString(), "en");
+        let filteredMessage = englishMessage;
+
+        // Check for swear words
+        for (const swear of swears) {
+          const swearRegex = new RegExp(swear.id, 'gi');
+          if (swearRegex.test(englishMessage)) {
+            // Replace it with an equal number of asterisks
+            filteredMessage = englishMessage.replace(
+              swearRegex,
+              "*".repeat(swear.id.length)
+            );
+          }
+        }
+
         const translations: Record<string, string> = {};
 
         playersInMap.forEach(async (player) => {
           if (!translations[player.language]) {
             translations[player.language] = await language.translate(
-              data.toString(),
+              filteredMessage,
               player.language
             );
           }
