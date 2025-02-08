@@ -28,11 +28,22 @@ const assetConfig = {
 };
 
 const settings = {
-  logging: {
-    level: "trace",
+  "logging": {
+    "level": "trace",
   },
   "2fa": {
-    enabled: false,
+    "enabled": false,
+  },
+  "webserverRatelimit": {
+    "enabled": true,
+    "windowMs": 5,
+    "max": 500
+  },
+  "websocketRatelimit": {
+    "enabled": true,
+    "maxRequests": 2000,
+    "time": 2000,
+    "maxWindowTime": 1000
   },
 };
 

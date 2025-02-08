@@ -10,13 +10,15 @@ import packet from "../modules/packet";
 import path from "node:path";
 import fs from "node:fs";
 
+// Load settings
+import * as settings from "../../config/settings.json";
+
 const _cert = path.join(import.meta.dir, "../certs/cert.crt");
 const _key = path.join(import.meta.dir, "../certs/cert.key");
 const _https = process.env.WEBSRV_USESSL === "true";
 let options;
 
 if (_https) {
-
   if (!fs.existsSync(_cert) || !fs.existsSync(_key)) {
     log.error(`Attempted to locate certificate and key but failed`);
     log.error(`Certificate: ${_cert}`);
@@ -35,12 +37,18 @@ if (_https) {
 
 const RateLimitOptions: RateLimitOptions = {
   // Maximum amount of requests
-  maxRequests: 2000,
+  maxRequests: settings?.websocketRatelimit?.maxRequests || 2000,
   // Time in milliseconds to remove rate limiting
-  time: 2000,
+  time: settings?.websocketRatelimit?.time || 2000,
   // Maximum window time in milliseconds
-  maxWindowTime: 1000,
+  maxWindowTime: settings?.websocketRatelimit?.maxWindowTime || 1000,
 };
+
+if (settings?.websocketRatelimit?.enabled) {
+  log.success(`Rate limiting enabled for websocket connections`);
+} else {
+  log.warn(`Rate limiting is disabled for websocket connections`);
+}
 
 // Set to store all connected clients
 const connections = new Set<Identity>();
@@ -73,13 +81,14 @@ const Server = Bun.serve<Packet>({
       // Emit the onConnection event
       listener.emit("onConnection", ws.data.id);
       // Add the client to the clientRequests array
-      ClientRateLimit.push({
-        id: ws.data.id,
-        requests: 0,
-        rateLimited: false,
-        time: null,
-        windowTime: 0,
-      });
+      if (settings?.websocketRatelimit?.enabled) {
+        ClientRateLimit.push({
+          id: ws.data.id,
+          requests: 0,
+          rateLimited: false,
+          time: null,
+          windowTime: 0,
+        });
       // Track the clients window time and reset the requests count
       // if the window time is greater than the max window time
       setInterval(() => {
@@ -100,6 +109,7 @@ const Server = Bun.serve<Packet>({
           client.windowTime = 0;
         }
       }, 1000);
+    }
 
       // Subscribe to the CONNECTION_COUNT event and publish the current count
       ws.subscribe("CONNECTION_COUNT" as Subscription["event"]);
@@ -237,16 +247,18 @@ listener.on("onUpdate", async () => {});
 // Fixed update loop
 listener.on("onFixedUpdate", async () => {
   {
-    if (ClientRateLimit.length < 1) return;
-    const timestamp = Date.now();
-    for (let i = 0; i < ClientRateLimit.length; i++) {
-      const client = ClientRateLimit[i];
-      if (client.rateLimited && client.time) {
-        if (timestamp - client.time! > RateLimitOptions.time) {
-          client.rateLimited = false;
-          client.requests = 0;
-          client.time = null;
-          log.debug(`Client with id: ${client.id} is no longer rate limited`);
+    if (settings?.websocketRatelimit?.enabled) {
+      if (ClientRateLimit.length < 1) return;
+      const timestamp = Date.now();
+      for (let i = 0; i < ClientRateLimit.length; i++) {
+        const client = ClientRateLimit[i];
+        if (client.rateLimited && client.time) {
+          if (timestamp - client.time! > RateLimitOptions.time) {
+            client.rateLimited = false;
+            client.requests = 0;
+            client.time = null;
+            log.debug(`Client with id: ${client.id} is no longer rate limited`);
+          }
         }
       }
     }

@@ -4,6 +4,7 @@ import compression from "compression";
 import { rateLimit } from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import cookieSession from "cookie-session";
+import crypto from "crypto";
 import http from "http";
 import https from "https";
 import path from "path";
@@ -11,9 +12,11 @@ import fs from "fs";
 const port = process.env.WEBSRV_PORT || 80;
 const sslport = process.env.WEBSRV_PORTSSL || 443;
 const app = express();
-app.use(compression());
 import log from "../../src/modules/logger";
 import "../../src/services/security";
+
+// Load settings
+import * as settings from "../../config/settings.json";
 
 // Load assets
 import "../../src/modules/assetloader";
@@ -22,6 +25,9 @@ import "../../src/modules/assetloader";
 const _cert = path.join(import.meta.dir, "../certs/cert.crt");
 const _key = path.join(import.meta.dir, "../certs/cert.key");
 const _https = process.env.WEBSRV_USESSL === "true" && fs.existsSync(_cert) && fs.existsSync(_key);
+
+// Compression
+app.use(compression());
 
 // Middleware
 app.use(express.json());
@@ -33,7 +39,7 @@ app.use(
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     path: "/",
     domain: "*.*",
-    keys: [process.env.SESSION_KEY || "secret"],
+    keys: [process.env.SESSION_KEY || crypto.randomBytes(20).toString("hex")],
   })
 );
 
@@ -41,18 +47,23 @@ app.use(
 app.disable("x-powered-by");
 
 // Rate limiting
-const limiter = rateLimit({
-  windowMs: 5 * 60 * 1000,
-  max: 500,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    status: 429,
-    message: "Too many requests, please try again later.",
-  },
-  validate: false,
-});
-app.use(limiter);
+if (settings?.webserverRatelimit?.enabled) {
+  const limiter = rateLimit({
+    windowMs: settings?.webserverRatelimit?.windowMs * 60 * 1000 || 15 * 60 * 1000,
+    max: settings?.webserverRatelimit?.max || 500,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      status: 429,
+      message: "Too many requests, please try again later.",
+    },
+    validate: false,
+  });
+  log.success(`Rate limiting enabled for the webserver`);
+  app.use(limiter);
+} else {
+  log.warn("Rate limiting is disabled for the webserver");
+}
 
 // Redirect to HTTPS
 if (_https) {
