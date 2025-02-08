@@ -218,17 +218,22 @@ window.addEventListener("gamepadjoystick", (e: CustomEventInit) => {
   }
 });
 
-socket.addEventListener("open", () => {
+socket.onopen = () => {
   const _packet = {
     type: "PING",
     data: null,
   };
   socket.send(packet.encode(JSON.stringify(_packet)));
-});
+};
 
-socket.addEventListener("close", () => {
+socket.onclose = (e) => {
+  alert(`WebSocket closed: ${e.code} ${e.reason}`);
   window.location.href = "/";
-});
+};
+
+socket.onerror = (error) => {
+  console.error("WebSocket error: " + error);
+};
 
 socket.addEventListener("message", async (event) => {
   // Blob to ArrayBuffer
