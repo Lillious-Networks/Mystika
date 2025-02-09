@@ -274,15 +274,17 @@ listener.on("onConnection", (data) => {
 // On disconnect
 listener.on("onDisconnect", async (data) => {
   if (!data) return;
+
   const playerData = cache.get(data.id);
-  if (!playerData?.id || !playerData?.location) {
-    log.error(`Player data not found: ${data.id}`);
+  if (!playerData) {
+    log.debug(`Disconnected: ${data.id}`);
     return;
   }
+
   await player.setLocation(playerData.id, playerData.location.map, playerData.location.position);
   cache.remove(playerData.id);
   await player.clearSessionId(playerData.id);
-  log.debug(`Disconnected: ${playerData.id}`);
+  log.debug(`Disconnected: ${playerData.username}`);
 });
 
 // Save loop

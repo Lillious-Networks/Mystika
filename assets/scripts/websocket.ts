@@ -3,6 +3,7 @@ socket.binaryType = "arraybuffer";
 const players = [] as any[];
 const mapScale = 0.1;
 const audioCache = new Map<string, string>();
+const onlinecount = document.getElementById("onlinecount") as HTMLDivElement;
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d");
 const playerCanvas = document.getElementById("players") as HTMLCanvasElement;
@@ -256,6 +257,10 @@ socket.addEventListener("message", async (event) => {
           )
         );
       }, 5000);
+      break;
+    }
+    case "CONNECTION_COUNT": {
+      onlinecount.innerText = `${data} online`;
       break;
     }
     case "SPAWN_PLAYER": {
