@@ -38,7 +38,7 @@ body {
   display: none;
 }
 
-#players, #current-player {
+#players, #current-player, #npcs {
   position: absolute;
   top: 0;
   left: 0;
@@ -394,9 +394,10 @@ input::placeholder {
   -webkit-text-stroke-color: #ffffff;
   text-shadow: 0 0 5px #000000;
   font-weight: lighter;
+  font-size: 14px;
   position: absolute;
   position: fixed;
-  top: 260;
+  top: 50;
   right: 25;
   user-select: none;
   z-index: 101;
@@ -414,6 +415,7 @@ input::placeholder {
   right: 25;
   user-select: none;
   z-index: 101;
+  font-size: 14px;
 }
 
 #map-border {

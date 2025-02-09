@@ -85,7 +85,7 @@ type NullablePlayer = Player | null;
 // Define inventory item
 declare interface InventoryItem {
   name: string;
-  quantity?: number;
+  quantity: Nullable<number>;
 }
 
 // Define item data
@@ -93,6 +93,17 @@ declare interface Item {
   name: string;
   quality: string;
   description: string;
+}
+
+// Define npc data
+declare interface Npc {
+  id: Nullable<number>;
+  last_updated: Nullable<number>;
+  map: string;
+  position: PositionData;
+  hidden: boolean;
+  script: Nullable<string>;
+  dialog: Nullable<string>;
 }
 
 // Define location data
@@ -164,3 +175,8 @@ declare interface SpellData {
   cast_time: number;
   description: string;
 }
+
+type NPCScript = {
+  onCreated: (this: Npc) => void;
+  say: (this: Npc, message: string) => void;
+};

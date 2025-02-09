@@ -5,6 +5,8 @@ import log from "./logger";
 import weapon from "../systems/weapons";
 import item from "../systems/items";
 import spell from "../systems/spells";
+import npc from "../systems/npcs";
+// import NPC from "../systems/npc_scripting";
 import assetCache from "../services/assetCache";
 import generate from "../modules/sprites";
 import zlib from "zlib";
@@ -42,6 +44,12 @@ const weaponnow = performance.now();
 assetCache.add("weapons", await weapon.list());
 const weapons = assetCache.get("weapons") as WeaponData[];
 log.success(`Loaded ${weapons.length} weapon(s) from the database in ${(performance.now() - weaponnow).toFixed(2)}ms`);
+
+// Load npc data
+const npcnow = performance.now();
+assetCache.add("npcs", await npc.list());
+const npcs = assetCache.get("npcs") as Npc[];
+log.success(`Loaded ${npcs.length} npc(s) from the database in ${(performance.now() - npcnow).toFixed(2)}ms`);
 
 // Load maps
 function loadMaps() {

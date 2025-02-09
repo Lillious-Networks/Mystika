@@ -734,7 +734,7 @@ await spell.add(spell);
 ```
 
 <h5>spell.remove();</h5>
-<p style="font-size:0.75em;">Removes a spell to the spell database</p>
+<p style="font-size:0.75em;">Removes a spell from the spell database</p>
 
 ```ts
 await spell.remove(spell);
@@ -759,4 +759,68 @@ await spell.update(spell);
 
 ```ts
 await spell.list();
+```
+
+
+<hr>
+<h3>NPC Management</h3>
+
+```ts
+import npc from "../systems/npcs";
+```
+
+<h5>Structure</h5>
+
+```ts
+declare interface Npc {
+  id: Nullable<number>;
+  last_updated: Nullable<number>;
+  map: string;
+  position: PositionData;
+  direction: string;
+  hidden: boolean;
+  script: Nullable<string>;
+}
+```
+
+<h5>npc.add();</h5>
+<p style="font-size:0.75em;">Adds a npc to the npc database</p>
+
+```ts
+await npc.add(npc);
+```
+
+<h5>npc.remove();</h5>
+<p style="font-size:0.75em;">Removes a npc to the npc database</p>
+
+```ts
+await npc.remove(npc);
+```
+
+<h5>npc.find();</h5>
+<p style="font-size:0.75em;">Fetches a npc from the npc database</p>
+
+```ts
+await npc.find(npc);
+```
+
+<h5>npc.update();</h5>
+<p style="font-size:0.75em;">Updates a npc in the npc database</p>
+
+```ts
+await npc.update(npc);
+```
+
+<h5>npc.list();</h5>
+<p style="font-size:0.75em;">Lists all npcs in the npc database</p>
+
+```ts
+await npc.list();
+```
+
+<h5>npc.move();</h5>
+<p style="font-size:0.75em;">Changes a npc location</p>
+
+```ts
+await npc.move(npc);
 ```

@@ -28,7 +28,7 @@ router.use(async (req, res, next) => {
 
     // Check if the account is verified
     const verified = await query("SELECT verified FROM accounts WHERE token = ? LIMIT 1", [token]) as any;
-    if (verified[0].verified === 0) {
+    if (verified[0]?.verified === 0) {
         res.status(403).redirect("/");
         return;
     }

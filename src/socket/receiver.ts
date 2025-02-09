@@ -8,7 +8,6 @@ import language from "../systems/language";
 import packet from "../modules/packet";
 import generate from "../modules/sprites";
 import swears from "../../config/swears.json";
-
 const maps = assetCache.get("maps");
 const spritesheets = assetCache.get("spritesheets");
 // Create sprites from the spritesheets
@@ -20,6 +19,8 @@ const spritePromises = spritesheets.map(async (spritesheet: any) => {
 Promise.all(spritePromises).then((sprites) => {
   assetCache.add("sprites", sprites);
 });
+
+const npcs = assetCache.get("npcs");
 
 export default async function packetReceiver(
   server: any,
@@ -230,6 +231,33 @@ export default async function packetReceiver(
             })
           )
         );
+
+        // Load NPCs for the current map only
+        const npcsInMap = npcs.filter(
+          (npc: Npc) => npc.map === spawnLocation.map.replace(".json", "")
+        );
+        
+        npcsInMap.forEach((npc: Npc) => {
+          ws.send(
+            packet.encode(
+              JSON.stringify({
+                type: "CREATE_NPC",
+                data: {
+                  id: npc.id,
+                  last_updated: npc.last_updated,
+                  location: {
+                    x: npc.position.x,
+                    y: npc.position.y,
+                    direction: "down",
+                  },
+                  script: npc.script,
+                  hidden: npc.hidden,
+                  dialog: npc.dialog,
+                },
+              })
+            )
+          );
+        });
 
         const playerCache = cache.list();
         // Load players for the current map only
@@ -555,7 +583,6 @@ export default async function packetReceiver(
 
         break;
       }
-
       case "CLIENTCONFIG": {
         if (!currentPlayer) return;
         await player.setConfig(ws.data.id, data);

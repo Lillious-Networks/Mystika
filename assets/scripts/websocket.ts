@@ -1,19 +1,24 @@
 const socket = new WebSocket(`__VAR.WEBSOCKETURL__`);
 socket.binaryType = "arraybuffer";
 const players = [] as any[];
+const npcs = [] as any[];
 const mapScale = 0.1;
 const audioCache = new Map<string, string>();
+const npcImage = new Image();
+npcImage.src = "/img/npc.png";
 const onlinecount = document.getElementById("onlinecount") as HTMLDivElement;
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d");
 const playerCanvas = document.getElementById("players") as HTMLCanvasElement;
-const playerContext = playerCanvas.getContext("2d");
+const npcCanvas = document.getElementById("npcs") as HTMLCanvasElement;
+const npcContext = npcCanvas.getContext("2d");
+const gameContext = playerCanvas.getContext("2d");
 const progressBar = document.getElementById("progress-bar") as HTMLDivElement;
 const progressBarContainer = document.getElementById("progress-bar-container") as HTMLDivElement;
 const currentPlayerCanvas = document.getElementById(
   "current-player"
 ) as HTMLCanvasElement;
-const currentPlayerContext = currentPlayerCanvas.getContext("2d");
+const currentgameContext = currentPlayerCanvas.getContext("2d");
 const inventoryUI = document.getElementById("inventory") as HTMLDivElement;
 const inventoryGrid = document.getElementById("grid") as HTMLDivElement;
 const statUI = document.getElementById("stat-screen") as HTMLDivElement;
@@ -107,8 +112,17 @@ const packet = {
   },
 };
 
+function npcAnimationLoop() {
+  if (!npcContext || !npcCanvas) return;
+  npcContext.clearRect(0, 0, npcCanvas.width, npcCanvas.height);
+  npcs.forEach((npc) => {
+    npc.show(npcContext);
+  });
+  window.requestAnimationFrame(npcAnimationLoop);
+}
+
 function animationLoop() {
-  if (!ctx || !playerContext) return;
+  if (!ctx || !gameContext) return;
 
   // Get the desired frame rate from the slider
   const fpsTarget = parseFloat(fpsSlider.value); // Convert to a number if needed
@@ -122,7 +136,7 @@ function animationLoop() {
     lastFrameTime = now;
 
     // Clear the canvas
-    playerContext.clearRect(0, 0, playerCanvas.width, playerCanvas.height);
+    gameContext.clearRect(0, 0, playerCanvas.width, playerCanvas.height);
 
     const currentPlayer = players.find(
       (player) => player.id === sessionStorage.getItem("connectionId")
@@ -133,11 +147,11 @@ function animationLoop() {
         if (player.isStealth) {
           if (currentPlayer) {
             if (currentPlayer.isAdmin) {
-              player.show(playerContext);
+              player.show(gameContext);
             }
           }
         } else {
-          player.show(playerContext);
+          player.show(gameContext);
         }
       }
     });
@@ -154,8 +168,8 @@ function animationLoop() {
 }
 
 function currentPlayerLoop() {
-  if (!ctx || !currentPlayerContext) return;
-  currentPlayerContext.clearRect(
+  if (!ctx || !currentgameContext) return;
+  currentgameContext.clearRect(
     0,
     0,
     currentPlayerCanvas.width,
@@ -163,15 +177,18 @@ function currentPlayerLoop() {
   );
   players.forEach((player) => {
     if (player.id === sessionStorage.getItem("connectionId")) {
-      player.show(currentPlayerContext);
+      player.show(currentgameContext);
     }
   });
+
+
   window.requestAnimationFrame(currentPlayerLoop);
 }
 
 // Start the animation loops
 animationLoop();
 currentPlayerLoop();
+npcAnimationLoop();
 
 // Event listener for joystick movement
 window.addEventListener("gamepadjoystick", (e: CustomEventInit) => {
@@ -336,6 +353,12 @@ socket.addEventListener("message", async (event) => {
       }
       break;
     }
+    case "CREATE_NPC": {
+      await isLoaded();
+      if (!data) return;
+      createNPC(data);
+      break;
+    }
     case "LOAD_MAP":
       {
         // Remove the full map image if it exists to update the map image with a new one
@@ -434,6 +457,12 @@ socket.addEventListener("message", async (event) => {
         
           currentPlayerCanvas.style.width = playerCanvas.style.width;
           currentPlayerCanvas.style.height = playerCanvas.style.height;
+
+          npcCanvas.width = mapData.width * mapData.tilewidth;
+          npcCanvas.height = mapData.height * mapData.tileheight;
+
+          npcCanvas.style.width = mapData.width * mapData.tilewidth + "px";
+          npcCanvas.style.height = mapData.height * mapData.tilewidth + "px";
         
           if (!ctx) return;
           ctx.imageSmoothingEnabled = false;
@@ -596,6 +625,13 @@ socket.addEventListener("message", async (event) => {
           player.chat = data.message;
         }
       });
+      break;
+    }
+    case "NPCDIALOG": {
+      const npc = npcs.find((npc) => npc.id === data.id);
+      if (!npc) return;
+      console.log(data.dialog);
+      npc.dialog = data.dialog;
       break;
     }
     case "STATS": {
@@ -1124,6 +1160,72 @@ async function isLoaded() {
   });
 }
 
+function createNPC(data: any) {
+  const npc: {
+    id: string;
+    position: { x: number; y: number };
+    dialog: string;
+    show: (context: CanvasRenderingContext2D) => void;
+  } = {
+    id: data.id,
+    dialog: data.dialog || "",
+    position: {
+      x: npcCanvas.width / 2 + data.location.x,
+      y: npcCanvas.height / 2 + data.location.y,
+    },
+    show: function (this: typeof npc, context: CanvasRenderingContext2D) {
+      if (!npcImage || !context) return;
+      // Get current players admin status
+      const currentPlayer = players.find(
+        (player) => player.id === sessionStorage.getItem("connectionId")
+      );
+      if (data?.hidden && !currentPlayer?.isAdmin) return;
+      context.drawImage(npcImage, this.position.x, this.position.y, npcImage.width, npcImage.height);
+
+      context.fillStyle = "black";
+      context.fillStyle = "white";
+      context.font = "14px Arial";
+      context.textAlign = "center";
+      if (this.dialog) {
+        if (this.dialog.trim() !== "") {
+          const lines = getLines(context, this.dialog, 500).reverse();
+          let startingPosition = this.position.y;
+
+          for (let i = 0; i < lines.length; i++) {
+            startingPosition -= 15;
+            context.fillText(lines[i], this.position.x + 16, startingPosition);
+          }
+        }
+      }
+    }
+  };
+
+  npcs.push(npc);
+
+  // Make a copy of the npc object to prevent the original object from being modified
+  const _npc = Object.assign({}, npc) as any;
+  // Delete unnecessary properties from the copied npc object
+  delete _npc.show;
+  
+  Object.defineProperties(_npc, {
+    id: { writable: false, configurable: false },
+    position: { writable: false, configurable: false },
+    dialog: { writable: false, configurable: false },
+  });
+
+  // Execute the npc script in a sandboxed environment where "this" refers to the npc object
+  try {
+    (async function () {
+      await isLoaded();
+      new Function(
+        "with(this) { " + decodeURIComponent(data.script) + " }"
+      ).call(_npc);
+    }).call(_npc);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 function createPlayer(data: any) {
   const player = {
     id: data.id,
@@ -1166,6 +1268,7 @@ function createPlayer(data: any) {
       context.shadowBlur = 5;
       context.shadowOffsetX = 0;
       context.strokeStyle = "black";
+      
       // Uppercase the first letter of the username
       data.username =
         data.username.charAt(0).toUpperCase() + data.username.slice(1);
@@ -1268,6 +1371,7 @@ function createPlayer(data: any) {
       player.position.y - window.innerHeight / 2 + 48
     );
   }
+
   players.push(player);
 
   // Update player dots on the full map if it is open
@@ -1336,8 +1440,6 @@ function updateStats(health: number, stamina: number) {
     healthBar.classList.add("red");
     return;
   }
-
-
 }
 
 function updateTargetStats(health: number, stamina: number) {
