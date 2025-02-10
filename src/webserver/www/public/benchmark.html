@@ -7,10 +7,12 @@
     <body>
         <div id="benchmark">
             <h1>Benchmark</h1>
+            <label for="clients" id="clients-label">Clients:</label>
+            <input type="range" id="clients" min="1" max="250">
             <label for="iterations" id="iterations-label">Iterations:</label>
-            <input type="range" id="iterations" min="1" max="100">
+            <input type="range" id="iterations" min="1" max="10000">
             <label for="data" id="data-label">Data:</label>
-            <input type="range" id="data" min="1" max="10">
+            <input type="range" id="data" min="0.00001" max="0.001" step="0.000001">
             <input type="button" value="Start" id="start">
             <p id="result"></p>
         </div>

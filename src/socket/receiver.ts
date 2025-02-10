@@ -10,6 +10,10 @@ import generate from "../modules/sprites";
 import swears from "../../config/swears.json";
 const maps = assetCache.get("maps");
 const spritesheets = assetCache.get("spritesheets");
+
+// Load settings
+import * as settings from "../../config/settings.json";
+
 // Create sprites from the spritesheets
 const spritePromises = spritesheets.map(async (spritesheet: any) => {
   const sprite = await generate(spritesheet);
@@ -31,9 +35,9 @@ export default async function packetReceiver(
     // Check if the message is empty
     if (!message) return ws.close(1008, "Empty message");
     // Check if the message is too large
-    if (message.length > 1024 * 1024)
-      return ws.close(1009, "Message too large");
     const parsedMessage: Packet = tryParsePacket(message) as Packet;
+    if ((message.length > (1024 * 1024 * settings?.websocket?.maxPayloadMB || 1024 * 1024)) && (parsedMessage.type !== "BENCHMARK" && !settings?.websocket?.benchmarkenabled))
+      return ws.close(1009, "Message too large");
     // Check if the packet is malformed
     if (!parsedMessage) return ws.close(1007, "Malformed message");
     const data = parsedMessage?.data;

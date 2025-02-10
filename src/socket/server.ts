@@ -1,3 +1,5 @@
+const MAX_BUFFER_SIZE = 1024 * 1024 * 16; // 16MB
+const packetQueue = new Map<string, (() => void)[]>();
 import crypto from "crypto";
 import packetReceiver from "./receiver";
 export const listener = new eventEmitter();
@@ -9,6 +11,7 @@ import cache from "../services/cache.ts";
 import packet from "../modules/packet";
 import path from "node:path";
 import fs from "node:fs";
+import { WebSocket } from "ws";
 
 // Load settings
 import * as settings from "../../config/settings.json";
@@ -72,12 +75,14 @@ const Server = Bun.serve<Packet>({
   tls: options,
   websocket: {
     perMessageDeflate: true, // Enable per-message deflate compression
-    maxPayloadLength: 1024 * 1024, // 1 MiB
-    idleTimeout: 1, // 1 second
+    maxPayloadLength: 1024 * 1024 * settings?.websocket?.maxPayloadMB || 1024 * 1024, // 1MB
+    // Seconds to wait for the connection to close
+    idleTimeout: settings?.websocket?.idleTimeout || 1,
     async open(ws) {
       // Add the client to the set of connected clients
       if (!ws.data?.id || !ws.data?.useragent) return;
       connections.add({ id: ws.data.id, useragent: ws.data.useragent });
+      packetQueue.set(ws.data.id, []);
       // Emit the onConnection event
       listener.emit("onConnection", ws.data.id);
       // Add the client to the clientRequests array
@@ -195,23 +200,20 @@ const Server = Bun.serve<Packet>({
         if (!ws.data?.id || !message) return;
         // Decode the message
         message = packet.decode(message);
+        const parsedMessage = JSON.parse(message.toString());
+        const packetType = parsedMessage?.type;
+        
+        
         for (const client of ClientRateLimit) {
           // Return if the client is rate limited
           if (client.rateLimited) return;
-          if (client.id === ws.data.id) {
-            // Update the client requests count +1
+          if (client.id === ws.data.id ) {
             client.requests++;
             // Check if the client has reached the rate limit
             if (client.requests >= RateLimitOptions.maxRequests) {
               client.rateLimited = true;
               client.time = Date.now();
               log.debug(`Client with id: ${ws.data.id} is rate limited`);
-              // Output the rate limited clients
-              log.debug(
-                ClientRateLimit.filter(
-                  (client) => client.rateLimited
-                ).toString()
-              );
               ws.send(
                 packet.encode(
                   JSON.stringify({ type: "RATE_LIMITED", data: "Rate limited" })
@@ -221,7 +223,14 @@ const Server = Bun.serve<Packet>({
             }
           }
         }
-        packetReceiver(Server, ws, message.toString());
+        const priorityPackets = ["MOVEXY"];
+        const isPriority = priorityPackets.includes(packetType);
+        // Check if the packet is a priority packet and process it immediately
+        if (isPriority) {
+          packetReceiver(Server, ws, message.toString());
+          return;
+        }
+        handleBackpressure(ws as any, () => packetReceiver(Server, ws, message.toString()));
       } catch (e) {
         log.error(e as string);
       }
@@ -321,3 +330,48 @@ export const events = {
     return ClientRateLimit.filter((client) => client.rateLimited);
   },
 };
+
+
+function handleBackpressure(ws: any, action: () => void, retryCount = 0) {
+  // Check retry limit to avoid infinite retry loop
+  if (retryCount > 20) {
+    log.warn("Max retries reached. Action skipped to avoid infinite loop.");
+    return;
+  }
+
+  // Ensure WebSocket is open
+  if (ws.readyState !== WebSocket.OPEN) {
+    log.warn("WebSocket is not open. Action cannot proceed.");
+    return;
+  }
+
+  // Ensure there is a packet queue
+  const queue = packetQueue.get(ws.data.id);
+  if (!queue) {
+    log.warn("No packet queue found for WebSocket. Action cannot proceed.");
+    return;
+  }
+
+  // If there's backpressure, add the current action to the queue and retry later
+  if (ws.bufferedAmount > MAX_BUFFER_SIZE) {
+    const retryInterval = Math.min(50 + retryCount * 50, 500); // Capped at 500ms
+    log.debug(`Backpressure detected. Retrying in ${retryInterval}ms (Attempt ${retryCount + 1})`);
+    
+    // Queue the action to be retried
+    queue.push(action);
+
+    // Retry after backpressure clears
+    setTimeout(() => handleBackpressure(ws, action, retryCount + 1), retryInterval);
+  } else {
+    // Process the action if no backpressure, then process all queued actions
+    action();
+
+    // Process queued actions while the buffer allows
+    while (queue.length > 0 && ws.bufferedAmount <= MAX_BUFFER_SIZE) {
+      const nextAction = queue.shift();
+      if (nextAction) {
+        nextAction();
+      }
+    }
+  }
+}

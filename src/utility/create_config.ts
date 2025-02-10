@@ -45,6 +45,11 @@ const settings = {
     "time": 2000,
     "maxWindowTime": 1000
   },
+  "websocket": {
+    "maxPayloadMB": 1,
+    "benchmarkenabled": false,
+    "idleTimeout": 1
+  }
 };
 
 if (!fs.existsSync(path.join(configPath, "assets.json"))) {
