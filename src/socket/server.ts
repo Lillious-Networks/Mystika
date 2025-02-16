@@ -79,6 +79,7 @@ const Server = Bun.serve<Packet>({
     // Seconds to wait for the connection to close
     idleTimeout: settings?.websocket?.idleTimeout || 1,
     async open(ws) {
+      ws.binaryType = "arraybuffer";
       // Add the client to the set of connected clients
       if (!ws.data?.id || !ws.data?.useragent) return;
       connections.add({ id: ws.data.id, useragent: ws.data.useragent });
